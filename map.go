@@ -7,8 +7,6 @@ type MapView[K comparable, V any] interface {
 	List() iter.Seq[Pair[K, V]]
 
 	Get(K) (V, bool)
-	Has(K) bool
-	GetZero(K) V
 }
 
 type Map[K comparable, V any] map[K]V
@@ -32,20 +30,26 @@ func (m Map[K, V]) Get(key K) (V, bool) {
 	return v, ok
 }
 
-func (m Map[K, V]) Has(key K) bool {
-	_, ok := m[key]
-	return ok
-}
-
-func (m Map[K, V]) GetZero(key K) V {
-	return m[key]
-}
-
 func NewMap[M ~map[K]V, K comparable, V any](m M) Map[K, V] {
 	return Map[K, V](m)
 }
 
 type MapViewer[K comparable, V1 Viewer[V2], V2 any] Map[K, V1]
+
+func (m MapViewer[K, V1, V2]) Len() int {
+	return Map[K, V1](m).Len()
+}
+
+func (m MapViewer[K, V1, V2]) List() iter.Seq[Pair[K, V2]] {
+	return func(yield func(Pair[K, V2]) bool) {
+		for k, v1 := range m {
+			v2 := v1.View()
+			if !yield(NewPair(k, v2)) {
+				return
+			}
+		}
+	}
+}
 
 func (m MapViewer[K, V1, V2]) Get(key K) (V2, bool) {
 	v1, ok := m[key]
@@ -56,16 +60,40 @@ func (m MapViewer[K, V1, V2]) Get(key K) (V2, bool) {
 	return v1.View(), true
 }
 
-func (m MapViewer[K, V1, V2]) Has(key K) bool {
-	_, ok := m[key]
+func NewMapViewer[M ~map[K]V1, K comparable, V1 Viewer[V2], V2 any](m M) MapViewer[K, V1, V2] {
+	return MapViewer[K, V1, V2](m)
+}
+
+type Getter[K, V any] interface {
+	Get(K) (V, bool)
+}
+
+func Get[G Getter[K, V], K, V any](g G, key K) (V, bool) {
+	return g.Get(key)
+}
+
+func GetOr[G Getter[K, V], K, V any](g G, key K, or V) V {
+	v, ok := g.Get(key)
+	if !ok {
+		return or
+	}
+	return v
+}
+
+func GetZero[G Getter[K, V], K, V any](g G, key K) V {
+	v, _ := g.Get(key)
+	return v
+}
+
+func Has[G Getter[K, V], K, V any](g G, key K) bool {
+	_, ok := g.Get(key)
 	return ok
 }
 
-func (m MapViewer[K, V1, V2]) GetZero(key K) V2 {
-	v1 := m[key]
-	return v1.View()
-}
-
-func NewMapViewer[M ~map[K]V1, K comparable, V1 Viewer[V2], V2 any](m M) MapViewer[K, V1, V2] {
-	return MapViewer[K, V1, V2](m)
+func GetPanic[G Getter[K, V], K, V any](g G, key K) V {
+	v, ok := g.Get(key)
+	if !ok {
+		panic("key not found")
+	}
+	return v
 }
