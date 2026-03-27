@@ -20,11 +20,8 @@ type WithLegoBooklet[V any] interface {
 }
 
 func Sort[L Lister[V], V WithLegoBooklet[B], B CmpBooklet[V]](in L) []V {
-	type lener interface {
-		Len() int
-	}
 	var out []V
-	if l, ok := any(in).(lener); ok && l.Len() > 0 {
+	if l, ok := any(in).(Lener); ok && l.Len() > 0 {
 		out = make([]V, l.Len())
 	}
 	for v := range in.List() {
