@@ -22,3 +22,13 @@ func Collect[A Adder[T], T any](values iter.Seq[T]) A {
 	Add(values, a)
 	return a
 }
+
+// ShallowCopy creates a shallow copy of the given LenLister and returns it as the same type.
+func ShallowCopy[A interface {
+	LenLister[T]
+	Adder[T]
+}, T any](a A) A {
+	var copy A
+	Add(a.List(), copy)
+	return copy
+}
