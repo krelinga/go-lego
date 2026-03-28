@@ -1,5 +1,7 @@
 package lego
 
+import "reflect"
+
 // FixedPair is a pair that does not allow callers to reassign the key or value fields, but which may still allow modifying the key and value (for example, if the key or value is a pointer).
 type FixedPair[K any, V any] interface {
 	GetKey() K
@@ -35,7 +37,11 @@ func (p ViewerPair[K, V1, V2]) GetValue() V1 {
 	return Pair[K, V1](p).GetValue()
 }
 
+// View returns a view of the pair. It panics if the key is a pointer, since pointer keys are mutable and would violate the immutability guarantee of the view.
 func (p ViewerPair[K, V1, V2]) View() FixedPair[K, V2] {
+	if t := reflect.TypeFor[K](); t.Kind() == reflect.Pointer {
+		panic("cannot create a view of a pair with pointer keys")
+	}
 	return viewerPairView[K, V1, V2]{p: p}
 }
 
