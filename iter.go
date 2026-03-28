@@ -6,7 +6,7 @@ type Lister[V any] interface {
 	List() iter.Seq[V]
 }
 
-func Keys[L Lister[P], P PairView[K, V], K any, V any](l L) iter.Seq[K] {
+func Keys[L Lister[P], P FixedPair[K, V], K any, V any](l L) iter.Seq[K] {
 	return func(yield func(K) bool) {
 		for pair := range l.List() {
 			if !yield(pair.GetKey()) {
@@ -16,7 +16,7 @@ func Keys[L Lister[P], P PairView[K, V], K any, V any](l L) iter.Seq[K] {
 	}
 }
 
-func Values[L Lister[P], P PairView[K, V], K any, V any](l L) iter.Seq[V] {
+func Values[L Lister[P], P FixedPair[K, V], K any, V any](l L) iter.Seq[V] {
 	return func(yield func(V) bool) {
 		for pair := range l.List() {
 			if !yield(pair.GetValue()) {
@@ -36,7 +36,7 @@ func All[L Lister[V], V any](l L) iter.Seq[V] {
 	}
 }
 
-func All2[L Lister[P], P PairView[K, V], K any, V any](l L) iter.Seq2[K, V] {
+func All2[L Lister[P], P FixedPair[K, V], K any, V any](l L) iter.Seq2[K, V] {
 	return func(yield func(K, V) bool) {
 		for pair := range l.List() {
 			if !yield(pair.GetKey(), pair.GetValue()) {

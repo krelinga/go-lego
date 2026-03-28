@@ -7,6 +7,10 @@ Package lego provides several abstractions on top of Go's built-in data structur
 
 The package provides wrappers around Go's built-in maps and slices, and implements a set type that wraps a map[K]struct{}.
 
+## Pairs
+
+The package uses Pair types to represent key-value pairs in maps and elements in slices (where keys are slice indices).
+
 ## Fixed Types
 
 A Fixed Type provides a view of another container that does not allow adding or removing elements.
