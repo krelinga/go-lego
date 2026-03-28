@@ -1,6 +1,9 @@
 package lego
 
-import "iter"
+import (
+	"iter"
+	"reflect"
+)
 
 // A FixedMap is a map that does not allow adding or removing elements, but which may still allow modifying the elements in the map (for example, if the values are pointers).
 type FixedMap[K comparable, V any] interface {
@@ -52,7 +55,12 @@ func (m ViewerMap[K, V1, V2]) Get(key K) (V1, bool) {
 	return Map[K, V1](m).Get(key)
 }
 
+// View returns a view of the map. It panics if the map has pointer keys, since pointer keys are mutable and would violate the immutability guarantee of the view.
 func (m ViewerMap[K, V1, V2]) View() FixedMap[K, V2] {
+	t := reflect.TypeFor[K]()
+	if t.Kind() == reflect.Pointer {
+		panic("cannot create a view of a map with pointer keys")
+	}
 	return viewerMapView[K, V1, V2]{m: m}
 }
 
