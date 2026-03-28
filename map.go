@@ -2,13 +2,16 @@ package lego
 
 import "iter"
 
-type MapView[K comparable, V any] interface {
+// A FixedMap is a map that does not allow adding or removing elements, but which may still allow modifying the elements in the map (for example, if the values are pointers).
+type FixedMap[K comparable, V any] interface {
 	Len() int
 	List() iter.Seq[Pair[K, V]]
 
 	Get(K) (V, bool)
 }
 
+// A Map is a mutable map that wraps Go's built-in map type.
+// It implements the [FixedMap] interface.
 type Map[K comparable, V any] map[K]V
 
 func (m Map[K, V]) Len() int {
@@ -34,34 +37,54 @@ func NewMap[M ~map[K]V, K comparable, V any](m M) Map[K, V] {
 	return Map[K, V](m)
 }
 
-type MapViewer[K comparable, V1 Viewer[V2], V2 any] Map[K, V1]
+// A ViewerMap is a special case of [Map] that stores values that implement the [Viewer] interface, and provides a method to get a view of the map.
+type ViewerMap[K comparable, V1 Viewer[V2], V2 any] Map[K, V1]
 
-func (m MapViewer[K, V1, V2]) Len() int {
+func (m ViewerMap[K, V1, V2]) Len() int {
 	return Map[K, V1](m).Len()
 }
 
-func (m MapViewer[K, V1, V2]) List() iter.Seq[Pair[K, V2]] {
+func (m ViewerMap[K, V1, V2]) List() iter.Seq[Pair[K, V1]] {
+	return Map[K, V1](m).List()
+}
+
+func (m ViewerMap[K, V1, V2]) Get(key K) (V1, bool) {
+	return Map[K, V1](m).Get(key)
+}
+
+func (m ViewerMap[K, V1, V2]) View() FixedMap[K, V2] {
+	return viewerMapView[K, V1, V2]{m: m}
+}
+
+func NewViewerMap[M ~map[K]V1, K comparable, V1 Viewer[V2], V2 any](m M) ViewerMap[K, V1, V2] {
+	return ViewerMap[K, V1, V2](m)
+}
+
+type viewerMapView[K comparable, V1 Viewer[V2], V2 any] struct {
+	m ViewerMap[K, V1, V2]
+}
+
+func (v viewerMapView[K, V1, V2]) Len() int {
+	return v.m.Len()
+}
+
+func (v viewerMapView[K, V1, V2]) List() iter.Seq[Pair[K, V2]] {
 	return func(yield func(Pair[K, V2]) bool) {
-		for k, v1 := range m {
-			v2 := v1.View()
-			if !yield(NewPair(k, v2)) {
+		for pair := range v.m.List() {
+			if !yield(NewPair(pair.GetKey(), pair.GetValue().View())) {
 				return
 			}
 		}
 	}
 }
 
-func (m MapViewer[K, V1, V2]) Get(key K) (V2, bool) {
-	v1, ok := m[key]
+func (v viewerMapView[K, V1, V2]) Get(key K) (V2, bool) {
+	v1, ok := v.m.Get(key)
 	if !ok {
 		var zero V2
 		return zero, false
 	}
 	return v1.View(), true
-}
-
-func NewMapViewer[M ~map[K]V1, K comparable, V1 Viewer[V2], V2 any](m M) MapViewer[K, V1, V2] {
-	return MapViewer[K, V1, V2](m)
 }
 
 type Getter[K, V any] interface {
