@@ -2,13 +2,16 @@ package lego
 
 import "iter"
 
-type SetView[V comparable] interface {
+// A FixedSet is a set that does not allow adding or removing elements, but which may still allow modifying the elements in the set (for example, if the elements are pointers).
+type FixedSet[V comparable] interface {
 	Len() int
 	List() iter.Seq[V]
 
 	Has(V) bool
 }
 
+// A Set is a mutable set that wraps Go's built-in map type.
+// It implements the [FixedSet] interface.
 type Set[V comparable] struct {
 	m map[V]struct{}
 }
