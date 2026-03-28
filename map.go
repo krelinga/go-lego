@@ -13,15 +13,16 @@ type FixedMap[K comparable, V any] interface {
 	Get(K) (V, bool)
 }
 
-// A Map is a mutable map that wraps Go's built-in map type.
+// A GoMap is map that wraps Go's built-in map type.
 // It implements the [FixedMap] interface.
-type Map[K comparable, V any] map[K]V
+// It does not implement the [Adder] interface since Go's built-in maps may be nil and thus not safe to add to without reassignment, which this type does not support.
+type GoMap[K comparable, V any] map[K]V
 
-func (m Map[K, V]) Len() int {
+func (m GoMap[K, V]) Len() int {
 	return len(m)
 }
 
-func (m Map[K, V]) List() iter.Seq[Pair[K, V]] {
+func (m GoMap[K, V]) List() iter.Seq[Pair[K, V]] {
 	return func(yield func(Pair[K, V]) bool) {
 		for k, v := range m {
 			if !yield(NewPair(k, v)) {
@@ -31,28 +32,59 @@ func (m Map[K, V]) List() iter.Seq[Pair[K, V]] {
 	}
 }
 
-func (m Map[K, V]) Get(key K) (V, bool) {
+func (m GoMap[K, V]) Get(key K) (V, bool) {
 	v, ok := m[key]
 	return v, ok
 }
 
+// A Map is a mutable map.
+// It implements the [FixedMap] interface and the [Adder] interface.
+type Map[K comparable, V any] struct {
+	m GoMap[K, V]
+}
+
+func (m Map[K, V]) Len() int {
+	return len(m.m)
+}
+
+func (m Map[K, V]) List() iter.Seq[Pair[K, V]] {
+	return m.m.List()
+}
+
+func (m Map[K, V]) Get(key K) (V, bool) {
+	return m.m.Get(key)
+}
+
+func (m Map[K, V]) Add(pair Pair[K, V]) {
+	if m.m == nil {
+		m.m = GoMap[K, V]{}
+	}
+	m.m[pair.GetKey()] = pair.GetValue()
+}
+
 func NewMap[M ~map[K]V, K comparable, V any](m M) Map[K, V] {
-	return Map[K, V](m)
+	return Map[K, V]{m: GoMap[K, V](m)}
 }
 
 // A ViewerMap is a special case of [Map] that stores values that implement the [Viewer] interface, and provides a method to get a view of the map.
-type ViewerMap[K comparable, V1 Viewer[V2], V2 any] Map[K, V1]
+type ViewerMap[K comparable, V1 Viewer[V2], V2 any] struct {
+	m Map[K, V1]
+}
 
 func (m ViewerMap[K, V1, V2]) Len() int {
-	return Map[K, V1](m).Len()
+	return m.m.Len()
 }
 
 func (m ViewerMap[K, V1, V2]) List() iter.Seq[Pair[K, V1]] {
-	return Map[K, V1](m).List()
+	return m.m.List()
 }
 
 func (m ViewerMap[K, V1, V2]) Get(key K) (V1, bool) {
-	return Map[K, V1](m).Get(key)
+	return m.m.Get(key)
+}
+
+func (m ViewerMap[K, V1, V2]) Add(pair Pair[K, V1]) {
+	m.m.Add(pair)
 }
 
 // View returns a view of the map. It panics if the map has pointer keys, since pointer keys are mutable and would violate the immutability guarantee of the view.
@@ -65,7 +97,7 @@ func (m ViewerMap[K, V1, V2]) View() FixedMap[K, V2] {
 }
 
 func NewViewerMap[M ~map[K]V1, K comparable, V1 Viewer[V2], V2 any](m M) ViewerMap[K, V1, V2] {
-	return ViewerMap[K, V1, V2](m)
+	return ViewerMap[K, V1, V2]{m: NewMap(m)}
 }
 
 type viewerMapView[K comparable, V1 Viewer[V2], V2 any] struct {

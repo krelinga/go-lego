@@ -10,19 +10,21 @@ type FixedSet[V comparable] interface {
 	Has(V) bool
 }
 
-// A Set is a mutable set that wraps Go's built-in map type.
+// A GoSetValue is a placeholder value used in the implementation of GoSet, since Go's built-in maps do not allow sets directly.
+type GoSetValue struct{}
+
+// A GoSet is a set that wraps Go's built-in map type with a placeholder value.
 // It implements the [FixedSet] interface.
-type Set[V comparable] struct {
-	m map[V]struct{}
+// It does not implement the [Adder] interface since Go's built-in maps may be nil and thus not safe to add to without reassignment, which this type does not support.
+type GoSet[V comparable] map[V]GoSetValue
+
+func (s GoSet[V]) Len() int {
+	return len(s)
 }
 
-func (s Set[V]) Len() int {
-	return len(s.m)
-}
-
-func (s Set[V]) List() iter.Seq[V] {
+func (s GoSet[V]) List() iter.Seq[V] {
 	return func(yield func(V) bool) {
-		for v := range s.m {
+		for v := range s {
 			if !yield(v) {
 				return
 			}
@@ -30,15 +32,41 @@ func (s Set[V]) List() iter.Seq[V] {
 	}
 }
 
-func (s Set[V]) Has(v V) bool {
-	_, ok := s.m[v]
+func (s GoSet[V]) Has(v V) bool {
+	_, ok := s[v]
 	return ok
 }
 
-func NewSet[V comparable](values ...V) Set[V] {
-	m := make(map[V]struct{}, len(values))
-	for _, v := range values {
-		m[v] = struct{}{}
-	}
-	return Set[V]{m: m}
+// A Set is a mutable set.
+// It implements the [FixedSet] interface and the [Adder] interface.
+type Set[V comparable] struct {
+	s GoSet[V]
 }
+
+func (s Set[V]) Len() int {
+	return s.s.Len()
+}
+
+func (s Set[V]) List() iter.Seq[V] {
+	return s.s.List()
+}
+
+func (s Set[V]) Has(v V) bool {
+	return s.s.Has(v)
+}
+
+func (s Set[V]) Add(v V) {
+	if s.s == nil {
+		s.s = GoSet[V]{}
+	}
+	s.s[v] = GoSetValue{}
+}
+
+func NewSet[V comparable](values ...V) Set[V] {
+	m := make(GoSet[V], len(values))
+	for _, v := range values {
+		m[v] = GoSetValue{}
+	}
+	return Set[V]{s: m}
+}
+

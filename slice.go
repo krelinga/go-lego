@@ -10,15 +10,15 @@ type FixedSlice[T any] interface {
 	Get(int) T
 }
 
-// A Slice is a mutable slice that wraps Go's built-in slice type.
-// It implements the [FixedSlice] interface.
-type Slice[T any] []T
+// A GoSlice is a wrapper around Go's built-in slice type that implements the [FixedSlice] interface.
+// It does not implement the [Adder] interface, since Go's built-in slices do not allow adding elements without creating a new slice.
+type GoSlice[T any] []T
 
-func (s Slice[T]) Len() int {
+func (s GoSlice[T]) Len() int {
 	return len(s)
 }
 
-func (s Slice[T]) List() iter.Seq[Pair[int, T]] {
+func (s GoSlice[T]) List() iter.Seq[Pair[int, T]] {
 	return func(yield func(Pair[int, T]) bool) {
 		for i, v := range s {
 			if !yield(NewPair(i, v)) {
@@ -28,27 +28,51 @@ func (s Slice[T]) List() iter.Seq[Pair[int, T]] {
 	}
 }
 
-func (s Slice[T]) Get(i int) T {
+func (s GoSlice[T]) Get(i int) T {
 	return s[i]
 }
 
+// A Slice is a mutable slice type.
+// It implements the [FixedSlice] interface and the [Adder] interface.
+type Slice[T any] struct {
+	s GoSlice[T]
+}
+
+func (s Slice[T]) Len() int {
+	return len(s.s)
+}
+
+func (s Slice[T]) Add(value T) {
+	s.s = append(s.s, value)
+}
+
+func (s Slice[T]) List() iter.Seq[Pair[int, T]] {
+	return s.s.List()
+}
+
+func (s Slice[T]) Get(i int) T {
+	return s.s.Get(i)
+}
+
 func NewSlice[S ~[]T, T any](slice S) Slice[T] {
-	return Slice[T](slice)
+	return Slice[T]{s: GoSlice[T](slice)}
 }
 
 // A ViewerSlice is a special case of [Slice] that stores values that implement the [Viewer] interface, and provides a method to get a view of the slice.
-type ViewerSlice[V1 Viewer[V2], V2 any] Slice[V1]
+type ViewerSlice[V1 Viewer[V2], V2 any] struct {
+	s Slice[V1]
+}
 
 func (s ViewerSlice[V1, V2]) Get(i int) V1 {
-	return Slice[V1](s).Get(i)
+	return s.s.Get(i)
 }
 
 func (s ViewerSlice[V1, V2]) List() iter.Seq[Pair[int, V1]] {
-	return Slice[V1](s).List()
+	return s.s.List()
 }
 
 func (s ViewerSlice[V1, V2]) Len() int {
-	return Slice[V1](s).Len()
+	return s.s.Len()
 }
 
 func (s ViewerSlice[V1, V2]) View() FixedSlice[V2] {
@@ -65,8 +89,8 @@ func (v viewerSliceView[V1, V2]) Len() int {
 
 func (v viewerSliceView[V1, V2]) List() iter.Seq[Pair[int, V2]] {
 	return func(yield func(Pair[int, V2]) bool) {
-		for i, v1 := range v.s {
-			if !yield(NewPair(i, v1.View())) {
+		for p := range v.s.List() {
+			if !yield(NewPair(p.GetKey(), p.GetValue().View())) {
 				return
 			}
 		}
@@ -78,5 +102,5 @@ func (v viewerSliceView[V1, V2]) Get(i int) V2 {
 }
 
 func NewViewerSlice[S ~[]V1, V1 Viewer[V2], V2 any](slice S) ViewerSlice[V1, V2] {
-	return ViewerSlice[V1, V2](slice)
+	return ViewerSlice[V1, V2]{s: NewSlice(slice)}
 }
