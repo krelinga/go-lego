@@ -58,36 +58,20 @@ func NewSlice[S ~[]T, T any](slice S) Slice[T] {
 	return Slice[T]{s: GoSlice[T](slice)}
 }
 
-// A ViewerSlice is a special case of [Slice] that stores values that implement the [Viewer] interface, and provides a method to get a view of the slice.
-type ViewerSlice[V1 Viewer[V2], V2 any] struct {
-	s Slice[V1]
+// ViewSlice creates a view of a slice that allows viewing the elements of the slice as a different type, without modifying the original slice.
+func ViewSlice[S FixedSlice[V1], V1 Viewer[V2], V2 any](s S) FixedSlice[V2] {
+	return sliceView[S, V1, V2]{s: s}
 }
 
-func (s ViewerSlice[V1, V2]) Get(i int) V1 {
-	return s.s.Get(i)
+type sliceView[S FixedSlice[V1], V1 Viewer[V2], V2 any] struct {
+	s S
 }
 
-func (s ViewerSlice[V1, V2]) List() iter.Seq[Pair[int, V1]] {
-	return s.s.List()
-}
-
-func (s ViewerSlice[V1, V2]) Len() int {
-	return s.s.Len()
-}
-
-func (s ViewerSlice[V1, V2]) View() FixedSlice[V2] {
-	return viewerSliceView[V1, V2]{s: s}
-}
-
-type viewerSliceView[V1 Viewer[V2], V2 any] struct {
-	s ViewerSlice[V1, V2]
-}
-
-func (v viewerSliceView[V1, V2]) Len() int {
+func (v sliceView[S, V1, V2]) Len() int {
 	return v.s.Len()
 }
 
-func (v viewerSliceView[V1, V2]) List() iter.Seq[Pair[int, V2]] {
+func (v sliceView[S, V1, V2]) List() iter.Seq[Pair[int, V2]] {
 	return func(yield func(Pair[int, V2]) bool) {
 		for p := range v.s.List() {
 			if !yield(NewPair(p.GetKey(), p.GetValue().View())) {
@@ -97,10 +81,6 @@ func (v viewerSliceView[V1, V2]) List() iter.Seq[Pair[int, V2]] {
 	}
 }
 
-func (v viewerSliceView[V1, V2]) Get(i int) V2 {
+func (v sliceView[S, V1, V2]) Get(i int) V2 {
 	return v.s.Get(i).View()
-}
-
-func NewViewerSlice[S ~[]V1, V1 Viewer[V2], V2 any](slice S) ViewerSlice[V1, V2] {
-	return ViewerSlice[V1, V2]{s: NewSlice(slice)}
 }

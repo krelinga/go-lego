@@ -66,67 +66,6 @@ func NewMap[M ~map[K]V, K comparable, V any](m M) Map[K, V] {
 	return Map[K, V]{m: GoMap[K, V](m)}
 }
 
-// A ViewerMap is a special case of [Map] that stores values that implement the [Viewer] interface, and provides a method to get a view of the map.
-type ViewerMap[K comparable, V1 Viewer[V2], V2 any] struct {
-	m Map[K, V1]
-}
-
-func (m ViewerMap[K, V1, V2]) Len() int {
-	return m.m.Len()
-}
-
-func (m ViewerMap[K, V1, V2]) List() iter.Seq[Pair[K, V1]] {
-	return m.m.List()
-}
-
-func (m ViewerMap[K, V1, V2]) Get(key K) (V1, bool) {
-	return m.m.Get(key)
-}
-
-func (m ViewerMap[K, V1, V2]) Add(pair Pair[K, V1]) {
-	m.m.Add(pair)
-}
-
-// View returns a view of the map. It panics if the map has pointer keys, since pointer keys are mutable and would violate the immutability guarantee of the view.
-func (m ViewerMap[K, V1, V2]) View() FixedMap[K, V2] {
-	t := reflect.TypeFor[K]()
-	if t.Kind() == reflect.Pointer {
-		panic("cannot create a view of a map with pointer keys")
-	}
-	return viewerMapView[K, V1, V2]{m: m}
-}
-
-func NewViewerMap[M ~map[K]V1, K comparable, V1 Viewer[V2], V2 any](m M) ViewerMap[K, V1, V2] {
-	return ViewerMap[K, V1, V2]{m: NewMap(m)}
-}
-
-type viewerMapView[K comparable, V1 Viewer[V2], V2 any] struct {
-	m ViewerMap[K, V1, V2]
-}
-
-func (v viewerMapView[K, V1, V2]) Len() int {
-	return v.m.Len()
-}
-
-func (v viewerMapView[K, V1, V2]) List() iter.Seq[Pair[K, V2]] {
-	return func(yield func(Pair[K, V2]) bool) {
-		for pair := range v.m.List() {
-			if !yield(NewPair(pair.GetKey(), pair.GetValue().View())) {
-				return
-			}
-		}
-	}
-}
-
-func (v viewerMapView[K, V1, V2]) Get(key K) (V2, bool) {
-	v1, ok := v.m.Get(key)
-	if !ok {
-		var zero V2
-		return zero, false
-	}
-	return v1.View(), true
-}
-
 type Getter[K, V any] interface {
 	Get(K) (V, bool)
 }
@@ -159,4 +98,40 @@ func GetPanic[G Getter[K, V], K, V any](g G, key K) V {
 		panic("key not found")
 	}
 	return v
+}
+
+// ViewMap creates a view of a map that allows viewing the values of the map as a different type, without modifying the original map. It panics if the map has pointer keys, since pointer keys are mutable and would violate the immutability guarantee of the view.
+func ViewMap[M FixedMap[K, V1], K comparable, V1 Viewer[V2], V2 any](m M) FixedMap[K, V2] {
+	t := reflect.TypeFor[K]()
+	if t.Kind() == reflect.Pointer {
+		panic("cannot create a view of a map with pointer keys")
+	}
+	return mapView[M, K, V1, V2]{m: m}
+}
+
+type mapView[M FixedMap[K, V1], K comparable, V1 Viewer[V2], V2 any] struct {
+	m M
+}
+
+func (v mapView[M, K, V1, V2]) Len() int {
+	return v.m.Len()
+}
+
+func (v mapView[M, K, V1, V2]) List() iter.Seq[Pair[K, V2]] {
+	return func(yield func(Pair[K, V2]) bool) {
+		for pair := range v.m.List() {
+			if !yield(NewPair(pair.GetKey(), pair.GetValue().View())) {
+				return
+			}
+		}
+	}
+}
+
+func (v mapView[M, K, V1, V2]) Get(key K) (V2, bool) {
+	v1, ok := v.m.Get(key)
+	if !ok {
+		var zero V2
+		return zero, false
+	}
+	return v1.View(), true
 }

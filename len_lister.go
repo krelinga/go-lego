@@ -59,31 +59,24 @@ func (v valuesLenLister[L, P, K, V]) List() iter.Seq[V] {
 	}
 }
 
-// ViewLenLister is a special case of [LenLister] that also implements the [Viewer] interface, so that it can provide a view of itself.
-// V1 is the type of the elements in the LenLister, and V2 is the type of the elements in the view of the LenLister.
-type ViewLenLister[V1, V2 any] interface {
-	LenLister[V1]
-	Viewer[LenLister[V2]]
+func ViewLenLister[L LenLister[V1], V1 Viewer[V2], V2 any](l L) LenLister[V2] {
+	return lenListerView[L, V1, V2]{l: l}
 }
 
-// ViewerValues is a special case of [Values] that takes a [ViewLenLister] of pairs, and returns a [ViewLenLister] of the values in the pairs.
-// The returned ViewLenLister will provide a view of the values in the pairs.
-func ViewerValues[L ViewLenLister[P1, P2], P1 FixedPair[K, V1], P2 FixedPair[K, V2], K any, V1 Viewer[V2], V2 any](l L) ViewLenLister[V1, V2] {
-	return viewerValuesLenLister[L, P1, P2, K, V1, V2]{l: l}
-}
-
-type viewerValuesLenLister[L ViewLenLister[P1, P2], P1 FixedPair[K, V1], P2 FixedPair[K, V2], K any, V1 Viewer[V2], V2 any] struct {
+type lenListerView[L LenLister[V1], V1 Viewer[V2], V2 any] struct {
 	l L
 }
 
-func (v viewerValuesLenLister[L, P1, P2, K, V1, V2]) Len() int {
+func (v lenListerView[L, V1, V2]) Len() int {
 	return v.l.Len()
 }
 
-func (v viewerValuesLenLister[L, P1, P2, K, V1, V2]) List() iter.Seq[V1] {
-	return Values(v.l).List()
-}
-
-func (v viewerValuesLenLister[L, P1, P2, K, V1, V2]) View() LenLister[V2] {
-	return Values(v.l.View())
+func (v lenListerView[L, V1, V2]) List() iter.Seq[V2] {
+	return func(yield func(V2) bool) {
+		for elem := range v.l.List() {
+			if !yield(elem.View()) {
+				return
+			}
+		}
+	}
 }

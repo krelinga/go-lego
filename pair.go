@@ -26,37 +26,21 @@ func NewPair[K any, V any](key K, value V) Pair[K, V] {
 	return Pair[K, V]{Key: key, Value: value}
 }
 
-// A ViewerPair is a special case of [Pair] that stores a value that implements the [Viewer] interface, and provides methods to get the key and a view of the value.
-type ViewerPair[K any, V1 Viewer[V2], V2 any] Pair[K, V1]
-
-func (p ViewerPair[K, V1, V2]) GetKey() K {
-	return Pair[K, V1](p).GetKey()
-}
-
-func (p ViewerPair[K, V1, V2]) GetValue() V1 {
-	return Pair[K, V1](p).GetValue()
-}
-
-// View returns a view of the pair. It panics if the key is a pointer, since pointer keys are mutable and would violate the immutability guarantee of the view.
-func (p ViewerPair[K, V1, V2]) View() FixedPair[K, V2] {
+func ViewPair[P FixedPair[K, V1], K any, V1 Viewer[V2], V2 any](p P) FixedPair[K, V2] {
 	if t := reflect.TypeFor[K](); t.Kind() == reflect.Pointer {
 		panic("cannot create a view of a pair with pointer keys")
 	}
-	return viewerPairView[K, V1, V2]{p: p}
+	return pairView[P, K, V1, V2]{p: p}
 }
 
-func NewViewerPair[K any, V1 Viewer[V2], V2 any](key K, value V1) ViewerPair[K, V1, V2] {
-	return ViewerPair[K, V1, V2]{Key: key, Value: value}
+type pairView[P FixedPair[K, V1], K any, V1 Viewer[V2], V2 any] struct {
+	p P
 }
 
-type viewerPairView[K any, V1 Viewer[V2], V2 any] struct {
-	p ViewerPair[K, V1, V2]
-}
-
-func (v viewerPairView[K, V1, V2]) GetKey() K {
+func (v pairView[P, K, V1, V2]) GetKey() K {
 	return v.p.GetKey()
 }
 
-func (v viewerPairView[K, V1, V2]) GetValue() V2 {
+func (v pairView[P, K, V1, V2]) GetValue() V2 {
 	return v.p.GetValue().View()
 }
