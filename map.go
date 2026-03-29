@@ -62,6 +62,17 @@ func (m Map[K, V]) Add(pair Pair[K, V]) {
 	m.m[pair.GetKey()] = pair.GetValue()
 }
 
+// Insert adds the key and value to the map, and returns true if the key already existed in the map, and false otherwise.
+func (m Map[K, V]) Insert(key K, value V) bool {
+	if m.m == nil {
+		m.m = GoMap[K, V]{}
+	}
+	_, exists := m.m[key]
+	m.m[key] = value
+	return exists
+}
+
+
 // Reserve reserves space for n elements in the map. This is a best-effort operation and will do nothing if the map already contains some values, since Go's built-in maps do not support reserving space after initialization.
 func (m Map[K, V]) Reserve(n int) {
 	if m.m == nil {
