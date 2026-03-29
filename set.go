@@ -1,6 +1,9 @@
 package lego
 
-import "iter"
+import (
+	"iter"
+	"reflect"
+)
 
 // A FixedSet is a set that does not allow adding or removing elements, but which may still allow modifying the elements in the set (for example, if the elements are pointers).
 type FixedSet[V comparable] interface {
@@ -70,3 +73,13 @@ func NewSet[V comparable](values ...V) Set[V] {
 	return Set[V]{s: m}
 }
 
+func DeepCopySet[S FixedSet[V], V comparable](s S) Set[V] {
+	if t := reflect.TypeFor[V](); t.Kind() == reflect.Pointer || t.Kind() == reflect.Interface {
+		panic("cannot deep copy a set with pointer or interface elements")
+	}
+	var out Set[V]
+	for v := range s.List() {
+		out.Add(v)
+	}
+	return out
+}

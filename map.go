@@ -135,3 +135,14 @@ func (v mapView[M, K, V1, V2]) Get(key K) (V2, bool) {
 	}
 	return v1.View(), true
 }
+
+func DeepCopyMap[M FixedMap[K, V], K comparable, V DeepCopier[V]](m M) Map[K, V] {
+	if t := reflect.TypeFor[K](); t.Kind() == reflect.Pointer || t.Kind() == reflect.Interface {
+		panic("cannot deep copy a map with pointer or interface keys")
+	}
+	var out Map[K, V]
+	for pair := range m.List() {
+		out.Add(NewPair(pair.GetKey(), pair.GetValue().DeepCopy()))
+	}
+	return out
+}

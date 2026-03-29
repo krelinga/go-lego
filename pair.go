@@ -44,3 +44,10 @@ func (v pairView[P, K, V1, V2]) GetKey() K {
 func (v pairView[P, K, V1, V2]) GetValue() V2 {
 	return v.p.GetValue().View()
 }
+
+func DeepCopyPair[P FixedPair[K, V], K any, V DeepCopier[V]](p P) Pair[K, V] {
+	if t := reflect.TypeFor[K](); t.Kind() == reflect.Pointer || t.Kind() == reflect.Interface {
+		panic("cannot deep copy a pair with pointer or interface keys")
+	}
+	return NewPair(p.GetKey(), p.GetValue().DeepCopy())
+}

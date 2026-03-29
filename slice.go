@@ -84,3 +84,11 @@ func (v sliceView[S, V1, V2]) List() iter.Seq[Pair[int, V2]] {
 func (v sliceView[S, V1, V2]) Get(i int) V2 {
 	return v.s.Get(i).View()
 }
+
+func DeepCopySlice[S FixedSlice[T], T DeepCopier[T]](s S) Slice[T] {
+	var out Slice[T]
+	for p := range s.List() {
+		out.Add(p.GetValue().DeepCopy())
+	}
+	return out
+}
