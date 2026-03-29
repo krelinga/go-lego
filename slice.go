@@ -95,8 +95,8 @@ func (v sliceView[S, V1, V2]) Get(i int) V2 {
 func DeepCopySlice[S FixedSlice[T], T DeepCopier[T]](s S) Slice[T] {
 	var out Slice[T]
 	out.Reserve(s.Len())
-	for p := range s.List() {
-		out.Add(p.GetValue().DeepCopy())
+	for v := range Values(s).List() {
+		out.Add(v.DeepCopy())
 	}
 	return out
 }
