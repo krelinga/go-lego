@@ -91,3 +91,11 @@ func DeepCopySet[S FixedSet[V], V comparable](s S) Set[V] {
 	}
 	return out
 }
+func ShallowCopySet[S FixedSet[V], V comparable](s S) Set[V] {
+	var out Set[V]
+	out.Reserve(s.Len())
+	for v := range s.List() {
+		out.Add(v)
+	}
+	return out
+}

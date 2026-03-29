@@ -100,3 +100,12 @@ func DeepCopySlice[S FixedSlice[T], T DeepCopier[T]](s S) Slice[T] {
 	}
 	return out
 }
+
+func ShallowCopySlice[S FixedSlice[T], T any](s S) Slice[T] {
+	var out Slice[T]
+	out.Reserve(s.Len())
+	for v := range Values(s).List() {
+		out.Add(v)
+	}
+	return out
+}

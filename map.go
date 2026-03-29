@@ -165,3 +165,12 @@ func DeepCopyMap[M FixedMap[K, V], K comparable, V DeepCopier[V]](m M) Map[K, V]
 	}
 	return out
 }
+
+func ShallowCopyMap[M FixedMap[K, V], K comparable, V any](m M) Map[K, V] {
+	var out Map[K, V]
+	out.Reserve(m.Len())
+	for pair := range m.List() {
+		out.Add(pair)
+	}
+	return out
+}
