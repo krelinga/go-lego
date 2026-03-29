@@ -110,7 +110,7 @@ func Has[G Getter[K, V], K, V any](g G, key K) bool {
 	return ok
 }
 
-func GetPanic[G Getter[K, V], K, V any](g G, key K) V {
+func MustGet[G Getter[K, V], K, V any](g G, key K) V {
 	v, ok := g.Get(key)
 	if !ok {
 		panic("key not found")
