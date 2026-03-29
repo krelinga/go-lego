@@ -14,11 +14,11 @@ type LenLister[V any] interface {
 }
 
 // Keys returns a LenLister of the keys in the given LenLister of pairs.
-func Keys[L LenLister[P], P FixedPair[K, V], K any, V any](l L) LenLister[K] {
+func Keys[L LenLister[P], P FixedPair[K, V], K comparable, V any](l L) LenLister[K] {
 	return keysLenLister[L, P, K, V]{l: l}
 }
 
-type keysLenLister[L LenLister[P], P FixedPair[K, V], K any, V any] struct {
+type keysLenLister[L LenLister[P], P FixedPair[K, V], K comparable, V any] struct {
 	l L
 }
 
@@ -37,11 +37,11 @@ func (k keysLenLister[L, P, K, V]) List() iter.Seq[K] {
 }
 
 // Values returns a LenLister of the values in the given LenLister of pairs.
-func Values[L LenLister[P], P FixedPair[K, V], K any, V any](l L) LenLister[V] {
+func Values[L LenLister[P], P FixedPair[K, V], K comparable, V any](l L) LenLister[V] {
 	return valuesLenLister[L, P, K, V]{l: l}
 }
 
-type valuesLenLister[L LenLister[P], P FixedPair[K, V], K any, V any] struct {
+type valuesLenLister[L LenLister[P], P FixedPair[K, V], K comparable, V any] struct {
 	l L
 }
 
