@@ -10,7 +10,7 @@ type Adder[T any] interface {
 }
 
 // Add adds the values from the given sequence to the given Adder.
-func Add[A Adder[T], T any](values iter.Seq[T], a A) {
+func Add[T any](values iter.Seq[T], a Adder[T]) {
 	for value := range values {
 		a.Add(value)
 	}
