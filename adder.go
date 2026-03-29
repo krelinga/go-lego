@@ -29,13 +29,3 @@ func Collect[A Adder[T], T any](values iter.Seq[T]) A {
 	Add(values, a)
 	return a
 }
-
-// ShallowCopy creates a new Adder of the specified type and adds the values from the given LenLister to it, and returns the Adder.
-func ShallowCopy[A Adder[T], T any](l LenLister[T]) A {
-	var a A
-	if r, ok := any(a).(Reserver); ok {
-		r.Reserve(l.Len())
-	}
-	Add(l.List(), a)
-	return a
-}
