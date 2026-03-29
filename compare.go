@@ -5,6 +5,8 @@ import (
 	"slices"
 )
 
+// A Comparer is a type that can be compared to other values of the same type using the Compare method, which returns an integer indicating the relative order of the values.
+// The Compare method should return a negative integer if the value is less than the other value, a positive integer if the value is greater than the other value, and zero if the two values are equal.
 type Comparer[T any] interface {
 	Compare(T) int
 }
