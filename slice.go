@@ -46,6 +46,13 @@ func (s Slice[T]) Add(value T) {
 	s.s = append(s.s, value)
 }
 
+// Reserve reserves space for n elements in the slice. This is a best-effort operation and will do nothing if the slice already contains some values, since Go's built-in slices do not support reserving space after initialization.
+func (s Slice[T]) Reserve(n int) {
+	if s.s == nil {
+		s.s = make(GoSlice[T], 0, n)
+	}
+}
+
 func (s Slice[T]) List() iter.Seq[Pair[int, T]] {
 	return s.s.List()
 }
@@ -87,6 +94,7 @@ func (v sliceView[S, V1, V2]) Get(i int) V2 {
 
 func DeepCopySlice[S FixedSlice[T], T DeepCopier[T]](s S) Slice[T] {
 	var out Slice[T]
+	out.Reserve(s.Len())
 	for p := range s.List() {
 		out.Add(p.GetValue().DeepCopy())
 	}

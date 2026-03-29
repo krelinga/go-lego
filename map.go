@@ -62,6 +62,13 @@ func (m Map[K, V]) Add(pair Pair[K, V]) {
 	m.m[pair.GetKey()] = pair.GetValue()
 }
 
+// Reserve reserves space for n elements in the map. This is a best-effort operation and will do nothing if the map already contains some values, since Go's built-in maps do not support reserving space after initialization.
+func (m Map[K, V]) Reserve(n int) {
+	if m.m == nil {
+		m.m = make(GoMap[K, V], n)
+	}
+}
+
 func NewMap[M ~map[K]V, K comparable, V any](m M) Map[K, V] {
 	return Map[K, V]{m: GoMap[K, V](m)}
 }
@@ -141,6 +148,7 @@ func DeepCopyMap[M FixedMap[K, V], K comparable, V DeepCopier[V]](m M) Map[K, V]
 		panic("cannot deep copy a map with pointer or interface keys")
 	}
 	var out Map[K, V]
+	out.Reserve(m.Len())
 	for pair := range m.List() {
 		out.Add(NewPair(pair.GetKey(), pair.GetValue().DeepCopy()))
 	}

@@ -65,6 +65,13 @@ func (s Set[V]) Add(v V) {
 	s.s[v] = GoSetValue{}
 }
 
+// Reserve reserves space for n elements in the set. This is a best-effort operation and will do nothing if the set already contains some values, since Go's built-in maps do not support reserving space after initialization.
+func (s Set[V]) Reserve(n int) {
+	if s.s == nil {
+		s.s = make(GoSet[V], n)
+	}
+}
+
 func NewSet[V comparable](values ...V) Set[V] {
 	m := make(GoSet[V], len(values))
 	for _, v := range values {
@@ -78,6 +85,7 @@ func DeepCopySet[S FixedSet[V], V comparable](s S) Set[V] {
 		panic("cannot deep copy a set with pointer or interface elements")
 	}
 	var out Set[V]
+	out.Reserve(s.Len())
 	for v := range s.List() {
 		out.Add(v)
 	}
