@@ -10,6 +10,10 @@ type Comparer[T any] interface {
 	Compare(T) int
 }
 
+func CompareViewer[V Viewer[T], T Comparer[T]](a, b V) int {
+	return a.View().Compare(b.View())
+}
+
 // A CmpFunc is a function that compares two values of the same type and returns an integer indicating their relative order.
 // The function should return a negative integer if the first value is less than the second value, a positive integer if the first value is greater than the second value, and zero if the two values are equal.
 type CmpFunc[T any] func(T, T) int

@@ -56,11 +56,18 @@ func (v ExampleView) Int() int {
 }
 
 func (v ExampleView) Equal(other ExampleView) bool {
-	return v.String() == other.String() && v.Int() == other.Int()
+	return lego.EqualComparer(v, other)
 }
 
 func (v ExampleView) Combine() string {
-	return v.e.Combine()
+	return fmt.Sprintf("%s%d", v.String(), v.Int())
+}
+
+func (v ExampleView) Compare(other ExampleView) int {
+	return lego.CompareUsing(v, other,
+		lego.NewCmpFuncGo(ExampleView.String),
+		lego.NewCmpFuncGo(ExampleView.Int),
+	)
 }
 
 type Example struct {
@@ -77,7 +84,11 @@ func (e *Example) View() ExampleView {
 }
 
 func (e *Example) Combine() string {
-	return fmt.Sprintf("%s%d", e.String, e.Int)
+	return e.View().Combine()
+}
+
+func (e *Example) Compare(other *Example) int {
+	return lego.CompareViewer(e, other)
 }
 
 type ExampleSliceView struct {
@@ -197,6 +208,17 @@ func TestExampleSlice(t *testing.T) {
 		}
 		if slice.View().Sum() != 6 {
 			t.Errorf("Expected Sum() to return 6, got %d", slice.View().Sum())
+		}
+	})
+
+	t.Run("sort", func(t *testing.T) {
+		e1 := &Example{String: "a", Int: 2}
+		e2 := &Example{String: "a", Int: 1}
+		e3 := &Example{String: "c", Int: 3}
+		slice := NewExampleSlice(e1, e2, e3)
+		lego.Sort(slice.Slice)
+		if !slice.Equal(NewExampleSlice(e2, e1, e3)) {
+			t.Errorf("Expected slice to be sorted by String then Int, but it is not")
 		}
 	})
 }
