@@ -35,34 +35,22 @@ func (s GoSlice[T]) Get(i int) T {
 // A Slice is a mutable slice type.
 // It implements the [FixedSlice] interface and the [Adder] interface.
 type Slice[T any] struct {
-	s GoSlice[T]
-}
-
-func (s *Slice[T]) Len() int {
-	return len(s.s)
+	GoSlice[T]
 }
 
 func (s *Slice[T]) Add(value T) {
-	s.s = append(s.s, value)
+	s.GoSlice = append(s.GoSlice, value)
 }
 
 // Reserve reserves space for n elements in the slice. This is a best-effort operation and will do nothing if the slice already contains some values, since Go's built-in slices do not support reserving space after initialization.
 func (s *Slice[T]) Reserve(n int) {
-	if s.s == nil {
-		s.s = make(GoSlice[T], 0, n)
+	if s.GoSlice == nil {
+		s.GoSlice = make(GoSlice[T], 0, n)
 	}
 }
 
-func (s *Slice[T]) List() iter.Seq[Pair[int, T]] {
-	return s.s.List()
-}
-
-func (s *Slice[T]) Get(i int) T {
-	return s.s.Get(i)
-}
-
 func NewSlice[S ~[]T, T any](slice S) *Slice[T] {
-	return &Slice[T]{s: GoSlice[T](slice)}
+	return &Slice[T]{GoSlice: GoSlice[T](slice)}
 }
 
 // ViewSlice creates a view of a slice that allows viewing the elements of the slice as a different type, without modifying the original slice.
