@@ -80,7 +80,7 @@ func NewSet[V comparable](values ...V) *Set[V] {
 	return &Set[V]{s: m}
 }
 
-func DeepCopySet[S FixedSet[V], V comparable](s S) Set[V] {
+func DeepCopySet[S FixedSet[V], V comparable](s S) *Set[V] {
 	if t := reflect.TypeFor[V](); t.Kind() == reflect.Pointer || t.Kind() == reflect.Interface {
 		panic("cannot deep copy a set with pointer or interface elements")
 	}
@@ -89,13 +89,13 @@ func DeepCopySet[S FixedSet[V], V comparable](s S) Set[V] {
 	for v := range s.List() {
 		out.Add(v)
 	}
-	return out
+	return &out
 }
-func ShallowCopySet[S FixedSet[V], V comparable](s S) Set[V] {
+func ShallowCopySet[S FixedSet[V], V comparable](s S) *Set[V] {
 	var out Set[V]
 	out.Reserve(s.Len())
 	for v := range s.List() {
 		out.Add(v)
 	}
-	return out
+	return &out
 }

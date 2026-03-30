@@ -84,22 +84,22 @@ func (v sliceView[S, V1, V2]) Get(i int) V2 {
 	return v.s.Get(i).View()
 }
 
-func DeepCopySlice[S FixedSlice[T], T DeepCopier[T]](s S) Slice[T] {
+func DeepCopySlice[S FixedSlice[T], T DeepCopier[T]](s S) *Slice[T] {
 	var out Slice[T]
 	out.Reserve(s.Len())
 	for v := range Values(s).List() {
 		out.Add(v.DeepCopy())
 	}
-	return out
+	return &out
 }
 
-func ShallowCopySlice[S FixedSlice[T], T any](s S) Slice[T] {
+func ShallowCopySlice[S FixedSlice[T], T any](s S) *Slice[T] {
 	var out Slice[T]
 	out.Reserve(s.Len())
 	for v := range Values(s).List() {
 		out.Add(v)
 	}
-	return out
+	return &out
 }
 
 // Sort sorts the elements of the given [Slice] in place using the Compare method of the [Comparer] interface to determine the order of the elements.
