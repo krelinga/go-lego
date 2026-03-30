@@ -44,6 +44,7 @@ func panics(r FailureReporter, f func()) (panicked bool) {
 type ExampleView interface {
 	GetString() string
 	GetInt() int
+	Equal(ExampleView) bool
 }
 
 type Example struct {
@@ -59,14 +60,34 @@ func (e Example) GetInt() int {
 	return e.Int
 }
 
+func (e Example) Equal(other ExampleView) bool {
+	return e.String == other.GetString() && e.Int == other.GetInt()
+}
+
 func (e Example) View() ExampleView {
 	return e
+}
+
+type ExampleSliceView struct {
+	lego.FixedSlice[ExampleView]
+}
+
+func (v ExampleSliceView) Equal(other ExampleSliceView) bool {
+	return lego.EqualSlice(v, other)
 }
 
 type ExampleSlice struct {
 	*lego.Slice[Example]
 }
 
-func (s ExampleSlice) View() lego.FixedSlice[ExampleView] {
-	return lego.ViewSlice(s)
+func (s ExampleSlice) View() ExampleSliceView {
+	return ExampleSliceView{lego.ViewSlice(s)}
+}
+
+func (s ExampleSlice) Equal(other ExampleSliceView) bool {
+	return lego.EqualSlice(s.View(), other)
+}
+
+func NewExampleSlice(elements ...Example) ExampleSlice {
+	return ExampleSlice{lego.NewSlice(elements...)}
 }

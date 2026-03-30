@@ -49,11 +49,6 @@ func NewCmpFuncUsing[T any](funcs ...CmpFunc[T]) CmpFunc[T] {
 	}
 }
 
-// Equal returns true if a and b are equal according to the Compare method of the [Comparer] interface, and false otherwise.
-func Equal[T Comparer[T]](a, b T) bool {
-	return a.Compare(b) == 0
-}
-
 // Less returns true if a is less than b according to the Compare method of the [Comparer] interface, and false otherwise.
 func Less[T Comparer[T]](a, b T) bool {
 	return a.Compare(b) < 0

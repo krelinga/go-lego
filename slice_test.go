@@ -182,3 +182,27 @@ func TestViewSlice(t *testing.T) {
 		}
 	}
 }
+
+func TestEqualSlice(t *testing.T) {
+	s1 := NewExampleSlice(Example{String: "a", Int: 1}, Example{String: "b", Int: 2})
+	s2 := NewExampleSlice(Example{String: "a", Int: 1}, Example{String: "b", Int: 2})
+	s3 := NewExampleSlice(Example{String: "a", Int: 1}, Example{String: "b", Int: 3})
+
+	if !s1.Equal(s2.View()) {
+		t.Errorf("Expected s1 to equal s2, but they are not equal")
+	}
+	if s1.Equal(s3.View()) {
+		t.Errorf("Expected s1 to not equal s3, but they are equal")
+	}
+
+	vs1 := s1.View()
+	vs2 := s2.View()
+	vs3 := s3.View()
+
+	if !vs1.Equal(vs2) {
+		t.Errorf("Expected vs1 to equal vs2, but they are not equal")
+	}
+	if vs1.Equal(vs3) {
+		t.Errorf("Expected vs1 to not equal vs3, but they are equal")
+	}
+}

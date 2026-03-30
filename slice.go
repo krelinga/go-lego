@@ -123,3 +123,27 @@ func SortGo[T cmp.Ordered](s *Slice[T]) {
 func Reverse[T any](s *Slice[T]) {
 	slices.Reverse(s.GoSlice)
 }
+
+func EqualSlice[S FixedSlice[T], T Equaler[T]](a, b S) bool {
+	return equalSliceImpl(a, b, func(x, y T) bool {
+		return x.Equal(y)
+	})
+}
+
+func EqualSliceGo[S FixedSlice[T], T comparable](a, b S) bool {
+	return equalSliceImpl(a, b, func(x, y T) bool {
+		return x == y
+	})
+}
+
+func equalSliceImpl[S FixedSlice[T], T any](a, b S, equal func(T, T) bool) bool {
+	if a.Len() != b.Len() {
+		return false
+	}
+	for i := 0; i < a.Len(); i++ {
+		if !equal(a.Get(i), b.Get(i)) {
+			return false
+		}
+	}
+	return true
+}
