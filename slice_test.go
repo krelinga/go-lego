@@ -151,14 +151,14 @@ func TestViewSlice(t *testing.T) {
 	if view.Len() != 3 {
 		t.Errorf("Expected length 3, got %d", view.Len())
 	}
-	if val := view.Get(0); val.GetString() != "a" || val.GetInt() != 1 {
-		t.Errorf("Expected first element to be ('a', 1), got ('%s', %d)", val.GetString(), val.GetInt())
+	if val := view.Get(0); val.String() != "a" || val.Int() != 1 {
+		t.Errorf("Expected first element to be ('a', 1), got ('%s', %d)", val.String(), val.Int())
 	}
-	if val := view.Get(1); val.GetString() != "b" || val.GetInt() != 2 {
-		t.Errorf("Expected second element to be ('b', 2), got ('%s', %d)", val.GetString(), val.GetInt())
+	if val := view.Get(1); val.String() != "b" || val.Int() != 2 {
+		t.Errorf("Expected second element to be ('b', 2), got ('%s', %d)", val.String(), val.Int())
 	}
-	if val := view.Get(2); val.GetString() != "c" || val.GetInt() != 3 {
-		t.Errorf("Expected third element to be ('c', 3), got ('%s', %d)", val.GetString(), val.GetInt())
+	if val := view.Get(2); val.String() != "c" || val.Int() != 3 {
+		t.Errorf("Expected third element to be ('c', 3), got ('%s', %d)", val.String(), val.Int())
 	}
 	panics(t, func() { view.Get(-1) })
 	panics(t, func() { view.Get(3) })
@@ -166,16 +166,16 @@ func TestViewSlice(t *testing.T) {
 		i, x := p.GetKey(), p.GetValue()
 		switch i {
 		case 0:
-			if x.GetString() != "a" || x.GetInt() != 1 {
-				t.Errorf("Expected first element to be ('a', 1), got ('%s', %d)", x.GetString(), x.GetInt())
+			if x.String() != "a" || x.Int() != 1 {
+				t.Errorf("Expected first element to be ('a', 1), got ('%s', %d)", x.String(), x.Int())
 			}
 		case 1:
-			if x.GetString() != "b" || x.GetInt() != 2 {
-				t.Errorf("Expected second element to be ('b', 2), got ('%s', %d)", x.GetString(), x.GetInt())
+			if x.String() != "b" || x.Int() != 2 {
+				t.Errorf("Expected second element to be ('b', 2), got ('%s', %d)", x.String(), x.Int())
 			}
 		case 2:
-			if x.GetString() != "c" || x.GetInt() != 3 {
-				t.Errorf("Expected third element to be ('c', 3), got ('%s', %d)", x.GetString(), x.GetInt())
+			if x.String() != "c" || x.Int() != 3 {
+				t.Errorf("Expected third element to be ('c', 3), got ('%s', %d)", x.String(), x.Int())
 			}
 		default:
 			t.Errorf("Expected only 3 elements, got more: %d", i+1)
@@ -188,10 +188,10 @@ func TestEqualSlice(t *testing.T) {
 	s2 := NewExampleSlice(Example{String: "a", Int: 1}, Example{String: "b", Int: 2})
 	s3 := NewExampleSlice(Example{String: "a", Int: 1}, Example{String: "b", Int: 3})
 
-	if !s1.Equal(s2.View()) {
+	if !s1.Equal(s2) {
 		t.Errorf("Expected s1 to equal s2, but they are not equal")
 	}
-	if s1.Equal(s3.View()) {
+	if s1.Equal(s3) {
 		t.Errorf("Expected s1 to not equal s3, but they are equal")
 	}
 
@@ -204,5 +204,12 @@ func TestEqualSlice(t *testing.T) {
 	}
 	if vs1.Equal(vs3) {
 		t.Errorf("Expected vs1 to not equal vs3, but they are equal")
+	}
+
+	if !vs1.Equal(s2.View()) {
+		t.Errorf("Expected vs1 to equal s2.View(), but they are not equal")
+	}
+	if vs1.Equal(s3.View()) {
+		t.Errorf("Expected vs1 to not equal s3.View(), but they are equal")
 	}
 }

@@ -41,10 +41,20 @@ func panics(r FailureReporter, f func()) (panicked bool) {
 	return
 }
 
-type ExampleView interface {
-	GetString() string
-	GetInt() int
-	Equal(ExampleView) bool
+type ExampleView struct {
+	e *Example
+}
+
+func (v ExampleView) String() string {
+	return v.e.String
+}
+
+func (v ExampleView) Int() int {
+	return v.e.Int
+}
+
+func (v ExampleView) Equal(other ExampleView) bool {
+	return v.String() == other.String() && v.Int() == other.Int()
 }
 
 type Example struct {
@@ -52,20 +62,12 @@ type Example struct {
 	Int    int
 }
 
-func (e Example) GetString() string {
-	return e.String
-}
-
-func (e Example) GetInt() int {
-	return e.Int
-}
-
-func (e Example) Equal(other ExampleView) bool {
-	return e.String == other.GetString() && e.Int == other.GetInt()
+func (e Example) Equal(other Example) bool {
+	return lego.EqualViewer(e, other)
 }
 
 func (e Example) View() ExampleView {
-	return e
+	return ExampleView{&e}
 }
 
 type ExampleSliceView struct {
@@ -84,8 +86,8 @@ func (s ExampleSlice) View() ExampleSliceView {
 	return ExampleSliceView{lego.ViewSlice(s)}
 }
 
-func (s ExampleSlice) Equal(other ExampleSliceView) bool {
-	return lego.EqualSlice(s.View(), other)
+func (s ExampleSlice) Equal(other ExampleSlice) bool {
+	return lego.EqualViewer(s, other)
 }
 
 func NewExampleSlice(elements ...Example) ExampleSlice {
