@@ -129,3 +129,56 @@ func TestSlice(t *testing.T) {
 		}
 	})
 }
+
+func TestViewSlice(t *testing.T) {
+	slice := ExampleSlice{
+		Slice: lego.NewSlice(
+			Example{
+				String: "a",
+				Int:    1,
+			},
+			Example{
+				String: "b",
+				Int:    2,
+			},
+		),
+	}
+	slice.Add(Example{
+		String: "c",
+		Int:    3,
+	})
+	var view lego.FixedSlice[ExampleView] = lego.ViewSlice(slice)
+	if view.Len() != 3 {
+		t.Errorf("Expected length 3, got %d", view.Len())
+	}
+	if val := view.Get(0); val.GetString() != "a" || val.GetInt() != 1 {
+		t.Errorf("Expected first element to be ('a', 1), got ('%s', %d)", val.GetString(), val.GetInt())
+	}
+	if val := view.Get(1); val.GetString() != "b" || val.GetInt() != 2 {
+		t.Errorf("Expected second element to be ('b', 2), got ('%s', %d)", val.GetString(), val.GetInt())
+	}
+	if val := view.Get(2); val.GetString() != "c" || val.GetInt() != 3 {
+		t.Errorf("Expected third element to be ('c', 3), got ('%s', %d)", val.GetString(), val.GetInt())
+	}
+	panics(t, func() { view.Get(-1) })
+	panics(t, func() { view.Get(3) })
+	for p := range view.List() {
+		i, x := p.GetKey(), p.GetValue()
+		switch i {
+		case 0:
+			if x.GetString() != "a" || x.GetInt() != 1 {
+				t.Errorf("Expected first element to be ('a', 1), got ('%s', %d)", x.GetString(), x.GetInt())
+			}
+		case 1:
+			if x.GetString() != "b" || x.GetInt() != 2 {
+				t.Errorf("Expected second element to be ('b', 2), got ('%s', %d)", x.GetString(), x.GetInt())
+			}
+		case 2:
+			if x.GetString() != "c" || x.GetInt() != 3 {
+				t.Errorf("Expected third element to be ('c', 3), got ('%s', %d)", x.GetString(), x.GetInt())
+			}
+		default:
+			t.Errorf("Expected only 3 elements, got more: %d", i+1)
+		}
+	}
+}

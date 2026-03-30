@@ -1,6 +1,10 @@
 package lego_test
 
-import "reflect"
+import (
+	"reflect"
+
+	"github.com/krelinga/go-lego"
+)
 
 type FailureReporter interface {
 	Error(...any)
@@ -35,4 +39,34 @@ func panics(r FailureReporter, f func()) (panicked bool) {
 	}()
 	f()
 	return
+}
+
+type ExampleView interface {
+	GetString() string
+	GetInt() int
+}
+
+type Example struct {
+	String string
+	Int    int
+}
+
+func (e Example) GetString() string {
+	return e.String
+}
+
+func (e Example) GetInt() int {
+	return e.Int
+}
+
+func (e Example) View() ExampleView {
+	return e
+}
+
+type ExampleSlice struct {
+	*lego.Slice[Example]
+}
+
+func (s ExampleSlice) View() lego.FixedSlice[ExampleView] {
+	return lego.ViewSlice(s)
 }
