@@ -155,6 +155,11 @@ func TestExample(t *testing.T) {
 		if v.Int() != 1 {
 			t.Errorf("Expected Int() to return 1, got %d", v.Int())
 		}
+
+		e.Int = 2
+		if v.Int() != 2 {
+			t.Errorf("Expected Int() to return 2 after modification, got %d", v.Int())
+		}
 	})
 
 	t.Run("combine", func(t *testing.T) {
