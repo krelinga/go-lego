@@ -88,8 +88,20 @@ func (v ExampleSliceView) Equal(other ExampleSliceView) bool {
 	return lego.EqualSlice(v, other)
 }
 
+func (v ExampleSliceView) Sum() int {
+	sum := 0
+	for p := range v.List() {
+		sum += p.GetValue().Int()
+	}
+	return sum
+}
+
 type ExampleSlice struct {
 	*lego.Slice[*Example]
+}
+
+func (s *ExampleSlice) Sum() int {
+	return s.View().Sum()
 }
 
 func (s *ExampleSlice) View() ExampleSliceView {
@@ -167,5 +179,19 @@ func TestExampleSlice(t *testing.T) {
 		implements[ExampleSliceView, lego.Equaler[ExampleSliceView]](t)
 		implements[ExampleSliceView, lego.FixedSlice[ExampleView]](t)
 		implements[ExampleSliceView, lego.LenLister[lego.Pair[int, ExampleView]]](t)
+	})
+
+	t.Run("sum", func(t *testing.T) {
+		slice := NewExampleSlice(
+			&Example{String: "a", Int: 1},
+			&Example{String: "b", Int: 2},
+			&Example{String: "c", Int: 3},
+		)
+		if slice.Sum() != 6 {
+			t.Errorf("Expected Sum() to return 6, got %d", slice.Sum())
+		}
+		if slice.View().Sum() != 6 {
+			t.Errorf("Expected Sum() to return 6, got %d", slice.View().Sum())
+		}
 	})
 }
