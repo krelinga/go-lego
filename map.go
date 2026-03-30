@@ -40,42 +40,30 @@ func (m GoMap[K, V]) Get(key K) (V, bool) {
 // A Map is a mutable map.
 // It implements the [FixedMap] interface and the [Adder] interface.
 type Map[K comparable, V any] struct {
-	m GoMap[K, V]
-}
-
-func (m *Map[K, V]) Len() int {
-	return len(m.m)
-}
-
-func (m *Map[K, V]) List() iter.Seq[Pair[K, V]] {
-	return m.m.List()
-}
-
-func (m *Map[K, V]) Get(key K) (V, bool) {
-	return m.m.Get(key)
+	GoMap[K, V]
 }
 
 func (m *Map[K, V]) Add(pair Pair[K, V]) {
-	if m.m == nil {
-		m.m = GoMap[K, V]{}
+	if m.GoMap == nil {
+		m.GoMap = GoMap[K, V]{}
 	}
-	m.m[pair.GetKey()] = pair.GetValue()
+	m.GoMap[pair.GetKey()] = pair.GetValue()
 }
 
 // Set adds the key and value to the map, and returns true if the key already existed in the map, and false otherwise.
 func (m *Map[K, V]) Set(key K, value V) bool {
-	if m.m == nil {
-		m.m = GoMap[K, V]{}
+	if m.GoMap == nil {
+		m.GoMap = GoMap[K, V]{}
 	}
-	_, exists := m.m[key]
-	m.m[key] = value
+	_, exists := m.GoMap[key]
+	m.GoMap[key] = value
 	return exists
 }
 
 // Reserve reserves space for n elements in the map. This is a best-effort operation and will do nothing if the map already contains some values, since Go's built-in maps do not support reserving space after initialization.
 func (m *Map[K, V]) Reserve(n int) {
-	if m.m == nil {
-		m.m = make(GoMap[K, V], n)
+	if m.GoMap == nil {
+		m.GoMap = make(GoMap[K, V], n)
 	}
 }
 
