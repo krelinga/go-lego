@@ -136,3 +136,16 @@ func TestExample(t *testing.T) {
 		}
 	})
 }
+
+func TestExampleSlice(t *testing.T) {
+	t.Run("implements", func(t *testing.T) {
+		implements[*ExampleSlice, lego.Equaler[*ExampleSlice]](t)
+		implements[*ExampleSlice, lego.Viewer[ExampleSliceView]](t)
+		implements[*ExampleSlice, lego.LenLister[lego.Pair[int, *Example]]](t)
+		implements[*ExampleSlice, lego.FixedSlice[*Example]](t)
+
+		implements[ExampleSliceView, lego.Equaler[ExampleSliceView]](t)
+		implements[ExampleSliceView, lego.FixedSlice[ExampleView]](t)
+		implements[ExampleSliceView, lego.LenLister[lego.Pair[int, ExampleView]]](t)
+	})
+}
