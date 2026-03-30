@@ -114,7 +114,7 @@ func SortFunc[T any](s *Slice[T], compare CmpFunc[T]) {
 	slices.SortFunc(s.GoSlice, compare)
 }
 
-// SortGo sorts the elements of the given [Slice] in place using the natural order of the elements, which must implement the [cmp.Ordered] interface.
+// SortGo sorts the elements of the given [Slice] in place using the natural order of the elements.
 func SortGo[T cmp.Ordered](s *Slice[T]) {
 	slices.Sort(s.GoSlice)
 }
