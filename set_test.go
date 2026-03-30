@@ -66,6 +66,8 @@ func TestSet(t *testing.T) {
 			for range set.List() {
 			}
 		})
+		panics(t, func() { set.Reserve(1) })
+		panics(t, func() { set.Add("a") })
 	})
 
 	t.Run("empty", func(t *testing.T) {

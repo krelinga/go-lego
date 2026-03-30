@@ -61,6 +61,8 @@ func TestSlice(t *testing.T) {
 			for range slice.List() {
 			}
 		})
+		panics(t, func() { slice.Reserve(1) })
+		panics(t, func() { slice.Add("a") })
 	})
 
 	t.Run("empty", func(t *testing.T) {
