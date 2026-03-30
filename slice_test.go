@@ -87,7 +87,7 @@ func TestSlice(t *testing.T) {
 	})
 
 	t.Run("add_to_non_empty", func(t *testing.T) {
-		slice := lego.NewSlice([]string{"a"})
+		slice := lego.NewSlice("a")
 		slice.Add("b")
 		if slice.Len() != 2 {
 			t.Errorf("Expected length 2, got %d", slice.Len())

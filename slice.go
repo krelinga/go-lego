@@ -49,8 +49,8 @@ func (s *Slice[T]) Reserve(n int) {
 	}
 }
 
-func NewSlice[S ~[]T, T any](slice S) *Slice[T] {
-	return &Slice[T]{GoSlice: GoSlice[T](slice)}
+func NewSlice[T any](elements ...T) *Slice[T] {
+	return &Slice[T]{GoSlice: GoSlice[T](elements)}
 }
 
 // ViewSlice creates a view of a slice that allows viewing the elements of the slice as a different type, without modifying the original slice.
