@@ -43,32 +43,20 @@ func (s GoSet[V]) Has(v V) bool {
 // A Set is a mutable set.
 // It implements the [FixedSet] interface and the [Adder] interface.
 type Set[V comparable] struct {
-	s GoSet[V]
-}
-
-func (s *Set[V]) Len() int {
-	return s.s.Len()
-}
-
-func (s *Set[V]) List() iter.Seq[V] {
-	return s.s.List()
-}
-
-func (s *Set[V]) Has(v V) bool {
-	return s.s.Has(v)
+	GoSet[V]
 }
 
 func (s *Set[V]) Add(v V) {
-	if s.s == nil {
-		s.s = GoSet[V]{}
+	if s.GoSet == nil {
+		s.GoSet = GoSet[V]{}
 	}
-	s.s[v] = GoSetValue{}
+	s.GoSet[v] = GoSetValue{}
 }
 
 // Reserve reserves space for n elements in the set. This is a best-effort operation and will do nothing if the set already contains some values, since Go's built-in maps do not support reserving space after initialization.
 func (s *Set[V]) Reserve(n int) {
-	if s.s == nil {
-		s.s = make(GoSet[V], n)
+	if s.GoSet == nil {
+		s.GoSet = make(GoSet[V], n)
 	}
 }
 
@@ -77,7 +65,7 @@ func NewSet[V comparable](values ...V) *Set[V] {
 	for _, v := range values {
 		m[v] = GoSetValue{}
 	}
-	return &Set[V]{s: m}
+	return &Set[V]{GoSet: m}
 }
 
 func DeepCopySet[S FixedSet[V], V comparable](s S) *Set[V] {
