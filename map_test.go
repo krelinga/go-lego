@@ -79,7 +79,7 @@ func TestMap(t *testing.T) {
 		})
 		panics(t, func() { m.Reserve(1) })
 		panics(t, func() { m.Add(lego.NewPair("a", 1)) })
-		panics(t, func() { m.Insert("a", 1) })
+		panics(t, func() { m.Set("a", 1) })
 	})
 
 	t.Run("empty", func(t *testing.T) {
@@ -115,9 +115,9 @@ func TestMap(t *testing.T) {
 		}
 	})
 
-	t.Run("insert_to_empty", func(t *testing.T) {
+	t.Run("set_into_empty", func(t *testing.T) {
 		m := &lego.Map[string, int]{}
-		m.Insert("a", 1)
+		m.Set("a", 1)
 		if m.Len() != 1 {
 			t.Errorf("Expected length 1, got %d", m.Len())
 		}
@@ -167,9 +167,9 @@ func TestMap(t *testing.T) {
 		}
 	})
 
-	t.Run("insert_to_non_empty", func(t *testing.T) {
+	t.Run("set_into_non_empty", func(t *testing.T) {
 		m := lego.NewMap(lego.NewPair("a", 1))
-		m.Insert("b", 2)
+		m.Set("b", 2)
 		if m.Len() != 2 {
 			t.Errorf("Expected length 2, got %d", m.Len())
 		}
