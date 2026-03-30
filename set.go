@@ -46,19 +46,19 @@ type Set[V comparable] struct {
 	s GoSet[V]
 }
 
-func (s Set[V]) Len() int {
+func (s *Set[V]) Len() int {
 	return s.s.Len()
 }
 
-func (s Set[V]) List() iter.Seq[V] {
+func (s *Set[V]) List() iter.Seq[V] {
 	return s.s.List()
 }
 
-func (s Set[V]) Has(v V) bool {
+func (s *Set[V]) Has(v V) bool {
 	return s.s.Has(v)
 }
 
-func (s Set[V]) Add(v V) {
+func (s *Set[V]) Add(v V) {
 	if s.s == nil {
 		s.s = GoSet[V]{}
 	}
@@ -66,18 +66,18 @@ func (s Set[V]) Add(v V) {
 }
 
 // Reserve reserves space for n elements in the set. This is a best-effort operation and will do nothing if the set already contains some values, since Go's built-in maps do not support reserving space after initialization.
-func (s Set[V]) Reserve(n int) {
+func (s *Set[V]) Reserve(n int) {
 	if s.s == nil {
 		s.s = make(GoSet[V], n)
 	}
 }
 
-func NewSet[V comparable](values ...V) Set[V] {
+func NewSet[V comparable](values ...V) *Set[V] {
 	m := make(GoSet[V], len(values))
 	for _, v := range values {
 		m[v] = GoSetValue{}
 	}
-	return Set[V]{s: m}
+	return &Set[V]{s: m}
 }
 
 func DeepCopySet[S FixedSet[V], V comparable](s S) Set[V] {
