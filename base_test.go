@@ -1,6 +1,7 @@
 package lego_test
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -58,6 +59,10 @@ func (v ExampleView) Equal(other ExampleView) bool {
 	return v.String() == other.String() && v.Int() == other.Int()
 }
 
+func (v ExampleView) Combine() string {
+	return v.e.Combine()
+}
+
 type Example struct {
 	String string
 	Int    int
@@ -69,6 +74,10 @@ func (e *Example) Equal(other *Example) bool {
 
 func (e *Example) View() ExampleView {
 	return ExampleView{e}
+}
+
+func (e *Example) Combine() string {
+	return fmt.Sprintf("%s%d", e.String, e.Int)
 }
 
 type ExampleSliceView struct {
@@ -133,6 +142,17 @@ func TestExample(t *testing.T) {
 		}
 		if v.Int() != 1 {
 			t.Errorf("Expected Int() to return 1, got %d", v.Int())
+		}
+	})
+
+	t.Run("combine", func(t *testing.T) {
+		e := &Example{String: "a", Int: 1}
+		if e.Combine() != "a1" {
+			t.Errorf("Expected Combine() to return 'a1', got '%s'", e.Combine())
+		}
+		v := e.View()
+		if v.Combine() != "a1" {
+			t.Errorf("Expected Combine() to return 'a1', got '%s'", v.Combine())
 		}
 	})
 }
