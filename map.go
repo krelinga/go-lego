@@ -43,19 +43,19 @@ type Map[K comparable, V any] struct {
 	m GoMap[K, V]
 }
 
-func (m Map[K, V]) Len() int {
+func (m *Map[K, V]) Len() int {
 	return len(m.m)
 }
 
-func (m Map[K, V]) List() iter.Seq[Pair[K, V]] {
+func (m *Map[K, V]) List() iter.Seq[Pair[K, V]] {
 	return m.m.List()
 }
 
-func (m Map[K, V]) Get(key K) (V, bool) {
+func (m *Map[K, V]) Get(key K) (V, bool) {
 	return m.m.Get(key)
 }
 
-func (m Map[K, V]) Add(pair Pair[K, V]) {
+func (m *Map[K, V]) Add(pair Pair[K, V]) {
 	if m.m == nil {
 		m.m = GoMap[K, V]{}
 	}
@@ -63,7 +63,7 @@ func (m Map[K, V]) Add(pair Pair[K, V]) {
 }
 
 // Insert adds the key and value to the map, and returns true if the key already existed in the map, and false otherwise.
-func (m Map[K, V]) Insert(key K, value V) bool {
+func (m *Map[K, V]) Insert(key K, value V) bool {
 	if m.m == nil {
 		m.m = GoMap[K, V]{}
 	}
@@ -74,14 +74,25 @@ func (m Map[K, V]) Insert(key K, value V) bool {
 
 
 // Reserve reserves space for n elements in the map. This is a best-effort operation and will do nothing if the map already contains some values, since Go's built-in maps do not support reserving space after initialization.
-func (m Map[K, V]) Reserve(n int) {
+func (m *Map[K, V]) Reserve(n int) {
 	if m.m == nil {
 		m.m = make(GoMap[K, V], n)
 	}
 }
 
-func NewMap[M ~map[K]V, K comparable, V any](m M) Map[K, V] {
-	return Map[K, V]{m: GoMap[K, V](m)}
+// NewMap creates a new map with the given entries.
+func NewMap[K comparable, V any](entries ...Pair[K, V]) *Map[K, V] {
+	return NewMapReserve(len(entries), entries...)
+}
+
+// NewMapReserve creates a new map with the given entries, and reserves space for n elements in the map.
+func NewMapReserve[K comparable, V any](n int, entries ...Pair[K, V]) *Map[K, V] {
+	m := &Map[K, V]{}
+	m.Reserve(n)
+	for _, entry := range entries {
+		m.Add(entry)
+	}
+	return m
 }
 
 type Getter[K, V any] interface {
@@ -154,7 +165,7 @@ func (v mapView[M, K, V1, V2]) Get(key K) (V2, bool) {
 	return v1.View(), true
 }
 
-func DeepCopyMap[M FixedMap[K, V], K comparable, V DeepCopier[V]](m M) Map[K, V] {
+func DeepCopyMap[M FixedMap[K, V], K comparable, V DeepCopier[V]](m M) *Map[K, V] {
 	if t := reflect.TypeFor[K](); t.Kind() == reflect.Pointer || t.Kind() == reflect.Interface {
 		panic("cannot deep copy a map with pointer or interface keys")
 	}
@@ -163,14 +174,14 @@ func DeepCopyMap[M FixedMap[K, V], K comparable, V DeepCopier[V]](m M) Map[K, V]
 	for pair := range m.List() {
 		out.Add(NewPair(pair.GetKey(), pair.GetValue().DeepCopy()))
 	}
-	return out
+	return &out
 }
 
-func ShallowCopyMap[M FixedMap[K, V], K comparable, V any](m M) Map[K, V] {
+func ShallowCopyMap[M FixedMap[K, V], K comparable, V any](m M) *Map[K, V] {
 	var out Map[K, V]
 	out.Reserve(m.Len())
 	for pair := range m.List() {
 		out.Add(pair)
 	}
-	return out
+	return &out
 }
