@@ -133,17 +133,17 @@ func TestSlice(t *testing.T) {
 func TestViewSlice(t *testing.T) {
 	slice := ExampleSlice{
 		Slice: lego.NewSlice(
-			Example{
+			&Example{
 				String: "a",
 				Int:    1,
 			},
-			Example{
+			&Example{
 				String: "b",
 				Int:    2,
 			},
 		),
 	}
-	slice.Add(Example{
+	slice.Add(&Example{
 		String: "c",
 		Int:    3,
 	})
@@ -184,9 +184,9 @@ func TestViewSlice(t *testing.T) {
 }
 
 func TestEqualSlice(t *testing.T) {
-	s1 := NewExampleSlice(Example{String: "a", Int: 1}, Example{String: "b", Int: 2})
-	s2 := NewExampleSlice(Example{String: "a", Int: 1}, Example{String: "b", Int: 2})
-	s3 := NewExampleSlice(Example{String: "a", Int: 1}, Example{String: "b", Int: 3})
+	s1 := NewExampleSlice(&Example{String: "a", Int: 1}, &Example{String: "b", Int: 2})
+	s2 := NewExampleSlice(&Example{String: "a", Int: 1}, &Example{String: "b", Int: 2})
+	s3 := NewExampleSlice(&Example{String: "a", Int: 1}, &Example{String: "b", Int: 3})
 
 	if !s1.Equal(s2) {
 		t.Errorf("Expected s1 to equal s2, but they are not equal")
