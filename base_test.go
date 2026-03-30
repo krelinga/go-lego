@@ -200,3 +200,47 @@ func TestExampleSlice(t *testing.T) {
 		}
 	})
 }
+
+type ExampleSliceInt struct {
+	*lego.Slice[int]
+}
+
+func (s *ExampleSliceInt) View() ExampleSliceIntView {
+	return ExampleSliceIntView{s.Slice}
+}
+
+func (s *ExampleSliceInt) Equal(other *ExampleSliceInt) bool {
+	return lego.EqualViewer(s, other)
+}
+
+type ExampleSliceIntView struct {
+	lego.FixedSlice[int]
+}
+
+func (v ExampleSliceIntView) Equal(other ExampleSliceIntView) bool {
+	return lego.EqualSliceGo(v, other)
+}
+
+func TestExampleSliceInt(t *testing.T) {
+	s1 := &ExampleSliceInt{lego.NewSlice(1, 2, 3)}
+	s2 := &ExampleSliceInt{lego.NewSlice(1, 2, 3)}
+	s3 := &ExampleSliceInt{lego.NewSlice(1, 2, 4)}
+
+	if !s1.Equal(s2) {
+		t.Errorf("Expected s1 to equal s2, but they are not equal")
+	}
+	if s1.Equal(s3) {
+		t.Errorf("Expected s1 to not equal s3, but they are equal")
+	}
+
+	vs1 := s1.View()
+	vs2 := s2.View()
+	vs3 := s3.View()
+
+	if !vs1.Equal(vs2) {
+		t.Errorf("Expected vs1 to equal vs2, but they are not equal")
+	}
+	if vs1.Equal(vs3) {
+		t.Errorf("Expected vs1 to not equal vs3, but they are equal")
+	}
+}
