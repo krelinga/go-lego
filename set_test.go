@@ -58,6 +58,16 @@ func TestGoSet(t *testing.T) {
 }
 
 func TestSet(t *testing.T) {
+	t.Run("nil", func(t *testing.T) {
+		var set *lego.Set[string]
+		panics(t, func() { set.Len() })
+		panics(t, func() { set.Has("a") })
+		panics(t, func() {
+			for range set.List() {
+			}
+		})
+	})
+
 	t.Run("empty", func(t *testing.T) {
 		set := &lego.Set[string]{}
 		if set.Len() != 0 {

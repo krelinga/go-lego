@@ -53,6 +53,16 @@ func TestGoSlice(t *testing.T) {
 }
 
 func TestSlice(t *testing.T) {
+	t.Run("nil", func(t *testing.T) {
+		var slice *lego.Slice[string]
+		panics(t, func() { slice.Len() })
+		panics(t, func() { slice.Get(0) })
+		panics(t, func() {
+			for range slice.List() {
+			}
+		})
+	})
+
 	t.Run("empty", func(t *testing.T) {
 		slice := &lego.Slice[string]{}
 		if slice.Len() != 0 {
