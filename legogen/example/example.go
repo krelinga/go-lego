@@ -3,9 +3,12 @@ package main
 import "github.com/krelinga/go-lego"
 
 type Example struct {
-	StrField string
-	IntField int
+	lego.GenView
+	lego.GenEqualComparer
+	StrField string `legogen:"view=getter"`
+	IntField int    `legogen:"view=getter"`
 }
+//go:generate go run github.com/krelinga/go-lego/legogen -type=Example
 
 func (e *Example) View() ExampleView {
 	return ExampleView{e}
@@ -29,6 +32,3 @@ func (v ExampleView) Compare(other ExampleView) int {
 		lego.NewCmpFuncGo(ExampleView.IntField),
 	)
 }
-
-//go:generate go run github.com/krelinga/go-lego/legogen -type=*Example -equal=viewer
-//go:generate go run github.com/krelinga/go-lego/legogen -type=ExampleView -equal=comparer
