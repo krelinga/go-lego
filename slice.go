@@ -1,6 +1,10 @@
 package lego
 
-import "iter"
+import (
+	"cmp"
+	"iter"
+	"slices"
+)
 
 // A FixedSlice is a slice that does not allow adding or removing elements, but which may still allow modifying the elements in the slice (for example, if the elements are pointers).
 type FixedSlice[T any] interface {
@@ -96,4 +100,26 @@ func ShallowCopySlice[S FixedSlice[T], T any](s S) Slice[T] {
 		out.Add(v)
 	}
 	return out
+}
+
+// Sort sorts the elements of the given [Slice] in place using the Compare method of the [Comparer] interface to determine the order of the elements.
+func Sort[T Comparer[T]](s *Slice[T]) {
+	slices.SortFunc(s.GoSlice, func(a, b T) int {
+		return a.Compare(b)
+	})
+}
+
+// SortFunc sorts the elements of the given [Slice] in place using the given CmpFunc to determine the order of the elements.
+func SortFunc[T any](s *Slice[T], compare CmpFunc[T]) {
+	slices.SortFunc(s.GoSlice, compare)
+}
+
+// SortGo sorts the elements of the given [Slice] in place using the natural order of the elements, which must implement the [cmp.Ordered] interface.
+func SortGo[T cmp.Ordered](s *Slice[T]) {
+	slices.Sort(s.GoSlice)
+}
+
+// Reverse reverses the elements of the given [Slice] in place.
+func Reverse[T any](s *Slice[T]) {
+	slices.Reverse(s.GoSlice)
 }

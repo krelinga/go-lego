@@ -2,7 +2,6 @@ package lego
 
 import (
 	"cmp"
-	"slices"
 )
 
 // A Comparer is a type that can be compared to other values of the same type using the Compare method, which returns an integer indicating the relative order of the values.
@@ -73,26 +72,4 @@ func Greater[T Comparer[T]](a, b T) bool {
 // GreaterEqual returns true if a is greater than or equal to b according to the Compare method of the [Comparer] interface, and false otherwise.
 func GreaterEqual[T Comparer[T]](a, b T) bool {
 	return a.Compare(b) >= 0
-}
-
-// Sort sorts the elements of the given [Slice] in place using the Compare method of the [Comparer] interface to determine the order of the elements.
-func Sort[T Comparer[T]](s *Slice[T]) {
-	slices.SortFunc(s.GoSlice, func(a, b T) int {
-		return a.Compare(b)
-	})
-}
-
-// SortFunc sorts the elements of the given [Slice] in place using the given CmpFunc to determine the order of the elements.
-func SortFunc[T any](s *Slice[T], compare CmpFunc[T]) {
-	slices.SortFunc(s.GoSlice, compare)
-}
-
-// SortGo sorts the elements of the given [Slice] in place using the natural order of the elements, which must implement the [cmp.Ordered] interface.
-func SortGo[T cmp.Ordered](s *Slice[T]) {
-	slices.Sort(s.GoSlice)
-}
-
-// Reverse reverses the elements of the given [Slice] in place.
-func Reverse[T any](s *Slice[T]) {
-	slices.Reverse(s.GoSlice)
 }
