@@ -53,6 +53,13 @@ func NewCmpFuncUsing[T any](funcs ...CmpFunc[T]) CmpFunc[T] {
 	}
 }
 
+// NewCmpFuncReverse creates a CmpFunc that compares two values by applying the given CmpFunc and then negating the result, so that the order of the values is reversed.
+func NewCmpFuncReverse[T any](f CmpFunc[T]) CmpFunc[T] {
+	return func(a, b T) int {
+		return -f(a, b)
+	}
+}
+
 // Less returns true if a is less than b according to the Compare method of the [Comparer] interface, and false otherwise.
 func Less[T Comparer[T]](a, b T) bool {
 	return a.Compare(b) < 0
