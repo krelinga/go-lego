@@ -27,7 +27,7 @@ type FluidSet[V comparable] interface {
 	LegoSet() *Set[V]
 }
 
-// A SetValue is a placeholder value used in the implementation of GoSet, since Go's built-in maps do not allow sets directly.
+// A SetValue is a placeholder value used in the implementation of Set, since Go's built-in maps do not allow sets directly.
 type SetValue struct{}
 
 // A Set is a mutable set.
