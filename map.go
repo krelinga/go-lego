@@ -13,18 +13,34 @@ type FixedMap[K comparable, V any] interface {
 	Get(K) (V, bool)
 }
 
-// A GoMap is map that wraps Go's built-in map type.
-// It implements the [FixedMap] interface.
-// It does not implement the [Adder] interface since Go's built-in maps may be nil and thus not safe to add to without reassignment, which this type does not support.
-type GoMap[K comparable, V any] map[K]V
+type FluidMap[K comparable, V any] interface {
+	FixedMap[K, V]
 
-func (m GoMap[K, V]) Len() int {
-	return len(m)
+	// Reserve reserves space for n elements in the map. This is a best-effort operation and will do nothing if the map already contains some values, since Go's built-in maps do not support reserving space after initialization.
+	Reserve(int)
+
+	// Add adds a key-value pair to the map. If the map already contains a value for the given key, it will be replaced with the new value.
+	Add(Pair[K, V])
+
+	// Set stores the given value in the map under the given key, replacing any existing value for that key.
+	Set(K, V)
+
+	// LegoMap returns the underlying *Map[K, V] that implements the FluidMap interface. This is used internally by functions like Sort and SortFunc to access the underlying map for sorting.
+	// It is helpful because several other types are expected to embed a *Map[K, V] to implement the FluidMap interface, and this method provides a consistent way to access the underlying map regardless of the embedding type.
+	LegoMap() *Map[K, V]
 }
 
-func (m GoMap[K, V]) List() iter.Seq[Pair[K, V]] {
+// A Map is a mutable map.
+// It implements the [FixedMap] interface and the [Adder] interface.
+type Map[K comparable, V any] map[K]V
+
+func (m *Map[K, V]) Len() int {
+	return len(*m)
+}
+
+func (m *Map[K, V]) List() iter.Seq[Pair[K, V]] {
 	return func(yield func(Pair[K, V]) bool) {
-		for k, v := range m {
+		for k, v := range *m {
 			if !yield(NewPair(k, v)) {
 				return
 			}
@@ -32,52 +48,48 @@ func (m GoMap[K, V]) List() iter.Seq[Pair[K, V]] {
 	}
 }
 
-func (m GoMap[K, V]) Get(key K) (V, bool) {
-	v, ok := m[key]
+func (m *Map[K, V]) Get(key K) (V, bool) {
+	v, ok := (*m)[key]
 	return v, ok
 }
 
-// A Map is a mutable map.
-// It implements the [FixedMap] interface and the [Adder] interface.
-type Map[K comparable, V any] struct {
-	GoMap[K, V]
-}
 
 func (m *Map[K, V]) Add(pair Pair[K, V]) {
-	if m.GoMap == nil {
-		m.GoMap = GoMap[K, V]{}
+	if *m == nil {
+		*m = make(Map[K, V])
 	}
-	m.GoMap[pair.GetKey()] = pair.GetValue()
+	(*m)[pair.GetKey()] = pair.GetValue()
 }
 
 // Set stores the given value in the map under the given key, replacing any existing value for that key.
 func (m *Map[K, V]) Set(key K, value V) {
-	if m.GoMap == nil {
-		m.GoMap = GoMap[K, V]{}
+	if *m == nil {
+		*m = make(Map[K, V])
 	}
-	m.GoMap[key] = value
+	(*m)[key] = value
 }
 
 // Reserve reserves space for n elements in the map. This is a best-effort operation and will do nothing if the map already contains some values, since Go's built-in maps do not support reserving space after initialization.
 func (m *Map[K, V]) Reserve(n int) {
-	if m.GoMap == nil {
-		m.GoMap = make(GoMap[K, V], n)
+	if *m == nil {
+		*m = make(Map[K, V], n)
 	}
+}
+
+func (m *Map[K, V]) LegoMap() *Map[K, V] {
+	return m
 }
 
 // NewMap creates a new map with the given entries.
-func NewMap[K comparable, V any](entries ...Pair[K, V]) *Map[K, V] {
-	return NewMapReserve(len(entries), entries...)
+func NewMap[K comparable, V any]() *Map[K, V] {
+	m := make(Map[K, V])
+	return &m
 }
 
 // NewMapReserve creates a new map with the given entries, and reserves space for n elements in the map.
-func NewMapReserve[K comparable, V any](n int, entries ...Pair[K, V]) *Map[K, V] {
-	m := &Map[K, V]{}
-	m.Reserve(n)
-	for _, entry := range entries {
-		m.Add(entry)
-	}
-	return m
+func NewMapHint[K comparable, V any](n int) *Map[K, V] {
+	m := make(Map[K, V], n)
+	return &m
 }
 
 type Getter[K, V any] interface {
