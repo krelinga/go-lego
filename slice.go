@@ -14,17 +14,17 @@ type FixedSlice[T any] interface {
 	Get(int) T
 }
 
-// A GoSlice is a wrapper around Go's built-in slice type that implements the [FixedSlice] interface.
-// It does not implement the [Adder] interface, since Go's built-in slices do not allow adding elements without creating a new slice.
-type GoSlice[T any] []T
+// A Slice is a mutable slice type.
+// It implements the [FixedSlice] interface and the [Adder] interface.
+type Slice[T any] []T
 
-func (s GoSlice[T]) Len() int {
-	return len(s)
+func (s *Slice[T]) Len() int {
+	return len(*s)
 }
 
-func (s GoSlice[T]) List() iter.Seq[Pair[int, T]] {
+func (s *Slice[T]) List() iter.Seq[Pair[int, T]] {
 	return func(yield func(Pair[int, T]) bool) {
-		for i, v := range s {
+		for i, v := range *s {
 			if !yield(NewPair(i, v)) {
 				return
 			}
@@ -32,29 +32,29 @@ func (s GoSlice[T]) List() iter.Seq[Pair[int, T]] {
 	}
 }
 
-func (s GoSlice[T]) Get(i int) T {
-	return s[i]
-}
-
-// A Slice is a mutable slice type.
-// It implements the [FixedSlice] interface and the [Adder] interface.
-type Slice[T any] struct {
-	GoSlice[T]
+func (s *Slice[T]) Get(i int) T {
+	return (*s)[i]
 }
 
 func (s *Slice[T]) Add(value T) {
-	s.GoSlice = append(s.GoSlice, value)
+	*s = append(*s, value)
 }
 
 // Reserve reserves space for n elements in the slice. This is a best-effort operation and will do nothing if the slice already contains some values, since Go's built-in slices do not support reserving space after initialization.
 func (s *Slice[T]) Reserve(n int) {
-	if s.GoSlice == nil {
-		s.GoSlice = make(GoSlice[T], 0, n)
+	if *s == nil {
+		*s = make([]T, 0, n)
 	}
 }
 
-func NewSlice[T any](elements ...T) *Slice[T] {
-	return &Slice[T]{GoSlice: GoSlice[T](elements)}
+func NewSlice[T any](l int) *Slice[T] {
+	s := make([]T, l)
+	return (*Slice[T])(&s)
+}
+
+func NewSliceCap[T any](l, c int) *Slice[T] {
+	s := make([]T, l, c)
+	return (*Slice[T])(&s)
 }
 
 // ViewSlice creates a view of a slice that allows viewing the elements of the slice as a different type, without modifying the original slice.
@@ -104,24 +104,24 @@ func ShallowCopySlice[S FixedSlice[T], T any](s S) *Slice[T] {
 
 // Sort sorts the elements of the given [Slice] in place using the Compare method of the [Comparer] interface to determine the order of the elements.
 func Sort[T Comparer[T]](s *Slice[T]) {
-	slices.SortFunc(s.GoSlice, func(a, b T) int {
+	slices.SortFunc(*s, func(a, b T) int {
 		return a.Compare(b)
 	})
 }
 
 // SortFunc sorts the elements of the given [Slice] in place using the given CmpFunc to determine the order of the elements.
 func SortFunc[T any](s *Slice[T], compare CmpFunc[T]) {
-	slices.SortFunc(s.GoSlice, compare)
+	slices.SortFunc(*s, compare)
 }
 
 // SortGo sorts the elements of the given [Slice] in place using the natural order of the elements.
 func SortGo[T cmp.Ordered](s *Slice[T]) {
-	slices.Sort(s.GoSlice)
+	slices.Sort(*s)
 }
 
 // Reverse reverses the elements of the given [Slice] in place.
 func Reverse[T any](s *Slice[T]) {
-	slices.Reverse(s.GoSlice)
+	slices.Reverse(*s)
 }
 
 func EqualSlice[S FixedSlice[T], T Equaler[T]](a, b S) bool {

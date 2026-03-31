@@ -108,7 +108,7 @@ func (v ExampleSliceView) Sum() int {
 }
 
 type ExampleSlice struct {
-	*lego.Slice[*Example]
+	lego.Slice[*Example]
 }
 
 func (s *ExampleSlice) Sum() int {
@@ -121,10 +121,6 @@ func (s *ExampleSlice) View() ExampleSliceView {
 
 func (s *ExampleSlice) Equal(other *ExampleSlice) bool {
 	return lego.EqualViewer(s, other)
-}
-
-func NewExampleSlice(elements ...*Example) *ExampleSlice {
-	return &ExampleSlice{lego.NewSlice(elements...)}
 }
 
 func TestExample(t *testing.T) {
@@ -198,11 +194,20 @@ func TestExampleSlice(t *testing.T) {
 	})
 
 	t.Run("sum", func(t *testing.T) {
-		slice := NewExampleSlice(
-			&Example{String: "a", Int: 1},
-			&Example{String: "b", Int: 2},
-			&Example{String: "c", Int: 3},
-		)
+		slice := &ExampleSlice{lego.Slice[*Example]{
+			&Example{
+				String: "a",
+				Int:    1,
+			},
+			&Example{
+				String: "b",
+				Int:    2,
+			},
+			&Example{
+				String: "c",
+				Int:    3,
+			},
+		}}
 		if slice.Sum() != 6 {
 			t.Errorf("Expected Sum() to return 6, got %d", slice.Sum())
 		}
@@ -215,20 +220,20 @@ func TestExampleSlice(t *testing.T) {
 		e1 := &Example{String: "a", Int: 2}
 		e2 := &Example{String: "a", Int: 1}
 		e3 := &Example{String: "c", Int: 3}
-		slice := NewExampleSlice(e1, e2, e3)
-		lego.Sort(slice.Slice)
-		if !slice.Equal(NewExampleSlice(e2, e1, e3)) {
+		slice := &ExampleSlice{lego.Slice[*Example]{e1, e2, e3}}
+		lego.Sort(&slice.Slice)
+		if !slice.Equal(&ExampleSlice{lego.Slice[*Example]{e2, e1, e3}}) {
 			t.Errorf("Expected slice to be sorted by String then Int, but it is not")
 		}
 	})
 }
 
 type ExampleSliceInt struct {
-	*lego.Slice[int]
+	lego.Slice[int]
 }
 
 func (s *ExampleSliceInt) View() ExampleSliceIntView {
-	return ExampleSliceIntView{s.Slice}
+	return ExampleSliceIntView{&s.Slice}
 }
 
 func (s *ExampleSliceInt) Equal(other *ExampleSliceInt) bool {
@@ -244,9 +249,9 @@ func (v ExampleSliceIntView) Equal(other ExampleSliceIntView) bool {
 }
 
 func TestExampleSliceInt(t *testing.T) {
-	s1 := &ExampleSliceInt{lego.NewSlice(1, 2, 3)}
-	s2 := &ExampleSliceInt{lego.NewSlice(1, 2, 3)}
-	s3 := &ExampleSliceInt{lego.NewSlice(1, 2, 4)}
+	s1 := &ExampleSliceInt{lego.Slice[int]{1, 2, 3}}
+	s2 := &ExampleSliceInt{lego.Slice[int]{1, 2, 3}}
+	s3 := &ExampleSliceInt{lego.Slice[int]{1, 2, 4}}
 
 	if !s1.Equal(s2) {
 		t.Errorf("Expected s1 to equal s2, but they are not equal")

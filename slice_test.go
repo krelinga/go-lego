@@ -10,46 +10,6 @@ func TestSliceImplements(t *testing.T) {
 	implements[*lego.Slice[string], lego.FixedSlice[string]](t)
 	implements[*lego.Slice[string], lego.LenLister[lego.Pair[int, string]]](t)
 	implements[*lego.Slice[string], lego.Adder[string]](t)
-
-	implements[lego.GoSlice[string], lego.FixedSlice[string]](t)
-	implements[lego.GoSlice[string], lego.LenLister[lego.Pair[int, string]]](t)
-}
-
-func TestGoSlice(t *testing.T) {
-	slice := lego.GoSlice[string]{"a", "b", "c"}
-	if slice.Len() != 3 {
-		t.Errorf("Expected length 3, got %d", slice.Len())
-	}
-	if val := slice.Get(0); val != "a" {
-		t.Errorf("Expected Get(0) to return 'a', got '%s'", val)
-	}
-	if val := slice.Get(1); val != "b" {
-		t.Errorf("Expected Get(1) to return 'b', got '%s'", val)
-	}
-	if val := slice.Get(2); val != "c" {
-		t.Errorf("Expected Get(2) to return 'c', got '%s'", val)
-	}
-	panics(t, func() { slice.Get(-1) })
-	panics(t, func() { slice.Get(3) })
-	for p := range slice.List() {
-		i, x := p.GetKey(), p.GetValue()
-		switch i {
-		case 0:
-			if x != "a" {
-				t.Errorf("Expected first element to be 'a', got '%s'", x)
-			}
-		case 1:
-			if x != "b" {
-				t.Errorf("Expected second element to be 'b', got '%s'", x)
-			}
-		case 2:
-			if x != "c" {
-				t.Errorf("Expected third element to be 'c', got '%s'", x)
-			}
-		default:
-			t.Errorf("Expected only 3 elements, got more: %d", i+1)
-		}
-	}
 }
 
 func TestSlice(t *testing.T) {
@@ -98,8 +58,22 @@ func TestSlice(t *testing.T) {
 		}
 	})
 
+	t.Run("new", func(t *testing.T) {
+		slice := lego.NewSlice[string](3)
+		if slice.Len() != 3 {
+			t.Errorf("Expected length 3, got %d", slice.Len())
+		}
+		for i := 0; i < 3; i++ {
+			if val := slice.Get(i); val != "" {
+				t.Errorf("Expected Get(%d) to return '', got '%s'", i, val)
+			}
+		}
+		panics(t, func() { slice.Get(-1) })
+		panics(t, func() { slice.Get(3) })
+	})
+
 	t.Run("add_to_non_empty", func(t *testing.T) {
-		slice := lego.NewSlice("a")
+		slice := &lego.Slice[string]{"a"}
 		slice.Add("b")
 		if slice.Len() != 2 {
 			t.Errorf("Expected length 2, got %d", slice.Len())
@@ -131,8 +105,8 @@ func TestSlice(t *testing.T) {
 }
 
 func TestViewSlice(t *testing.T) {
-	slice := ExampleSlice{
-		Slice: lego.NewSlice(
+	slice := &ExampleSlice{
+		Slice: lego.Slice[*Example]{
 			&Example{
 				String: "a",
 				Int:    1,
@@ -141,7 +115,7 @@ func TestViewSlice(t *testing.T) {
 				String: "b",
 				Int:    2,
 			},
-		),
+		},
 	}
 	slice.Add(&Example{
 		String: "c",
@@ -184,9 +158,18 @@ func TestViewSlice(t *testing.T) {
 }
 
 func TestEqualSlice(t *testing.T) {
-	s1 := NewExampleSlice(&Example{String: "a", Int: 1}, &Example{String: "b", Int: 2})
-	s2 := NewExampleSlice(&Example{String: "a", Int: 1}, &Example{String: "b", Int: 2})
-	s3 := NewExampleSlice(&Example{String: "a", Int: 1}, &Example{String: "b", Int: 3})
+	s1 := &ExampleSlice{lego.Slice[*Example]{
+		&Example{String: "a", Int: 1},
+		&Example{String: "b", Int: 2},
+	}}
+	s2 := &ExampleSlice{lego.Slice[*Example]{
+		&Example{String: "a", Int: 1},
+		&Example{String: "b", Int: 2},
+	}}
+	s3 := &ExampleSlice{lego.Slice[*Example]{
+		&Example{String: "a", Int: 1},
+		&Example{String: "b", Int: 3},
+	}}
 
 	if !s1.Equal(s2) {
 		t.Errorf("Expected s1 to equal s2, but they are not equal")
