@@ -13,21 +13,34 @@ type FixedSet[V comparable] interface {
 	Has(V) bool
 }
 
-// A GoSetValue is a placeholder value used in the implementation of GoSet, since Go's built-in maps do not allow sets directly.
-type GoSetValue struct{}
+type FluidSet[V comparable] interface {
+	FixedSet[V]
 
-// A GoSet is a set that wraps Go's built-in map type with a placeholder value.
-// It implements the [FixedSet] interface.
-// It does not implement the [Adder] interface since Go's built-in maps may be nil and thus not safe to add to without reassignment, which this type does not support.
-type GoSet[V comparable] map[V]GoSetValue
+	// Reserve reserves space for n elements in the set. This is a best-effort operation and will do nothing if the set already contains some values, since Go's built-in maps do not support reserving space after initialization.
+	Reserve(int)
 
-func (s GoSet[V]) Len() int {
-	return len(s)
+	// Add adds an element to the set. If the set already contains the given element, it will be replaced with the new value.
+	Add(V)
+
+	// LegoSet returns the underlying *Set[V] that implements the FluidSet interface. This is used internally by functions like Sort and SortFunc to access the underlying set for sorting.
+	// It is helpful because several other types are expected to embed a *Set[V] to implement the FluidSet interface, and this method provides a consistent way to access the underlying set regardless of the embedding type.
+	LegoSet() *Set[V]
 }
 
-func (s GoSet[V]) List() iter.Seq[V] {
+// A SetValue is a placeholder value used in the implementation of GoSet, since Go's built-in maps do not allow sets directly.
+type SetValue struct{}
+
+// A Set is a mutable set.
+// It implements the [FixedSet] interface and the [Adder] interface.
+type Set[V comparable] map[V]SetValue
+
+func (s *Set[V]) Len() int {
+	return len(*s)
+}
+
+func (s *Set[V]) List() iter.Seq[V] {
 	return func(yield func(V) bool) {
-		for v := range s {
+		for v := range *s {
 			if !yield(v) {
 				return
 			}
@@ -35,37 +48,38 @@ func (s GoSet[V]) List() iter.Seq[V] {
 	}
 }
 
-func (s GoSet[V]) Has(v V) bool {
-	_, ok := s[v]
+func (s *Set[V]) Has(v V) bool {
+	_, ok := (*s)[v]
 	return ok
 }
 
-// A Set is a mutable set.
-// It implements the [FixedSet] interface and the [Adder] interface.
-type Set[V comparable] struct {
-	GoSet[V]
-}
-
 func (s *Set[V]) Add(v V) {
-	if s.GoSet == nil {
-		s.GoSet = GoSet[V]{}
+	if *s == nil {
+		*s = make(Set[V])
 	}
-	s.GoSet[v] = GoSetValue{}
+	(*s)[v] = SetValue{}
 }
 
 // Reserve reserves space for n elements in the set. This is a best-effort operation and will do nothing if the set already contains some values, since Go's built-in maps do not support reserving space after initialization.
 func (s *Set[V]) Reserve(n int) {
-	if s.GoSet == nil {
-		s.GoSet = make(GoSet[V], n)
+	if *s == nil {
+		*s = make(Set[V], n)
 	}
 }
 
-func NewSet[V comparable](values ...V) *Set[V] {
-	m := make(GoSet[V], len(values))
-	for _, v := range values {
-		m[v] = GoSetValue{}
-	}
-	return &Set[V]{GoSet: m}
+func (s *Set[V]) LegoSet() *Set[V] {
+	return s
+}
+
+func NewSet[V comparable]() *Set[V] {
+	var s Set[V]
+	return &s
+}
+
+func NewSetHint[V comparable](n int) *Set[V] {
+	var s Set[V]
+	s.Reserve(n)
+	return &s
 }
 
 func DeepCopySet[S FixedSet[V], V comparable](s S) *Set[V] {
