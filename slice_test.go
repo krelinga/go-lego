@@ -10,6 +10,7 @@ func TestSliceImplements(t *testing.T) {
 	implements[*lego.Slice[string], lego.FixedSlice[string]](t)
 	implements[*lego.Slice[string], lego.LenLister[lego.Pair[int, string]]](t)
 	implements[*lego.Slice[string], lego.Adder[string]](t)
+	implements[*lego.Slice[string], lego.FluidSlice[string]](t)
 }
 
 func TestSlice(t *testing.T) {

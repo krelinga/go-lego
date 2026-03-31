@@ -221,7 +221,7 @@ func TestExampleSlice(t *testing.T) {
 		e2 := &Example{String: "a", Int: 1}
 		e3 := &Example{String: "c", Int: 3}
 		slice := &ExampleSlice{lego.Slice[*Example]{e1, e2, e3}}
-		lego.Sort(&slice.Slice)
+		lego.Sort(slice)
 		if !slice.Equal(&ExampleSlice{lego.Slice[*Example]{e2, e1, e3}}) {
 			t.Errorf("Expected slice to be sorted by String then Int, but it is not")
 		}

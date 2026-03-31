@@ -14,6 +14,24 @@ type FixedSlice[T any] interface {
 	Get(int) T
 }
 
+// A FluidSlice is a slice that allows adding and removing elements, as well as modifying the elements in the slice.
+type FluidSlice[T any] interface {
+	FixedSlice[T]
+
+	// Reserve reserves space for n elements in the slice. This is a best-effort operation and will do nothing if the slice already contains some values, since Go's built-in slices do not support reserving space after initialization.
+	Reserve(int)
+
+	// Add adds an element to the end of the slice.
+	Add(T)
+
+	// Set sets the element at the given index to the given value. The index must be less than the length of the slice and greater than or equal to 0.
+	Set(int, T)
+
+	// LegoSlice returns the underlying *Slice[T] that implements the FluidSlice interface. This is used internally by functions like Sort and SortFunc to access the underlying slice for sorting.
+	// It is helpful because several other types are expected to embed a *Slice[T] to implement the FluidSlice interface, and this method provides a consistent way to access the underlying slice regardless of the embedding type.
+	LegoSlice() *Slice[T]
+}
+
 // A Slice is a mutable slice type.
 // It implements the [FixedSlice] interface and the [Adder] interface.
 type Slice[T any] []T
@@ -45,6 +63,14 @@ func (s *Slice[T]) Reserve(n int) {
 	if *s == nil {
 		*s = make([]T, 0, n)
 	}
+}
+
+func (s *Slice[T]) Set(i int, value T) {
+	(*s)[i] = value
+}
+
+func (s *Slice[T]) LegoSlice() *Slice[T] {
+	return s
 }
 
 func NewSlice[T any](l int) *Slice[T] {
@@ -103,25 +129,25 @@ func ShallowCopySlice[S FixedSlice[T], T any](s S) *Slice[T] {
 }
 
 // Sort sorts the elements of the given [Slice] in place using the Compare method of the [Comparer] interface to determine the order of the elements.
-func Sort[T Comparer[T]](s *Slice[T]) {
-	slices.SortFunc(*s, func(a, b T) int {
+func Sort[T Comparer[T]](s FluidSlice[T]) {
+	slices.SortFunc(*s.LegoSlice(), func(a, b T) int {
 		return a.Compare(b)
 	})
 }
 
 // SortFunc sorts the elements of the given [Slice] in place using the given CmpFunc to determine the order of the elements.
-func SortFunc[T any](s *Slice[T], compare CmpFunc[T]) {
-	slices.SortFunc(*s, compare)
+func SortFunc[T any](s FluidSlice[T], compare CmpFunc[T]) {
+	slices.SortFunc(*s.LegoSlice(), compare)
 }
 
 // SortGo sorts the elements of the given [Slice] in place using the natural order of the elements.
-func SortGo[T cmp.Ordered](s *Slice[T]) {
-	slices.Sort(*s)
+func SortGo[T cmp.Ordered](s FluidSlice[T]) {
+	slices.Sort(*s.LegoSlice())
 }
 
 // Reverse reverses the elements of the given [Slice] in place.
-func Reverse[T any](s *Slice[T]) {
-	slices.Reverse(*s)
+func Reverse[T any](s FluidSlice[T]) {
+	slices.Reverse(*s.LegoSlice())
 }
 
 func EqualSlice[S FixedSlice[T], T Equaler[T]](a, b S) bool {
