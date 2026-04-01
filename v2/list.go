@@ -5,7 +5,7 @@ import "iter"
 type ListView[K, V any] interface {
 	Length() int
 	Get(K) (V, bool)
-	All() iter.Seq2[K, V]
+	List() iter.Seq2[K, V]
 	First() (K, bool)
 	Last() (K, bool)
 }

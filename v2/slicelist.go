@@ -21,7 +21,7 @@ func (l *SliceList[V]) Get(k int) (V, bool) {
 	return l.slice[k], true
 }
 
-func (l *SliceList[V]) All() iter.Seq2[int, V] {
+func (l *SliceList[V]) List() iter.Seq2[int, V] {
 	return slices.All(l.slice)
 }
 
