@@ -5,8 +5,8 @@ import (
 	"slices"
 )
 
-type SliceListView[V any] interface {
-	ListView[int, V]
+type FixedSliceList[V any] interface {
+	FixedList[int, V]
 	ReverseList() iter.Seq2[int, V]
 }
 

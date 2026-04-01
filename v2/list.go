@@ -2,7 +2,7 @@ package v2
 
 import "iter"
 
-type ListView[P, V any] interface {
+type FixedList[P, V any] interface {
 	Length() int
 	Get(P) (V, bool)
 	List() iter.Seq2[P, V]
@@ -11,7 +11,7 @@ type ListView[P, V any] interface {
 }
 
 type List[P, V any] interface {
-	ListView[P, V]
+	FixedList[P, V]
 	Set(P, V)
 	InsertBefore(P, V) P
 	InsertAfter(P, V) P
