@@ -40,15 +40,21 @@ func (l *SliceList[V]) ReverseList() iter.Seq2[int, V] {
 	}
 }
 
-func (l *SliceList[V]) First() (int, bool) {
-	return 0, len(l.slice) > 0
+func (l *SliceList[V]) First() (int, V, bool) {
+	if len(l.slice) == 0 {
+		var zero V
+		return 0, zero, false
+	}
+	return 0, l.slice[0], true
 }
 
-func (l *SliceList[V]) Last() (int, bool) {
+func (l *SliceList[V]) Last() (int, V, bool) {
 	if len(l.slice) == 0 {
-		return 0, false
+		var zero V
+		return 0, zero, false
 	}
-	return len(l.slice) - 1, true
+	lastIdx := len(l.slice) - 1
+	return lastIdx, l.slice[lastIdx], true
 }
 
 func (l *SliceList[V]) Set(k int, v V) {

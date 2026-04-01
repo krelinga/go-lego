@@ -6,8 +6,8 @@ type ListView[K, V any] interface {
 	Length() int
 	Get(K) (V, bool)
 	List() iter.Seq2[K, V]
-	First() (K, bool)
-	Last() (K, bool)
+	First() (K, V, bool)
+	Last() (K, V, bool)
 }
 
 type List[K, V any] interface {
