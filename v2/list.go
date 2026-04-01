@@ -13,8 +13,8 @@ type ListView[P, V any] interface {
 type List[P, V any] interface {
 	ListView[P, V]
 	Set(P, V)
-	InsertBefore(P, V)
-	InsertAfter(P, V)
-	Append(V)
+	InsertBefore(P, V) P
+	InsertAfter(P, V) P
+	Append(V) P
 	Remove(P)
 }
