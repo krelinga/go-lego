@@ -14,5 +14,6 @@ type List[K, V any] interface {
 	ListView[K, V]
 	InsertBefore(K, V)
 	InsertAfter(K, V)
+	Append(V)
 	Remove(K)
 }

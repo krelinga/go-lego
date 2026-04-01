@@ -50,6 +50,10 @@ func (l *sliceList[V]) InsertAfter(k int, v V) {
 	l.slice = append(l.slice[:k+1], append([]V{v}, l.slice[k+1:]...)...)
 }
 
+func (l *sliceList[V]) Append(v V) {
+	l.slice = append(l.slice, v)
+}
+
 func (l *sliceList[V]) Remove(k int) {
 	if k < 0 || k >= len(l.slice) {
 		panic("index out of bounds")
