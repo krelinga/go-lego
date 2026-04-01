@@ -51,6 +51,13 @@ func (l *SliceList[V]) Last() (int, bool) {
 	return len(l.slice) - 1, true
 }
 
+func (l *SliceList[V]) Set(k int, v V) {
+	if k < 0 || k >= len(l.slice) {
+		panic("index out of bounds")
+	}
+	l.slice[k] = v
+}
+
 func (l *SliceList[V]) InsertBefore(k int, v V) {
 	if k < 0 || k > len(l.slice) {
 		panic("index out of bounds")

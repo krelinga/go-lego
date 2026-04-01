@@ -12,6 +12,7 @@ type ListView[K, V any] interface {
 
 type List[K, V any] interface {
 	ListView[K, V]
+	Set(K, V)
 	InsertBefore(K, V)
 	InsertAfter(K, V)
 	Append(V)
