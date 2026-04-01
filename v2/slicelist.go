@@ -5,6 +5,11 @@ import (
 	"slices"
 )
 
+type SliceListView[V any] interface {
+	ListView[int, V]
+	ReverseList() iter.Seq2[int, V]
+}
+
 type SliceList[V any] struct {
 	slice []V
 }
@@ -23,6 +28,16 @@ func (l *SliceList[V]) Get(k int) (V, bool) {
 
 func (l *SliceList[V]) List() iter.Seq2[int, V] {
 	return slices.All(l.slice)
+}
+
+func (l *SliceList[V]) ReverseList() iter.Seq2[int, V] {
+	return func(yield func(int, V) bool) {
+		for i := len(l.slice) - 1; i >= 0; i-- {
+			if !yield(i, l.slice[i]) {
+				return
+			}
+		}
+	}
 }
 
 func (l *SliceList[V]) First() (int, bool) {
