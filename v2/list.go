@@ -2,19 +2,19 @@ package v2
 
 import "iter"
 
-type ListView[K, V any] interface {
+type ListView[P, V any] interface {
 	Length() int
-	Get(K) (V, bool)
-	List() iter.Seq2[K, V]
-	First() (K, V, bool)
-	Last() (K, V, bool)
+	Get(P) (V, bool)
+	List() iter.Seq2[P, V]
+	First() (P, V, bool)
+	Last() (P, V, bool)
 }
 
-type List[K, V any] interface {
-	ListView[K, V]
-	Set(K, V)
-	InsertBefore(K, V)
-	InsertAfter(K, V)
+type List[P, V any] interface {
+	ListView[P, V]
+	Set(P, V)
+	InsertBefore(P, V)
+	InsertAfter(P, V)
 	Append(V)
-	Remove(K)
+	Remove(P)
 }
