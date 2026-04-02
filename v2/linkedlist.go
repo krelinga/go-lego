@@ -28,7 +28,7 @@ func (l *LinkedList[V]) Get(p LinkedListPosition[V]) (V, bool) {
 	return p.node.value, true
 }
 
-func (l *LinkedList[V]) List() ListSeq[LinkedListPosition[V], V] {
+func (l *LinkedList[V]) Range() ListSeq[LinkedListPosition[V], V] {
 	return func(yield func(LinkedListPosition[V], V) bool) {
 		for node := l.head; node != nil; node = node.next {
 			pos := LinkedListPosition[V]{l, node}

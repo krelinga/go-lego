@@ -13,7 +13,7 @@ type bidiLinkedListNode[V any] struct {
 
 type FixedBidiLinkedList[V any] interface {
 	FixedList[BidiLinkedListPosition[V], V]
-	ReverseList() ListSeq[BidiLinkedListPosition[V], V]
+	ReverseRange() ListSeq[BidiLinkedListPosition[V], V]
 }
 
 type BidiLinkedList[V any] struct {
@@ -34,7 +34,7 @@ func (l *BidiLinkedList[V]) Get(p BidiLinkedListPosition[V]) (V, bool) {
 	return p.node.value, true
 }
 
-func (l *BidiLinkedList[V]) List() ListSeq[BidiLinkedListPosition[V], V] {
+func (l *BidiLinkedList[V]) Range() ListSeq[BidiLinkedListPosition[V], V] {
 	return func(yield func(BidiLinkedListPosition[V], V) bool) {
 		for node := l.head; node != nil; node = node.next {
 			pos := BidiLinkedListPosition[V]{l, node}
@@ -45,7 +45,7 @@ func (l *BidiLinkedList[V]) List() ListSeq[BidiLinkedListPosition[V], V] {
 	}
 }
 
-func (l *BidiLinkedList[V]) ReverseList() ListSeq[BidiLinkedListPosition[V], V] {
+func (l *BidiLinkedList[V]) ReverseRange() ListSeq[BidiLinkedListPosition[V], V] {
 	return func(yield func(BidiLinkedListPosition[V], V) bool) {
 		for node := l.tail; node != nil; node = node.prev {
 			pos := BidiLinkedListPosition[V]{l, node}

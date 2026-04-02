@@ -23,9 +23,9 @@ func (h viewHelperListOfViewers[P, T, V]) Get(p P) (V, bool) {
 	return viewer.View(), true
 }
 
-func (h viewHelperListOfViewers[P, T, V]) List() ListSeq[P, V] {
+func (h viewHelperListOfViewers[P, T, V]) Range() ListSeq[P, V] {
 	return func(yield func(P, V) bool) {
-		for p, viewer := range h.FixedList.List() {
+		for p, viewer := range h.FixedList.Range() {
 			if !yield(p, viewer.View()) {
 				return
 			}

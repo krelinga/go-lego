@@ -6,7 +6,7 @@ import (
 
 type FixedSliceList[V any] interface {
 	FixedList[int, V]
-	ReverseList() ListSeq[int, V]
+	ReverseRange() ListSeq[int, V]
 }
 
 type SliceList[V any] struct {
@@ -25,11 +25,11 @@ func (l *SliceList[V]) Get(p int) (V, bool) {
 	return l.slice[p], true
 }
 
-func (l *SliceList[V]) List() ListSeq[int, V] {
+func (l *SliceList[V]) Range() ListSeq[int, V] {
 	return ListSeq[int, V](slices.All(l.slice))
 }
 
-func (l *SliceList[V]) ReverseList() ListSeq[int, V] {
+func (l *SliceList[V]) ReverseRange() ListSeq[int, V] {
 	return func(yield func(int, V) bool) {
 		for i := len(l.slice) - 1; i >= 0; i-- {
 			if !yield(i, l.slice[i]) {

@@ -27,7 +27,7 @@ func (s ListSeq[P, V]) Values() iter.Seq[V] {
 type FixedList[P, V any] interface {
 	Length() int
 	Get(P) (V, bool)
-	List() ListSeq[P, V]
+	Range() ListSeq[P, V]
 	First() (P, V, bool)
 	Last() (P, V, bool)
 }
