@@ -2,7 +2,7 @@ package v2
 
 import "iter"
 
-type MapSeq[K, V any] iter.Seq2[K, V]
+type MapSeq[K comparable, V any] iter.Seq2[K, V]
 
 func (s MapSeq[K, V]) Keys() iter.Seq[K] {
 	return func(yield func(K) bool) {
@@ -24,13 +24,13 @@ func (s MapSeq[K, V]) Values() iter.Seq[V] {
 	}
 }
 
-type FixedMap[K, V any] interface {
+type FixedMap[K comparable, V any] interface {
 	Length() int
 	Get(K) (V, bool)
 	Range() MapSeq[K, V]
 }
 
-type Map[K, V any] interface {
+type Map[K comparable, V any] interface {
 	FixedMap[K, V]
 	Set(K, V)
 	Remove(K)
