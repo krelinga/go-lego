@@ -1,5 +1,7 @@
 package v2
 
+import "iter"
+
 type LinkedListPosition[V any] struct {
 	owner *LinkedList[V]
 	node  *linkedListNode[V]
@@ -28,11 +30,32 @@ func (l *LinkedList[V]) Get(p LinkedListPosition[V]) (V, bool) {
 	return p.node.value, true
 }
 
-func (l *LinkedList[V]) Range() ListSeq[LinkedListPosition[V], V] {
+func (l *LinkedList[V]) All() iter.Seq2[LinkedListPosition[V], V] {
 	return func(yield func(LinkedListPosition[V], V) bool) {
 		for node := l.head; node != nil; node = node.next {
 			pos := LinkedListPosition[V]{l, node}
 			if !yield(pos, node.value) {
+				return
+			}
+		}
+	}
+}
+
+func (l *LinkedList[V]) Positions() iter.Seq[LinkedListPosition[V]] {
+	return func(yield func(LinkedListPosition[V]) bool) {
+		for node := l.head; node != nil; node = node.next {
+			pos := LinkedListPosition[V]{l, node}
+			if !yield(pos) {
+				return
+			}
+		}
+	}
+}
+
+func (l *LinkedList[V]) Values() iter.Seq[V] {
+	return func(yield func(V) bool) {
+		for node := l.head; node != nil; node = node.next {
+			if !yield(node.value) {
 				return
 			}
 		}

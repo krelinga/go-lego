@@ -1,13 +1,9 @@
 package v2
 
 import (
+	"iter"
 	"slices"
 )
-
-type FixedSliceList[V any] interface {
-	FixedList[int, V]
-	ReverseRange() ListSeq[int, V]
-}
 
 type SliceList[V any] struct {
 	slice []V
@@ -25,14 +21,48 @@ func (l *SliceList[V]) Get(p int) (V, bool) {
 	return l.slice[p], true
 }
 
-func (l *SliceList[V]) Range() ListSeq[int, V] {
-	return ListSeq[int, V](slices.All(l.slice))
+func (l *SliceList[V]) All() iter.Seq2[int, V] {
+	return slices.All(l.slice)
 }
 
-func (l *SliceList[V]) ReverseRange() ListSeq[int, V] {
+func (l *SliceList[V]) Positions() iter.Seq[int] {
+	return func(yield func(int) bool) {
+		for i := range l.slice {
+			if !yield(i) {
+				return
+			}
+		}
+	}
+}
+
+func (l *SliceList[V]) Values() iter.Seq[V] {
+	return slices.Values(l.slice)
+}
+
+func (l *SliceList[V]) ReverseAll() iter.Seq2[int, V] {
 	return func(yield func(int, V) bool) {
 		for i := len(l.slice) - 1; i >= 0; i-- {
 			if !yield(i, l.slice[i]) {
+				return
+			}
+		}
+	}
+}
+
+func (l *SliceList[V]) ReversePositions() iter.Seq[int] {
+	return func(yield func(int) bool) {
+		for i := len(l.slice) - 1; i >= 0; i-- {
+			if !yield(i) {
+				return
+			}
+		}
+	}
+}
+
+func (l *SliceList[V]) ReverseValues() iter.Seq[V] {
+	return func(yield func(V) bool) {
+		for i := len(l.slice) - 1; i >= 0; i-- {
+			if !yield(l.slice[i]) {
 				return
 			}
 		}

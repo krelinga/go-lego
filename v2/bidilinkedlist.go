@@ -1,5 +1,7 @@
 package v2
 
+import "iter"
+
 type BidiLinkedListPosition[V any] struct {
 	owner *BidiLinkedList[V]
 	node  *bidiLinkedListNode[V]
@@ -9,11 +11,6 @@ type bidiLinkedListNode[V any] struct {
 	value V
 	prev  *bidiLinkedListNode[V]
 	next  *bidiLinkedListNode[V]
-}
-
-type FixedBidiLinkedList[V any] interface {
-	FixedList[BidiLinkedListPosition[V], V]
-	ReverseRange() ListSeq[BidiLinkedListPosition[V], V]
 }
 
 type BidiLinkedList[V any] struct {
@@ -34,7 +31,7 @@ func (l *BidiLinkedList[V]) Get(p BidiLinkedListPosition[V]) (V, bool) {
 	return p.node.value, true
 }
 
-func (l *BidiLinkedList[V]) Range() ListSeq[BidiLinkedListPosition[V], V] {
+func (l *BidiLinkedList[V]) All() iter.Seq2[BidiLinkedListPosition[V], V] {
 	return func(yield func(BidiLinkedListPosition[V], V) bool) {
 		for node := l.head; node != nil; node = node.next {
 			pos := BidiLinkedListPosition[V]{l, node}
@@ -45,11 +42,53 @@ func (l *BidiLinkedList[V]) Range() ListSeq[BidiLinkedListPosition[V], V] {
 	}
 }
 
-func (l *BidiLinkedList[V]) ReverseRange() ListSeq[BidiLinkedListPosition[V], V] {
+func (l *BidiLinkedList[V]) Positions() iter.Seq[BidiLinkedListPosition[V]] {
+	return func(yield func(BidiLinkedListPosition[V]) bool) {
+		for node := l.head; node != nil; node = node.next {
+			pos := BidiLinkedListPosition[V]{l, node}
+			if !yield(pos) {
+				return
+			}
+		}
+	}
+}
+
+func (l *BidiLinkedList[V]) Values() iter.Seq[V] {
+	return func(yield func(V) bool) {
+		for node := l.head; node != nil; node = node.next {
+			if !yield(node.value) {
+				return
+			}
+		}
+	}
+}
+
+func (l *BidiLinkedList[V]) ReverseAll() iter.Seq2[BidiLinkedListPosition[V], V] {
 	return func(yield func(BidiLinkedListPosition[V], V) bool) {
 		for node := l.tail; node != nil; node = node.prev {
 			pos := BidiLinkedListPosition[V]{l, node}
 			if !yield(pos, node.value) {
+				return
+			}
+		}
+	}
+}
+
+func (l *BidiLinkedList[V]) ReversePositions() iter.Seq[BidiLinkedListPosition[V]] {
+	return func(yield func(BidiLinkedListPosition[V]) bool) {
+		for node := l.tail; node != nil; node = node.prev {
+			pos := BidiLinkedListPosition[V]{l, node}
+			if !yield(pos) {
+				return
+			}
+		}
+	}
+}
+
+func (l *BidiLinkedList[V]) ReverseValues() iter.Seq[V] {
+	return func(yield func(V) bool) {
+		for node := l.tail; node != nil; node = node.prev {
+			if !yield(node.value) {
 				return
 			}
 		}
