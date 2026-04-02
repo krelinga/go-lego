@@ -1,6 +1,10 @@
 package main
 
-import v2 "github.com/krelinga/go-lego/v2"
+import (
+	"fmt"
+
+	v2 "github.com/krelinga/go-lego/v2"
+)
 
 type SKU string
 
@@ -17,7 +21,7 @@ func (s SKUCounts) View() SKUCountsView {
 type Location string
 
 type Inventory struct {
-	v2.Map[Location, SKUCounts]
+	v2.Map[Location, *SKUCounts]
 }
 
 func (i Inventory) View() InventoryView {
@@ -27,5 +31,15 @@ func (i Inventory) View() InventoryView {
 }
 
 type InventoryView struct {
-	v2.MapViewEmbed[Location, SKUCounts, SKUCountsView]
+	v2.MapViewEmbed[Location, *SKUCounts, SKUCountsView]
+}
+
+func main() {
+	inv := v2.NewMap[Inventory](
+		v2.NewKV(Location("North America"), v2.NewMap[SKUCounts](
+			v2.NewKV(SKU("Widget"), 100),
+			v2.NewKV(SKU("Gizmo"), 50),
+		)),
+	)
+	fmt.Println(inv.Length())
 }
