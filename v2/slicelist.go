@@ -1,13 +1,12 @@
 package v2
 
 import (
-	"iter"
 	"slices"
 )
 
 type FixedSliceList[V any] interface {
 	FixedList[int, V]
-	ReverseList() iter.Seq2[int, V]
+	ReverseList() ListSeq[int, V]
 }
 
 type SliceList[V any] struct {
@@ -26,11 +25,11 @@ func (l *SliceList[V]) Get(p int) (V, bool) {
 	return l.slice[p], true
 }
 
-func (l *SliceList[V]) List() iter.Seq2[int, V] {
-	return slices.All(l.slice)
+func (l *SliceList[V]) List() ListSeq[int, V] {
+	return ListSeq[int, V](slices.All(l.slice))
 }
 
-func (l *SliceList[V]) ReverseList() iter.Seq2[int, V] {
+func (l *SliceList[V]) ReverseList() ListSeq[int, V] {
 	return func(yield func(int, V) bool) {
 		for i := len(l.slice) - 1; i >= 0; i-- {
 			if !yield(i, l.slice[i]) {
