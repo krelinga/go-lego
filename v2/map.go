@@ -35,3 +35,8 @@ type Map[K comparable, V any] interface {
 	Set(K, V)
 	Remove(K)
 }
+
+type KV[K comparable, V any] struct {
+	K K
+	V V
+}
