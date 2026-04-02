@@ -40,3 +40,7 @@ type KV[K comparable, V any] struct {
 	K K
 	V V
 }
+
+func NewKV[K comparable, V any](k K, v V) KV[K, V] {
+	return KV[K, V]{k, v}
+}
