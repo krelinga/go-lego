@@ -24,6 +24,16 @@ func (s MapSeq[K, V]) Values() iter.Seq[V] {
 	}
 }
 
+func (s MapSeq[K, V]) KVs() iter.Seq[KV[K, V]] {
+	return func(yield func(KV[K, V]) bool) {
+		for k, v := range s {
+			if !yield(NewKV(k, v)) {
+				return
+			}
+		}
+	}
+}
+
 type FixedMap[K comparable, V any] interface {
 	Length() int
 	Get(K) (V, bool)
