@@ -1,6 +1,9 @@
 package v2
 
-import "maps"
+import (
+	"iter"
+	"maps"
+)
 
 type HashMap[K comparable, V any] struct {
 	m map[K]V
@@ -31,8 +34,26 @@ func (m *HashMap[K, V]) Get(k K) (V, bool) {
 	return v, ok
 }
 
-func (m *HashMap[K, V]) Range() MapSeq[K, V] {
-	return MapSeq[K, V](maps.All(m.m))
+func (m *HashMap[K, V]) All() iter.Seq2[K, V] {
+	return maps.All(m.m)
+}
+
+func (m *HashMap[K, V]) Keys() iter.Seq[K] {
+	return maps.Keys(m.m)
+}
+
+func (m *HashMap[K, V]) Values() iter.Seq[V] {
+	return maps.Values(m.m)
+}
+
+func (m *HashMap[K, V]) KVs() iter.Seq[KV[K, V]] {
+	return func(yield func(KV[K, V]) bool) {
+		for k, v := range m.m {
+			if !yield(NewKV(k, v)) {
+				return
+			}
+		}
+	}
 }
 
 func (m *HashMap[K, V]) Set(k K, v V) {
