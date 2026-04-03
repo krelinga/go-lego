@@ -6,18 +6,18 @@ type Viewer[V any] interface {
 	View() V
 }
 
-type MapViewEmbed[K any, T Viewer[V], V any] struct {
+type DictViewEmbed[K any, T Viewer[V], V any] struct {
 	fm FixedDict[K, T]
 }
 
-func (m MapViewEmbed[K, T, V]) Length() int {
+func (m DictViewEmbed[K, T, V]) Length() int {
 	if m.fm == nil {
 		return 0
 	}
 	return m.fm.Length()
 }
 
-func (m MapViewEmbed[K, T, V]) Get(k K) (V, bool) {
+func (m DictViewEmbed[K, T, V]) Get(k K) (V, bool) {
 	if m.fm == nil {
 		var zero V
 		return zero, false
@@ -30,7 +30,7 @@ func (m MapViewEmbed[K, T, V]) Get(k K) (V, bool) {
 	return viewer.View(), true
 }
 
-func (m MapViewEmbed[K, T, V]) All() iter.Seq2[K, V] {
+func (m DictViewEmbed[K, T, V]) All() iter.Seq2[K, V] {
 	return func(yield func(K, V) bool) {
 		if m.fm == nil {
 			return
@@ -43,7 +43,7 @@ func (m MapViewEmbed[K, T, V]) All() iter.Seq2[K, V] {
 	}
 }
 
-func (m MapViewEmbed[K, T, V]) Keys() iter.Seq[K] {
+func (m DictViewEmbed[K, T, V]) Keys() iter.Seq[K] {
 	return func(yield func(K) bool) {
 		if m.fm == nil {
 			return
@@ -56,7 +56,7 @@ func (m MapViewEmbed[K, T, V]) Keys() iter.Seq[K] {
 	}
 }
 
-func (m MapViewEmbed[K, T, V]) Values() iter.Seq[V] {
+func (m DictViewEmbed[K, T, V]) Values() iter.Seq[V] {
 	return func(yield func(V) bool) {
 		if m.fm == nil {
 			return
@@ -69,7 +69,7 @@ func (m MapViewEmbed[K, T, V]) Values() iter.Seq[V] {
 	}
 }
 
-func (m MapViewEmbed[K, T, V]) KVs() iter.Seq[KV[K, V]] {
+func (m DictViewEmbed[K, T, V]) KVs() iter.Seq[KV[K, V]] {
 	return func(yield func(KV[K, V]) bool) {
 		if m.fm == nil {
 			return
@@ -82,6 +82,6 @@ func (m MapViewEmbed[K, T, V]) KVs() iter.Seq[KV[K, V]] {
 	}
 }
 
-func NewMapVieEmbed[K any, T Viewer[V], V any](m FixedDict[K, T]) MapViewEmbed[K, T, V] {
-	return MapViewEmbed[K, T, V]{m}
+func NewMapVieEmbed[K any, T Viewer[V], V any](m FixedDict[K, T]) DictViewEmbed[K, T, V] {
+	return DictViewEmbed[K, T, V]{m}
 }

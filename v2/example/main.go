@@ -32,7 +32,7 @@ type Inventory struct {
 
 func (i *Inventory) View() InventoryView {
 	return InventoryView{
-		MapViewEmbed: v2.NewMapVieEmbed(i),
+		DictViewEmbed: v2.NewMapVieEmbed(i),
 	}
 }
 
@@ -43,7 +43,7 @@ func NewInventory(kvs ...v2.KV[Location, *SKUCounts]) *Inventory {
 }
 
 type InventoryView struct {
-	v2.MapViewEmbed[Location, *SKUCounts, SKUCountsView]
+	v2.DictViewEmbed[Location, *SKUCounts, SKUCountsView]
 }
 
 func main() {
