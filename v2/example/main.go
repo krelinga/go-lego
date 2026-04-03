@@ -9,7 +9,7 @@ import (
 type SKU string
 
 type SKUCounts struct {
-	v2.HashMap[SKU, int]
+	v2.Map[SKU, int]
 }
 
 type SKUCountsView = v2.FixedDict[SKU, int]
@@ -20,14 +20,14 @@ func (s *SKUCounts) View() SKUCountsView {
 
 func NewSKUCounts(kvs ...v2.KV[SKU, int]) *SKUCounts {
 	m := SKUCounts{}
-	v2.AddAll(&m.HashMap, kvs...)
+	v2.AddAll(&m.Map, kvs...)
 	return &m
 }
 
 type Location string
 
 type Inventory struct {
-	v2.HashMap[Location, *SKUCounts]
+	v2.Map[Location, *SKUCounts]
 }
 
 func (i *Inventory) View() InventoryView {
@@ -38,7 +38,7 @@ func (i *Inventory) View() InventoryView {
 
 func NewInventory(kvs ...v2.KV[Location, *SKUCounts]) *Inventory {
 	m := Inventory{}
-	v2.AddAll(&m.HashMap, kvs...)
+	v2.AddAll(&m.Map, kvs...)
 	return &m
 }
 
