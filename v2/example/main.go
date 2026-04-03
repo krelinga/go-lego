@@ -14,7 +14,7 @@ type SKUCounts struct {
 
 func (s *SKUCounts) View() SKUCountsView {
 	return SKUCountsView{
-		FixedDict: s,
+		FixedDict:                s,
 		DictEqualEmbedComparable: v2.NewDictEqualEmbedComparable[SKUCountsView](s),
 	}
 }
@@ -53,9 +53,9 @@ type Inventory struct {
 }
 
 func (i *Inventory) View() InventoryView {
-	dve := v2.NewMapViewEmbed(i)
+	dve := v2.NewDictViewEmbed(i)
 	return InventoryView{
-		DictViewEmbed: dve,
+		DictViewEmbed:  dve,
 		DictEqualEmbed: v2.NewDictEqualEmbed[InventoryView](dve),
 	}
 }
