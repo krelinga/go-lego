@@ -78,6 +78,10 @@ func (l *SinglyLinkedList[V]) Last() (SinglyLinkedListPosition[V], V, bool) {
 	return SinglyLinkedListPosition[V]{l, l.tail}, l.tail.value, true
 }
 
+func (l *SinglyLinkedList[V]) String() string {
+	return listStringHelper(l)
+}
+
 func (l *SinglyLinkedList[V]) Set(p SinglyLinkedListPosition[V], v V) {
 	if p.node == nil || p.owner != l {
 		panic("invalid position")

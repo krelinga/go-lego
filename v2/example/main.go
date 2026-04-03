@@ -82,4 +82,6 @@ func main() {
 		)),
 	)
 	fmt.Println(inv.View().Total())
+	fmt.Println(inv.Total())
+	fmt.Println(inv)
 }

@@ -38,6 +38,10 @@ func (m *Map[K, V]) KVs() iter.Seq[KV[K, V]] {
 	}
 }
 
+func (m *Map[K, V]) String() string {
+	return dictStringHelper(m)
+}
+
 func (m *Map[K, V]) Set(k K, v V) {
 	if *m == nil {
 		*m = make(map[K]V)

@@ -1,6 +1,10 @@
 package v2
 
-import "iter"
+import (
+	"fmt"
+	"iter"
+	"strings"
+)
 
 type FixedDict[K, V any] interface {
 	Length() int
@@ -9,6 +13,7 @@ type FixedDict[K, V any] interface {
 	Keys() iter.Seq[K]
 	Values() iter.Seq[V]
 	KVs() iter.Seq[KV[K, V]]
+	String() string
 }
 
 type Dict[K, V any] interface {
@@ -24,4 +29,19 @@ type KV[K, V any] struct {
 
 func NewKV[K, V any](k K, v V) KV[K, V] {
 	return KV[K, V]{k, v}
+}
+
+func dictStringHelper[K comparable, V any](d FixedDict[K, V]) string {
+	var sb strings.Builder
+	sb.WriteString("{")
+	first := true
+	for k, v := range d.All() {
+		if !first {
+			sb.WriteString(", ")
+		}
+		first = false
+		fmt.Fprintf(&sb, "%v: %v", k, v)
+	}
+	sb.WriteString("}")
+	return sb.String()
 }

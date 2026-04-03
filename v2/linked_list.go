@@ -111,6 +111,10 @@ func (l *LinkedList[V]) Last() (LinkedListPosition[V], V, bool) {
 	return LinkedListPosition[V]{l, l.tail}, l.tail.value, true
 }
 
+func (l *LinkedList[V]) String() string {
+	return listStringHelper(l)
+}
+
 func (l *LinkedList[V]) Set(p LinkedListPosition[V], v V) {
 	if p.node == nil || p.owner != l {
 		panic("position does not belong to this list")

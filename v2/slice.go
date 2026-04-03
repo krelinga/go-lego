@@ -84,6 +84,10 @@ func (l *Slice[V]) Last() (int, V, bool) {
 	return lastIdx, (*l)[lastIdx], true
 }
 
+func (l *Slice[V]) String() string {
+	return listStringHelper(l)
+}
+
 func (l *Slice[V]) Set(p int, v V) {
 	if p < 0 || p >= len(*l) {
 		panic("index out of bounds")
