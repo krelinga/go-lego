@@ -15,11 +15,16 @@ type SKUCounts struct {
 func (s *SKUCounts) View() SKUCountsView {
 	return SKUCountsView{
 		FixedDict: s,
+		DictEqualEmbedComparable: v2.NewDictEqualEmbedComparable[SKUCountsView](s),
 	}
 }
 
 func (s *SKUCounts) Total() int {
 	return s.View().Total()
+}
+
+func (s SKUCounts) Equal(other SKUCounts) bool {
+	return s.View().Equal(other.View())
 }
 
 func NewSKUCounts(kvs ...v2.KV[SKU, int]) *SKUCounts {
@@ -30,6 +35,7 @@ func NewSKUCounts(kvs ...v2.KV[SKU, int]) *SKUCounts {
 
 type SKUCountsView struct {
 	v2.FixedDict[SKU, int]
+	v2.DictEqualEmbedComparable[SKUCountsView, SKU, int]
 }
 
 func (s SKUCountsView) Total() int {
@@ -47,13 +53,19 @@ type Inventory struct {
 }
 
 func (i *Inventory) View() InventoryView {
+	dve := v2.NewMapViewEmbed(i)
 	return InventoryView{
-		DictViewEmbed: v2.NewMapViewEmbed(i),
+		DictViewEmbed: dve,
+		DictEqualEmbed: v2.NewDictEqualEmbed[InventoryView](dve),
 	}
 }
 
 func (i *Inventory) Total() int {
 	return i.View().Total()
+}
+
+func (i Inventory) Equal(other *Inventory) bool {
+	return i.View().Equal(other.View())
 }
 
 func NewInventory(kvs ...v2.KV[Location, *SKUCounts]) *Inventory {
@@ -64,6 +76,7 @@ func NewInventory(kvs ...v2.KV[Location, *SKUCounts]) *Inventory {
 
 type InventoryView struct {
 	v2.DictViewEmbed[Location, *SKUCounts, SKUCountsView]
+	v2.DictEqualEmbed[InventoryView, Location, SKUCountsView]
 }
 
 func (v InventoryView) Total() int {
@@ -84,4 +97,10 @@ func main() {
 	fmt.Println(inv.View().Total())
 	fmt.Println(inv.Total())
 	fmt.Println(inv)
+
+	inv2 := NewInventory()
+	fmt.Println(inv.Equal(inv2))
+	fmt.Println(inv.View().Equal(inv2.View()))
+	fmt.Println(inv.Equal(inv))
+	fmt.Println(inv.View().Equal(inv.View()))
 }
