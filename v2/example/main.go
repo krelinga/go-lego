@@ -94,11 +94,17 @@ type StatusCounts struct {
 }
 
 func (s *StatusCounts) View() StatusCountsView {
-	return StatusCountsView{sc: s}
+	return StatusCountsView{
+		sc: s,
+	}
 }
 
 func (s *StatusCounts) Compare(other *StatusCounts) int {
 	return s.View().Compare(other.View())
+}
+
+func (s StatusCounts) Equal(other *StatusCounts) bool {
+	return s.View().Equal(other.View())
 }
 
 type StatusCountsView struct {
@@ -125,6 +131,11 @@ func (s StatusCountsView) Compare(other StatusCountsView) int {
 	)
 }
 
+func (s StatusCountsView) Equal(other StatusCountsView) bool {
+	return s.Compare(other) == 0
+}
+
+
 func main() {
 	inv := NewInventory(
 		v2.NewKV(Location("North America"), NewSKUCounts(
@@ -146,4 +157,6 @@ func main() {
 	sc2 := &StatusCounts{Ready: 8, Backordered: 10, WaitingToShip: 1}
 	fmt.Println("v2.LessThan(sc1, sc2):", v2.LessThan(sc1, sc2))
 	fmt.Println("v2.GreaterThan(sc1, sc2):", v2.GreaterThan(sc1, sc2))
+	fmt.Println("sc1.Equal(sc2):", sc1.Equal(sc2))
+	fmt.Println("sc1.Equal(sc1):", sc1.Equal(sc1))
 }

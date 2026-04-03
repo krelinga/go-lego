@@ -32,6 +32,20 @@ func NewDictEqualEmbedComparable[O FixedDict[K, T], K comparable, T comparable](
 	return DictEqualEmbedComparable[O, K, T]{d}
 }
 
+type DictEqualEmbedComparer[O FixedDict[K, T], K comparable, T Comparer[T]] struct {
+	fd FixedDict[K, T]
+}
+
+func (m DictEqualEmbedComparer[O, K, T]) Equal(other O) bool {
+	return dictEqualHelper(m.fd, other, func(a, b T) bool {
+		return a.Compare(b) == 0
+	})
+}
+
+func NewDictEqualEmbedComparer[O FixedDict[K, T], K comparable, T Comparer[T]](d FixedDict[K, T]) DictEqualEmbedComparer[O, K, T] {
+	return DictEqualEmbedComparer[O, K, T]{d}
+}
+
 func dictEqualHelper[K comparable, V any](a, b FixedDict[K, V], equalFunc func(V, V) bool) bool {
 	if a == nil && b == nil {
 		return true
@@ -77,6 +91,20 @@ func (l ListEqualEmbedComparable[O, P, T]) Equal(other O) bool {
 
 func NewListEqualEmbedComparable[O FixedList[P, T], P any, T comparable](l FixedList[P, T]) ListEqualEmbedComparable[O, P, T] {
 	return ListEqualEmbedComparable[O, P, T]{l}
+}
+
+type ListEqualEmbedComparer[O FixedList[P, T], P any, T Comparer[T]] struct {
+	fl FixedList[P, T]
+}
+
+func (l ListEqualEmbedComparer[O, P, T]) Equal(other O) bool {
+	return listEqualHelper(l.fl, other, func(a, b T) bool {
+		return a.Compare(b) == 0
+	})
+}
+
+func NewListEqualEmbedComparer[O FixedList[P, T], P any, T Comparer[T]](l FixedList[P, T]) ListEqualEmbedComparer[O, P, T] {
+	return ListEqualEmbedComparer[O, P, T]{l}
 }
 
 func listEqualHelper[P any, V any](a, b FixedList[P, V], equalFunc func(V, V) bool) bool {
