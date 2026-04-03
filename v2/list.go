@@ -22,7 +22,7 @@ type List[P, V any] interface {
 	Set(P, V)
 	InsertBefore(P, V) P
 	InsertAfter(P, V) P
-	Append(V) P
+	Add(V)
 	Remove(P)
 }
 

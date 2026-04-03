@@ -111,9 +111,8 @@ func (l *Slice[V]) InsertAfter(p int, v V) int {
 	return p + 1
 }
 
-func (l *Slice[V]) Append(v V) int {
+func (l *Slice[V]) Add(v V) {
 	*l = append(*l, v)
-	return len(*l) - 1
 }
 
 func (l *Slice[V]) Remove(p int) {
@@ -127,8 +126,4 @@ func (l *Slice[V]) Reserve(n int) {
 	if *l == nil {
 		*l = make([]V, 0, n)
 	}
-}
-
-func (l *Slice[V]) Add(v V) {
-	l.Append(v)
 }

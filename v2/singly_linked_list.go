@@ -126,7 +126,7 @@ func (l *SinglyLinkedList[V]) InsertAfter(p SinglyLinkedListPosition[V], v V) Si
 	return SinglyLinkedListPosition[V]{l, newNode}
 }
 
-func (l *SinglyLinkedList[V]) Append(v V) SinglyLinkedListPosition[V] {
+func (l *SinglyLinkedList[V]) Add(v V) {
 	newNode := &singlyLinkedListNode[V]{value: v}
 	if l.tail == nil {
 		l.head = newNode
@@ -136,7 +136,6 @@ func (l *SinglyLinkedList[V]) Append(v V) SinglyLinkedListPosition[V] {
 		l.tail = newNode
 	}
 	l.len++
-	return SinglyLinkedListPosition[V]{l, newNode}
 }
 
 func (l *SinglyLinkedList[V]) Remove(p SinglyLinkedListPosition[V]) {
@@ -159,8 +158,4 @@ func (l *SinglyLinkedList[V]) Remove(p SinglyLinkedListPosition[V]) {
 		}
 	}
 	l.len--
-}
-
-func (l *SinglyLinkedList[V]) Add(v V) {
-	l.Append(v)
 }

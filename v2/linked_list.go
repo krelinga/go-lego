@@ -162,7 +162,7 @@ func (l *LinkedList[V]) InsertAfter(p LinkedListPosition[V], v V) LinkedListPosi
 	return LinkedListPosition[V]{l, newNode}
 }
 
-func (l *LinkedList[V]) Append(v V) LinkedListPosition[V] {
+func (l *LinkedList[V]) Add(v V) {
 	newNode := &linkedListNode[V]{value: v}
 	if l.tail == nil {
 		l.head = newNode
@@ -173,7 +173,6 @@ func (l *LinkedList[V]) Append(v V) LinkedListPosition[V] {
 		l.tail = newNode
 	}
 	l.len++
-	return LinkedListPosition[V]{l, newNode}
 }
 
 func (l *LinkedList[V]) Remove(p LinkedListPosition[V]) {
@@ -191,8 +190,4 @@ func (l *LinkedList[V]) Remove(p LinkedListPosition[V]) {
 		l.tail = p.node.prev
 	}
 	l.len--
-}
-
-func (l *LinkedList[V]) Add(v V) {
-	l.Append(v)
 }
