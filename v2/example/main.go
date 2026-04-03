@@ -53,5 +53,5 @@ func main() {
 			v2.NewKV(SKU("Gizmo"), 50),
 		)),
 	)
-	fmt.Println(inv.Length())
+	fmt.Println(inv.View().Length())
 }
