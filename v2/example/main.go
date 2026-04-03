@@ -152,6 +152,36 @@ func (s StatusCountsView) Equal(other StatusCountsView) bool {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+type StatusCountsList struct {
+	v2.Slice[*StatusCounts]
+}
+
+func (l *StatusCountsList) View() StatusCountsListView {
+	return StatusCountsListView{
+		FixedList: l,
+	}
+}
+
+func (l *StatusCountsList) Equal(other *StatusCountsList) bool {
+	return l.View().Equal(other.View())
+}
+
+func NewStatusCountsList(items ...*StatusCounts) *StatusCountsList {
+	sl := StatusCountsList{}
+	v2.AddAll(&sl.Slice, items...)
+	return &sl
+}
+
+type StatusCountsListView struct {
+	v2.FixedList[int, *StatusCounts]
+}
+
+func (l StatusCountsListView) Equal(other StatusCountsListView) bool {
+	return v2.ListEqualValues(l, other)
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 func main() {
 	inv := NewInventory(
 		v2.NewKV(Location("North America"), NewSKUCounts(
@@ -175,4 +205,11 @@ func main() {
 	fmt.Println("v2.GreaterThan(sc1, sc2):", v2.GreaterThan(sc1, sc2))
 	fmt.Println("sc1.Equal(sc2):", sc1.Equal(sc2))
 	fmt.Println("sc1.Equal(sc1):", sc1.Equal(sc1))
+
+	scl1 := NewStatusCountsList(sc1, sc2)
+	scl2 := NewStatusCountsList(sc2, sc1)
+	fmt.Println("scl1.Equal(scl2):", scl1.Equal(scl2))
+	fmt.Println("scl1.View().Equal(scl2.View()):", scl1.View().Equal(scl2.View()))
+	fmt.Println("scl1.Equal(scl1):", scl1.Equal(scl1))
+	fmt.Println("scl1.View().Equal(scl1.View()):", scl1.View().Equal(scl1.View()))
 }
