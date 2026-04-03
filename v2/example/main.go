@@ -6,7 +6,11 @@ import (
 	v2 "github.com/krelinga/go-lego/v2"
 )
 
+///////////////////////////////////////////////////////////////////////////////
+
 type SKU string
+
+///////////////////////////////////////////////////////////////////////////////
 
 type SKUCounts struct {
 	v2.Map[SKU, int]
@@ -14,8 +18,7 @@ type SKUCounts struct {
 
 func (s *SKUCounts) View() SKUCountsView {
 	return SKUCountsView{
-		FixedDict:                s,
-		DictEqualEmbedComparable: v2.NewDictEqualEmbedComparable[SKUCountsView](s),
+		FixedDict: s,
 	}
 }
 
@@ -35,7 +38,10 @@ func NewSKUCounts(kvs ...v2.KV[SKU, int]) *SKUCounts {
 
 type SKUCountsView struct {
 	v2.FixedDict[SKU, int]
-	v2.DictEqualEmbedComparable[SKUCountsView, SKU, int]
+}
+
+func (s SKUCountsView) Equal(other SKUCountsView) bool {
+	return v2.DictEqualValuesComparable(s, other)
 }
 
 func (s SKUCountsView) Total() int {
@@ -46,7 +52,11 @@ func (s SKUCountsView) Total() int {
 	return total
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
 type Location string
+
+///////////////////////////////////////////////////////////////////////////////
 
 type Inventory struct {
 	v2.Map[Location, *SKUCounts]
@@ -56,7 +66,6 @@ func (i *Inventory) View() InventoryView {
 	dve := v2.NewDictViewEmbed(i)
 	return InventoryView{
 		DictViewEmbed:  dve,
-		DictEqualEmbed: v2.NewDictEqualEmbed[InventoryView](dve),
 	}
 }
 
@@ -76,8 +85,12 @@ func NewInventory(kvs ...v2.KV[Location, *SKUCounts]) *Inventory {
 
 type InventoryView struct {
 	v2.DictViewEmbed[Location, *SKUCounts, SKUCountsView]
-	v2.DictEqualEmbed[InventoryView, Location, SKUCountsView]
 }
+
+func (v InventoryView) Equal(other InventoryView) bool {
+	return v2.DictEqualValues(v, other)
+}
+
 
 func (v InventoryView) Total() int {
 	total := 0
@@ -87,9 +100,11 @@ func (v InventoryView) Total() int {
 	return total
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
 type StatusCounts struct {
-	Ready int
-	Backordered int
+	Ready         int
+	Backordered   int
 	WaitingToShip int
 }
 
@@ -135,6 +150,7 @@ func (s StatusCountsView) Equal(other StatusCountsView) bool {
 	return s.Compare(other) == 0
 }
 
+///////////////////////////////////////////////////////////////////////////////
 
 func main() {
 	inv := NewInventory(
