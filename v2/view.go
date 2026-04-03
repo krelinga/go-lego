@@ -82,6 +82,6 @@ func (m DictViewEmbed[K, T, V]) KVs() iter.Seq[KV[K, V]] {
 	}
 }
 
-func NewMapVieEmbed[K any, T Viewer[V], V any](m FixedDict[K, T]) DictViewEmbed[K, T, V] {
+func NewMapViewEmbed[K any, T Viewer[V], V any](m FixedDict[K, T]) DictViewEmbed[K, T, V] {
 	return DictViewEmbed[K, T, V]{m}
 }
