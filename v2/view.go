@@ -7,7 +7,7 @@ type Viewer[V any] interface {
 }
 
 type MapViewEmbed[K any, T Viewer[V], V any] struct {
-	fm FixedMap[K, T]
+	fm FixedDict[K, T]
 }
 
 func (m MapViewEmbed[K, T, V]) Length() int {
@@ -82,6 +82,6 @@ func (m MapViewEmbed[K, T, V]) KVs() iter.Seq[KV[K, V]] {
 	}
 }
 
-func NewMapVieEmbed[K any, T Viewer[V], V any](m FixedMap[K, T]) MapViewEmbed[K, T, V] {
+func NewMapVieEmbed[K any, T Viewer[V], V any](m FixedDict[K, T]) MapViewEmbed[K, T, V] {
 	return MapViewEmbed[K, T, V]{m}
 }

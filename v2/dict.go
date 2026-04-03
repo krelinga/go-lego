@@ -2,7 +2,7 @@ package v2
 
 import "iter"
 
-type FixedMap[K, V any] interface {
+type FixedDict[K, V any] interface {
 	Length() int
 	Get(K) (V, bool)
 	All() iter.Seq2[K, V]
@@ -11,8 +11,8 @@ type FixedMap[K, V any] interface {
 	KVs() iter.Seq[KV[K, V]]
 }
 
-type Map[K, V any] interface {
-	FixedMap[K, V]
+type Dict[K, V any] interface {
+	FixedDict[K, V]
 	Set(K, V)
 	Remove(K)
 }

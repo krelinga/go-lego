@@ -12,7 +12,7 @@ type SKUCounts struct {
 	v2.HashMap[SKU, int]
 }
 
-type SKUCountsView = v2.FixedMap[SKU, int]
+type SKUCountsView = v2.FixedDict[SKU, int]
 
 func (s *SKUCounts) View() SKUCountsView {
 	return s
