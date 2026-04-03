@@ -87,6 +87,44 @@ func (v InventoryView) Total() int {
 	return total
 }
 
+type StatusCounts struct {
+	Ready int
+	Backordered int
+	WaitingToShip int
+}
+
+func (s *StatusCounts) View() StatusCountsView {
+	return StatusCountsView{sc: s}
+}
+
+func (s *StatusCounts) Compare(other *StatusCounts) int {
+	return s.View().Compare(other.View())
+}
+
+type StatusCountsView struct {
+	sc *StatusCounts
+}
+
+func (s StatusCountsView) Ready() int {
+	return s.sc.Ready
+}
+
+func (s StatusCountsView) Backordered() int {
+	return s.sc.Backordered
+}
+
+func (s StatusCountsView) WaitingToShip() int {
+	return s.sc.WaitingToShip
+}
+
+func (s StatusCountsView) Compare(other StatusCountsView) int {
+	return v2.CompareUsing(s, other,
+		v2.NewComparatorReversed(v2.NewComparatorOrdered(StatusCountsView.Ready)),
+		v2.NewComparatorOrdered(StatusCountsView.Backordered),
+		v2.NewComparatorOrdered(StatusCountsView.WaitingToShip),
+	)
+}
+
 func main() {
 	inv := NewInventory(
 		v2.NewKV(Location("North America"), NewSKUCounts(
@@ -103,4 +141,9 @@ func main() {
 	fmt.Println(inv.View().Equal(inv2.View()))
 	fmt.Println(inv.Equal(inv))
 	fmt.Println(inv.View().Equal(inv.View()))
+
+	sc1 := &StatusCounts{Ready: 10, Backordered: 5, WaitingToShip: 2}
+	sc2 := &StatusCounts{Ready: 8, Backordered: 10, WaitingToShip: 1}
+	fmt.Println("v2.LessThan(sc1, sc2):", v2.LessThan(sc1, sc2))
+	fmt.Println("v2.GreaterThan(sc1, sc2):", v2.GreaterThan(sc1, sc2))
 }
