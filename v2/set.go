@@ -5,7 +5,7 @@ import "iter"
 type FixedSet[V any] interface {
 	Length() int
 	Has(V) bool
-	All() iter.Seq[V]
+	Values() iter.Seq[V]
 	String() string
 }
 
