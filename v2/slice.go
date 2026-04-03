@@ -5,13 +5,13 @@ import (
 	"slices"
 )
 
-type SliceList[V any] []V
+type Slice[V any] []V
 
-func (l *SliceList[V]) Length() int {
+func (l *Slice[V]) Length() int {
 	return len(*l)
 }
 
-func (l *SliceList[V]) Get(p int) (V, bool) {
+func (l *Slice[V]) Get(p int) (V, bool) {
 	if p < 0 || p >= len(*l) {
 		var zero V
 		return zero, false
@@ -19,11 +19,11 @@ func (l *SliceList[V]) Get(p int) (V, bool) {
 	return (*l)[p], true
 }
 
-func (l *SliceList[V]) All() iter.Seq2[int, V] {
+func (l *Slice[V]) All() iter.Seq2[int, V] {
 	return slices.All(*l)
 }
 
-func (l *SliceList[V]) Positions() iter.Seq[int] {
+func (l *Slice[V]) Positions() iter.Seq[int] {
 	return func(yield func(int) bool) {
 		for i := range *l {
 			if !yield(i) {
@@ -33,11 +33,11 @@ func (l *SliceList[V]) Positions() iter.Seq[int] {
 	}
 }
 
-func (l *SliceList[V]) Values() iter.Seq[V] {
+func (l *Slice[V]) Values() iter.Seq[V] {
 	return slices.Values(*l)
 }
 
-func (l *SliceList[V]) ReverseAll() iter.Seq2[int, V] {
+func (l *Slice[V]) ReverseAll() iter.Seq2[int, V] {
 	return func(yield func(int, V) bool) {
 		for i := len(*l) - 1; i >= 0; i-- {
 			if !yield(i, (*l)[i]) {
@@ -47,7 +47,7 @@ func (l *SliceList[V]) ReverseAll() iter.Seq2[int, V] {
 	}
 }
 
-func (l *SliceList[V]) ReversePositions() iter.Seq[int] {
+func (l *Slice[V]) ReversePositions() iter.Seq[int] {
 	return func(yield func(int) bool) {
 		for i := len(*l) - 1; i >= 0; i-- {
 			if !yield(i) {
@@ -57,7 +57,7 @@ func (l *SliceList[V]) ReversePositions() iter.Seq[int] {
 	}
 }
 
-func (l *SliceList[V]) ReverseValues() iter.Seq[V] {
+func (l *Slice[V]) ReverseValues() iter.Seq[V] {
 	return func(yield func(V) bool) {
 		for i := len(*l) - 1; i >= 0; i-- {
 			if !yield((*l)[i]) {
@@ -67,7 +67,7 @@ func (l *SliceList[V]) ReverseValues() iter.Seq[V] {
 	}
 }
 
-func (l *SliceList[V]) First() (int, V, bool) {
+func (l *Slice[V]) First() (int, V, bool) {
 	if len(*l) == 0 {
 		var zero V
 		return 0, zero, false
@@ -75,7 +75,7 @@ func (l *SliceList[V]) First() (int, V, bool) {
 	return 0, (*l)[0], true
 }
 
-func (l *SliceList[V]) Last() (int, V, bool) {
+func (l *Slice[V]) Last() (int, V, bool) {
 	if len(*l) == 0 {
 		var zero V
 		return 0, zero, false
@@ -84,14 +84,14 @@ func (l *SliceList[V]) Last() (int, V, bool) {
 	return lastIdx, (*l)[lastIdx], true
 }
 
-func (l *SliceList[V]) Set(p int, v V) {
+func (l *Slice[V]) Set(p int, v V) {
 	if p < 0 || p >= len(*l) {
 		panic("index out of bounds")
 	}
 	(*l)[p] = v
 }
 
-func (l *SliceList[V]) InsertBefore(p int, v V) int {
+func (l *Slice[V]) InsertBefore(p int, v V) int {
 	if p < 0 || p > len(*l) {
 		panic("index out of bounds")
 	}
@@ -99,7 +99,7 @@ func (l *SliceList[V]) InsertBefore(p int, v V) int {
 	return p
 }
 
-func (l *SliceList[V]) InsertAfter(p int, v V) int {
+func (l *Slice[V]) InsertAfter(p int, v V) int {
 	if p < 0 || p >= len(*l) {
 		panic("index out of bounds")
 	}
@@ -107,24 +107,24 @@ func (l *SliceList[V]) InsertAfter(p int, v V) int {
 	return p + 1
 }
 
-func (l *SliceList[V]) Append(v V) int {
+func (l *Slice[V]) Append(v V) int {
 	*l = append(*l, v)
 	return len(*l) - 1
 }
 
-func (l *SliceList[V]) Remove(p int) {
+func (l *Slice[V]) Remove(p int) {
 	if p < 0 || p >= len(*l) {
 		panic("index out of bounds")
 	}
 	*l = append((*l)[:p], (*l)[p+1:]...)
 }
 
-func (l *SliceList[V]) Reserve(n int) {
+func (l *Slice[V]) Reserve(n int) {
 	if *l == nil {
 		*l = make([]V, 0, n)
 	}
 }
 
-func (l *SliceList[V]) Add(v V) {
+func (l *Slice[V]) Add(v V) {
 	l.Append(v)
 }
