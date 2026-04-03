@@ -9,25 +9,37 @@ import (
 type SKU string
 
 type SKUCounts struct {
-	v2.Map[SKU, int]
+	v2.HashMap[SKU, int]
 }
 
 type SKUCountsView = v2.FixedMap[SKU, int]
 
-func (s SKUCounts) View() SKUCountsView {
+func (s *SKUCounts) View() SKUCountsView {
 	return s
+}
+
+func NewSKUCounts(kvs ...v2.KV[SKU, int]) *SKUCounts {
+	m := SKUCounts{}
+	v2.AddAll(&m.HashMap, kvs...)
+	return &m
 }
 
 type Location string
 
 type Inventory struct {
-	v2.Map[Location, *SKUCounts]
+	v2.HashMap[Location, *SKUCounts]
 }
 
-func (i Inventory) View() InventoryView {
+func (i *Inventory) View() InventoryView {
 	return InventoryView{
 		MapViewEmbed: v2.NewMapVieEmbed(i),
 	}
+}
+
+func NewInventory(kvs ...v2.KV[Location, *SKUCounts]) *Inventory {
+	m := Inventory{}
+	v2.AddAll(&m.HashMap, kvs...)
+	return &m
 }
 
 type InventoryView struct {
@@ -35,8 +47,8 @@ type InventoryView struct {
 }
 
 func main() {
-	inv := v2.NewMap[Inventory](
-		v2.NewKV(Location("North America"), v2.NewMap[SKUCounts](
+	inv := NewInventory(
+		v2.NewKV(Location("North America"), NewSKUCounts(
 			v2.NewKV(SKU("Widget"), 100),
 			v2.NewKV(SKU("Gizmo"), 50),
 		)),

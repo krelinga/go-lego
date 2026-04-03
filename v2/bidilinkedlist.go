@@ -189,6 +189,10 @@ func (l *BidiLinkedList[V]) Remove(p BidiLinkedListPosition[V]) {
 	l.len--
 }
 
+func (l *BidiLinkedList[V]) Add(v V) {
+	l.Append(v)
+}
+
 func NewBidiLinkedList[V any](entries ...V) *BidiLinkedList[V] {
 	l := &BidiLinkedList[V]{}
 	for _, entry := range entries {

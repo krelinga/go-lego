@@ -66,3 +66,13 @@ func (m *HashMap[K, V]) Set(k K, v V) {
 func (m *HashMap[K, V]) Remove(k K) {
 	delete(m.m, k)
 }
+
+func (m *HashMap[K, V]) Reserve(n int) {
+	if m.m == nil {
+		m.m = make(map[K]V, n)
+	}
+}
+
+func (m *HashMap[K, V]) Add(kv KV[K, V]) {
+	m.Set(kv.K, kv.V)
+}

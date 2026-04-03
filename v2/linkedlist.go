@@ -157,6 +157,10 @@ func (l *LinkedList[V]) Remove(p LinkedListPosition[V]) {
 	l.len--
 }
 
+func (l *LinkedList[V]) Add(v V) {
+	l.Append(v)
+}
+
 func NewLinkedList[V any](entries ...V) *LinkedList[V] {
 	l := &LinkedList[V]{}
 	for _, v := range entries {

@@ -121,6 +121,16 @@ func (l *SliceList[V]) Remove(p int) {
 	l.slice = append(l.slice[:p], l.slice[p+1:]...)
 }
 
+func (l *SliceList[V]) Reserve(n int) {
+	if l.slice == nil {
+		l.slice = make([]V, 0, n)
+	}
+}
+
+func (l *SliceList[V]) Add(v V) {
+	l.Append(v)
+}
+
 func NewSliceList[V any](entries ...V) *SliceList[V] {
 	return &SliceList[V]{
 		slice: entries,
