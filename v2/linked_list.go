@@ -118,7 +118,7 @@ func (l *LinkedList[V]) ReverseValues() iter.Seq[V] {
 func (l *LinkedList[V]) First() (LinkedListPosition, V, bool) {
 	if l.head == nil {
 		var zero V
-		return LinkedListPosition{l, nil}, zero, false
+		return LinkedListPosition{}, zero, false
 	}
 	return LinkedListPosition{l, l.head}, l.head.value, true
 }
@@ -126,7 +126,7 @@ func (l *LinkedList[V]) First() (LinkedListPosition, V, bool) {
 func (l *LinkedList[V]) Last() (LinkedListPosition, V, bool) {
 	if l.tail == nil {
 		var zero V
-		return LinkedListPosition{l, nil}, zero, false
+		return LinkedListPosition{}, zero, false
 	}
 	return LinkedListPosition{l, l.tail}, l.tail.value, true
 }

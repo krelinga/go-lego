@@ -85,7 +85,7 @@ func (l *SinglyLinkedList[V]) Values() iter.Seq[V] {
 func (l *SinglyLinkedList[V]) First() (SinglyLinkedListPosition, V, bool) {
 	if l.head == nil {
 		var zero V
-		return SinglyLinkedListPosition{l, nil}, zero, false
+		return SinglyLinkedListPosition{}, zero, false
 	}
 	return SinglyLinkedListPosition{l, l.head}, l.head.value, true
 }
@@ -93,7 +93,7 @@ func (l *SinglyLinkedList[V]) First() (SinglyLinkedListPosition, V, bool) {
 func (l *SinglyLinkedList[V]) Last() (SinglyLinkedListPosition, V, bool) {
 	if l.tail == nil {
 		var zero V
-		return SinglyLinkedListPosition{l, nil}, zero, false
+		return SinglyLinkedListPosition{}, zero, false
 	}
 	return SinglyLinkedListPosition{l, l.tail}, l.tail.value, true
 }
