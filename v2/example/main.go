@@ -14,9 +14,6 @@ type SKU string
 
 type SKUCounts struct {
 	v2.Map[SKU, int]
-	_ v2.GenView       `v2:"type=SKUCountsView"`
-	_ v2.GenViewMethod `v2:"Total"`
-	_ v2.GenEqual      `v2:"comparable_values"`
 }
 
 func (s *SKUCounts) View() SKUCountsView {
@@ -105,13 +102,9 @@ func (v InventoryView) Total() int {
 ///////////////////////////////////////////////////////////////////////////////
 
 type StatusCounts struct {
-	Ready         int              `v2:"view"`
-	Backordered   int              `v2:"view"`
-	WaitingToShip int              `v2:"view"`
-	_             v2.GenView       `v2:"type=StatusCountsView"`
-	_             v2.GenCompare    `v2:"fields=desc(Ready),Backordered,WaitingToShip"`
-	_             v2.GenEqual      `v2:"compare"`
-	_             v2.GenViewMethod `v2:"String"`
+	Ready         int
+	Backordered   int
+	WaitingToShip int
 }
 
 func (s *StatusCounts) View() StatusCountsView {
@@ -126,10 +119,6 @@ func (s *StatusCounts) Compare(other *StatusCounts) int {
 
 func (s StatusCounts) Equal(other *StatusCounts) bool {
 	return s.View().Equal(other.View())
-}
-
-func (s *StatusCounts) String() string {
-	return fmt.Sprintf("StatusCounts{Ready: %d, Backordered: %d, WaitingToShip: %d}", s.Ready, s.Backordered, s.WaitingToShip)
 }
 
 type StatusCountsView struct {
