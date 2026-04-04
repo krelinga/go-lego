@@ -2,9 +2,13 @@ package v2
 
 import "iter"
 
-type SinglyLinkedListPosition[V any] struct {
-	owner *SinglyLinkedList[V]
-	node  *singlyLinkedListNode[V]
+type SinglyLinkedListPosition struct {
+	owner any
+	node  any
+}
+
+func (p SinglyLinkedListPosition) IsValid() bool {
+	return p.node != nil && p.owner != nil
 }
 
 type singlyLinkedListNode[V any] struct {
@@ -22,18 +26,34 @@ func (l *SinglyLinkedList[V]) Length() int {
 	return l.len
 }
 
-func (l *SinglyLinkedList[V]) Get(p SinglyLinkedListPosition[V]) (V, bool) {
-	if p.node == nil || p.owner != l {
+func (l *SinglyLinkedList[V]) pos2node(p SinglyLinkedListPosition) *singlyLinkedListNode[V] {
+	if p.node == nil || p.owner == nil {
+		return nil
+	}
+	listPtr, ok := p.owner.(*SinglyLinkedList[V])
+	if !ok || listPtr != l {
+		return nil
+	}
+	nodePtr, ok := p.node.(*singlyLinkedListNode[V])
+	if !ok {
+		return nil
+	}
+	return nodePtr
+}
+
+func (l *SinglyLinkedList[V]) Get(p SinglyLinkedListPosition) (V, bool) {
+	node := l.pos2node(p)
+	if node == nil {
 		var zero V
 		return zero, false
 	}
-	return p.node.value, true
+	return node.value, true
 }
 
-func (l *SinglyLinkedList[V]) All() iter.Seq2[SinglyLinkedListPosition[V], V] {
-	return func(yield func(SinglyLinkedListPosition[V], V) bool) {
+func (l *SinglyLinkedList[V]) All() iter.Seq2[SinglyLinkedListPosition, V] {
+	return func(yield func(SinglyLinkedListPosition, V) bool) {
 		for node := l.head; node != nil; node = node.next {
-			pos := SinglyLinkedListPosition[V]{l, node}
+			pos := SinglyLinkedListPosition{l, node}
 			if !yield(pos, node.value) {
 				return
 			}
@@ -41,10 +61,10 @@ func (l *SinglyLinkedList[V]) All() iter.Seq2[SinglyLinkedListPosition[V], V] {
 	}
 }
 
-func (l *SinglyLinkedList[V]) Positions() iter.Seq[SinglyLinkedListPosition[V]] {
-	return func(yield func(SinglyLinkedListPosition[V]) bool) {
+func (l *SinglyLinkedList[V]) Positions() iter.Seq[SinglyLinkedListPosition] {
+	return func(yield func(SinglyLinkedListPosition) bool) {
 		for node := l.head; node != nil; node = node.next {
-			pos := SinglyLinkedListPosition[V]{l, node}
+			pos := SinglyLinkedListPosition{l, node}
 			if !yield(pos) {
 				return
 			}
@@ -62,68 +82,79 @@ func (l *SinglyLinkedList[V]) Values() iter.Seq[V] {
 	}
 }
 
-func (l *SinglyLinkedList[V]) First() (SinglyLinkedListPosition[V], V, bool) {
+func (l *SinglyLinkedList[V]) First() (SinglyLinkedListPosition, V, bool) {
 	if l.head == nil {
 		var zero V
-		return SinglyLinkedListPosition[V]{l, nil}, zero, false
+		return SinglyLinkedListPosition{l, nil}, zero, false
 	}
-	return SinglyLinkedListPosition[V]{l, l.head}, l.head.value, true
+	return SinglyLinkedListPosition{l, l.head}, l.head.value, true
 }
 
-func (l *SinglyLinkedList[V]) Last() (SinglyLinkedListPosition[V], V, bool) {
+func (l *SinglyLinkedList[V]) Last() (SinglyLinkedListPosition, V, bool) {
 	if l.tail == nil {
 		var zero V
-		return SinglyLinkedListPosition[V]{l, nil}, zero, false
+		return SinglyLinkedListPosition{l, nil}, zero, false
 	}
-	return SinglyLinkedListPosition[V]{l, l.tail}, l.tail.value, true
+	return SinglyLinkedListPosition{l, l.tail}, l.tail.value, true
 }
 
 func (l *SinglyLinkedList[V]) String() string {
 	return listStringHelper(l)
 }
 
-func (l *SinglyLinkedList[V]) Set(p SinglyLinkedListPosition[V], v V) {
-	if p.node == nil || p.owner != l {
-		panic("invalid position")
+func (l *SinglyLinkedList[V]) Set(p SinglyLinkedListPosition, v V) {
+	node := l.pos2node(p)
+	if node == nil {
+		panic("position does not belong to this list")
 	}
-	p.node.value = v
+	node.value = v
 }
 
-func (l *SinglyLinkedList[V]) InsertBefore(p SinglyLinkedListPosition[V], v V) SinglyLinkedListPosition[V] {
-	if p.node == nil || p.owner != l {
-		panic("invalid position")
+func (l *SinglyLinkedList[V]) InsertBefore(p SinglyLinkedListPosition, v V) SinglyLinkedListPosition {
+	if l.Length() == 0 && !p.IsValid() {
+		l.Add(v)
+		return SinglyLinkedListPosition{l, l.head}
+	}
+	node := l.pos2node(p)
+	if node == nil {
+		panic("position does not belong to this list")
 	}
 	newNode := &singlyLinkedListNode[V]{value: v}
-	if p.node == l.head {
+	if node == l.head {
 		newNode.next = l.head
 		l.head = newNode
 	} else {
 		prev := l.head
-		for prev != nil && prev.next != p.node {
+		for prev != nil && prev.next != node {
 			prev = prev.next
 		}
 		if prev == nil {
 			panic("position not found in list")
 		}
 		prev.next = newNode
-		newNode.next = p.node
+		newNode.next = node
 	}
 	l.len++
-	return SinglyLinkedListPosition[V]{l, newNode}
+	return SinglyLinkedListPosition{l, newNode}
 }
 
-func (l *SinglyLinkedList[V]) InsertAfter(p SinglyLinkedListPosition[V], v V) SinglyLinkedListPosition[V] {
-	if p.node == nil || p.owner != l {
-		panic("invalid position")
+func (l *SinglyLinkedList[V]) InsertAfter(p SinglyLinkedListPosition, v V) SinglyLinkedListPosition {
+	if l.Length() == 0 && !p.IsValid() {
+		l.Add(v)
+		return SinglyLinkedListPosition{l, l.head}
+	}
+	node := l.pos2node(p)
+	if node == nil {
+		panic("position does not belong to this list")
 	}
 	newNode := &singlyLinkedListNode[V]{value: v}
-	newNode.next = p.node.next
-	p.node.next = newNode
-	if p.node == l.tail {
+	newNode.next = node.next
+	node.next = newNode
+	if node == l.tail {
 		l.tail = newNode
 	}
 	l.len++
-	return SinglyLinkedListPosition[V]{l, newNode}
+	return SinglyLinkedListPosition{l, newNode}
 }
 
 func (l *SinglyLinkedList[V]) Add(v V) {
@@ -138,22 +169,23 @@ func (l *SinglyLinkedList[V]) Add(v V) {
 	l.len++
 }
 
-func (l *SinglyLinkedList[V]) Remove(p SinglyLinkedListPosition[V]) {
-	if p.node == nil || p.owner != l {
-		panic("invalid position")
+func (l *SinglyLinkedList[V]) Remove(p SinglyLinkedListPosition) {
+	node := l.pos2node(p)
+	if node == nil {
+		panic("position does not belong to this list")
 	}
-	if p.node == l.head {
-		l.head = p.node.next
+	if node == l.head {
+		l.head = node.next
 	} else {
 		prev := l.head
-		for prev != nil && prev.next != p.node {
+		for prev != nil && prev.next != node {
 			prev = prev.next
 		}
 		if prev == nil {
 			panic("position not found in list")
 		}
-		prev.next = p.node.next
-		if p.node == l.tail {
+		prev.next = node.next
+		if node == l.tail {
 			l.tail = prev
 		}
 	}
