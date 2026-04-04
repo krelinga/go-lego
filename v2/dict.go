@@ -21,6 +21,7 @@ type Dict[K, V any] interface {
 	Set(K, V)
 	Remove(K)
 	Clear()
+	Add(KV[K, V])
 }
 
 type KV[K, V any] struct {
