@@ -1,10 +1,10 @@
 package v2
 
-type Equaler[V any] interface {
+type CanEqual[V any] interface {
 	Equal(V) bool
 }
 
-func DictEqualValues[K comparable, V Equaler[V]](a, b FixedDict[K, V]) bool {
+func DictEqualValues[K comparable, V CanEqual[V]](a, b FixedDict[K, V]) bool {
 	return dictEqualHelper(a, b, func(vA, vB V) bool {
 		return vA.Equal(vB)
 	})
@@ -16,13 +16,13 @@ func DictEqualValuesComparable[K comparable, V comparable](a, b FixedDict[K, V])
 	})
 }
 
-func DictEqualValuesComparer[K comparable, V Comparer[V]](a, b FixedDict[K, V]) bool {
+func DictEqualValuesComparer[K comparable, V CanCompare[V]](a, b FixedDict[K, V]) bool {
 	return dictEqualHelper(a, b, func(vA, vB V) bool {
 		return vA.Compare(vB) == 0
 	})
 }
 
-func ListEqualValues[P any, V Equaler[V]](a, b FixedList[P, V]) bool {
+func ListEqualValues[P any, V CanEqual[V]](a, b FixedList[P, V]) bool {
 	return listEqualHelper(a, b, func(vA, vB V) bool {
 		return vA.Equal(vB)
 	})
@@ -34,7 +34,7 @@ func ListEqualValuesComparable[P any, V comparable](a, b FixedList[P, V]) bool {
 	})
 }
 
-func ListEqualValuesComparer[P any, V Comparer[V]](a, b FixedList[P, V]) bool {
+func ListEqualValuesComparer[P any, V CanCompare[V]](a, b FixedList[P, V]) bool {
 	return listEqualHelper(a, b, func(vA, vB V) bool {
 		return vA.Compare(vB) == 0
 	})

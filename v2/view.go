@@ -2,11 +2,11 @@ package v2
 
 import "iter"
 
-type Viewer[V any] interface {
+type CanView[V any] interface {
 	View() V
 }
 
-type DictViewEmbed[K any, T Viewer[V], V any] struct {
+type DictViewEmbed[K any, T CanView[V], V any] struct {
 	fm FixedDict[K, T]
 }
 
@@ -86,11 +86,11 @@ func (m DictViewEmbed[K, T, V]) String() string {
 	return m.fm.String()
 }
 
-func NewDictViewEmbed[K any, T Viewer[V], V any](m FixedDict[K, T]) DictViewEmbed[K, T, V] {
+func NewDictViewEmbed[K any, T CanView[V], V any](m FixedDict[K, T]) DictViewEmbed[K, T, V] {
 	return DictViewEmbed[K, T, V]{m}
 }
 
-type ListViewEmbed[P any, T Viewer[V], V any] struct {
+type ListViewEmbed[P any, T CanView[V], V any] struct {
 	fl FixedList[P, T]
 }
 
@@ -157,7 +157,7 @@ func (l ListViewEmbed[P, T, V]) String() string {
 	return l.fl.String()
 }
 
-func NewListViewEmbed[P any, T Viewer[V], V any](l FixedList[P, T]) ListViewEmbed[P, T, V] {
+func NewListViewEmbed[P any, T CanView[V], V any](l FixedList[P, T]) ListViewEmbed[P, T, V] {
 	return ListViewEmbed[P, T, V]{l}
 }
 

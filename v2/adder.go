@@ -1,15 +1,15 @@
 package v2
 
-type Adder[V any] interface {
+type CanAdd[V any] interface {
 	Add(V)
 }
 
-type Reserver interface {
+type CanReserve interface {
 	Reserve(int)
 }
 
-func AddAll[V any](a Adder[V], r Range[V]) {
-	if res, ok := a.(Reserver); ok {
+func AddAll[V any](a CanAdd[V], r Range[V]) {
+	if res, ok := a.(CanReserve); ok {
 		res.Reserve(r.Length())
 	}
 	for v := range r.All() {

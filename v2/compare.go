@@ -2,23 +2,23 @@ package v2
 
 import "cmp"
 
-type Comparer[V any] interface {
+type CanCompare[V any] interface {
 	Compare(V) int
 }
 
-func LessThan[V Comparer[V]](a, b V) bool {
+func LessThan[V CanCompare[V]](a, b V) bool {
 	return a.Compare(b) < 0
 }
 
-func GreaterThan[V Comparer[V]](a, b V) bool {
+func GreaterThan[V CanCompare[V]](a, b V) bool {
 	return a.Compare(b) > 0
 }
 
-func LessThanEqual[V Comparer[V]](a, b V) bool {
+func LessThanEqual[V CanCompare[V]](a, b V) bool {
 	return a.Compare(b) <= 0
 }
 
-func GreaterThanEqual[V Comparer[V]](a, b V) bool {
+func GreaterThanEqual[V CanCompare[V]](a, b V) bool {
 	return a.Compare(b) >= 0
 }
 
@@ -33,7 +33,7 @@ func CompareUsing[V any](a, b V, funcs ...Comparator[V]) int {
 	return 0
 }
 
-func NewComparator[V any, F Comparer[F]](g func(V) F) Comparator[V] {
+func NewComparator[V any, F CanCompare[F]](g func(V) F) Comparator[V] {
 	return func(a, b V) int {
 		return g(a).Compare(g(b))
 	}
