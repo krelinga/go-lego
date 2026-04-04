@@ -28,7 +28,7 @@ func (l *LinkedList[V]) Length() int {
 }
 
 func (l *LinkedList[V]) pos2node(p LinkedListPosition) *linkedListNode[V] {
-	if p.node == nil || p.owner != l {
+	if p.node == nil || p.owner == nil {
 		return nil
 	}
 	listPtr, ok := p.owner.(*LinkedList[V])
