@@ -65,7 +65,7 @@ type Inventory struct {
 func (i *Inventory) View() InventoryView {
 	dve := v2.NewDictViewEmbed(i)
 	return InventoryView{
-		DictViewEmbed:  dve,
+		DictViewEmbed: dve,
 	}
 }
 
@@ -90,7 +90,6 @@ type InventoryView struct {
 func (v InventoryView) Equal(other InventoryView) bool {
 	return v2.DictEqualValues(v, other)
 }
-
 
 func (v InventoryView) Total() int {
 	total := 0

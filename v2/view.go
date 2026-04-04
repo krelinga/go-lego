@@ -160,4 +160,3 @@ func (l ListViewEmbed[P, T, V]) String() string {
 func NewListViewEmbed[P any, T CanView[V], V any](l FixedList[P, T]) ListViewEmbed[P, T, V] {
 	return ListViewEmbed[P, T, V]{l}
 }
-
