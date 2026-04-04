@@ -2,7 +2,7 @@ package v2
 
 import "iter"
 
-type CanLength interface {
+type canLength interface {
 	Length() int
 }
 
@@ -11,7 +11,7 @@ type Range[V any] interface {
 	All() iter.Seq[V]
 }
 
-type rangeImpl[C CanLength, V any] struct {
+type rangeImpl[C canLength, V any] struct {
 	container C
 	iterFunc  func(C) iter.Seq[V]
 }
@@ -24,7 +24,7 @@ func (r rangeImpl[C, V]) All() iter.Seq[V] {
 	return r.iterFunc(r.container)
 }
 
-func newRangeImpl[C CanLength, V any](container C, iterFunc func(C) iter.Seq[V]) rangeImpl[C, V] {
+func newRangeImpl[C canLength, V any](container C, iterFunc func(C) iter.Seq[V]) rangeImpl[C, V] {
 	return rangeImpl[C, V]{container, iterFunc}
 }
 
