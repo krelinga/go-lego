@@ -8,11 +8,17 @@ type Reserver interface {
 	Reserve(int)
 }
 
-func AddAll[V any](a Adder[V], vs ...V) {
-	if r, ok := a.(Reserver); ok {
-		r.Reserve(len(vs))
+func AddAll[V any](a Adder[V], r Range[V]) {
+	if res, ok := a.(Reserver); ok {
+		res.Reserve(r.Length())
 	}
-	for _, v := range vs {
+	for v := range r.Iterate() {
 		a.Add(v)
 	}
+}
+
+func AddAllSlice[V any](a Adder[V], vs []V) {
+	slice := Slice[V](vs)
+	r := NewRange(&slice, (*Slice[V]).Values)
+	AddAll(a, r)
 }

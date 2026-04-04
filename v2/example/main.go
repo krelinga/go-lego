@@ -32,7 +32,7 @@ func (s SKUCounts) Equal(other SKUCounts) bool {
 
 func NewSKUCounts(kvs ...v2.KV[SKU, int]) *SKUCounts {
 	m := SKUCounts{}
-	v2.AddAll(&m.Map, kvs...)
+	v2.AddAllSlice(&m.Map, kvs)
 	return &m
 }
 
@@ -79,7 +79,7 @@ func (i Inventory) Equal(other *Inventory) bool {
 
 func NewInventory(kvs ...v2.KV[Location, *SKUCounts]) *Inventory {
 	m := Inventory{}
-	v2.AddAll(&m.Map, kvs...)
+	v2.AddAllSlice(&m.Map, kvs)
 	return &m
 }
 
@@ -168,7 +168,7 @@ func (l *StatusCountsList) Equal(other *StatusCountsList) bool {
 
 func NewStatusCountsList(items ...*StatusCounts) *StatusCountsList {
 	sl := StatusCountsList{}
-	v2.AddAll(&sl.Slice, items...)
+	v2.AddAllSlice(&sl.Slice, items)
 	return &sl
 }
 
