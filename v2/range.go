@@ -81,3 +81,8 @@ type ReverseValuesContainer[V any] interface {
 func ReverseValuesFrom[V any](v ReverseValuesContainer[V]) Range[V] {
 	return newRangeImpl(v, ReverseValuesContainer[V].ReverseValues)
 }
+
+func RangeFrom[V any](vs ...V) Range[V] {
+	slice := Slice[V](vs)
+	return ValuesFrom(&slice)
+}

@@ -16,8 +16,3 @@ func AddAll[V any](a Adder[V], r Range[V]) {
 		a.Add(v)
 	}
 }
-
-func AddAllSlice[V any](a Adder[V], vs []V) {
-	slice := Slice[V](vs)
-	AddAll(a, ValuesFrom(&slice))
-}
