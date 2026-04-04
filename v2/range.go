@@ -63,3 +63,21 @@ type PositionsContainer[P any] interface {
 func PositionsFrom[P any](p PositionsContainer[P]) Range[P] {
 	return newRangeImpl(p, PositionsContainer[P].Positions)
 }
+
+type ReversePositionsContainer[P any] interface {
+	Length() int
+	ReversePositions() iter.Seq[P]
+}
+
+func ReversePositionsFrom[P any](p ReversePositionsContainer[P]) Range[P] {
+	return newRangeImpl(p, ReversePositionsContainer[P].ReversePositions)
+}
+
+type ReverseValuesContainer[V any] interface {
+	Length() int
+	ReverseValues() iter.Seq[V]
+}
+
+func ReverseValuesFrom[V any](v ReverseValuesContainer[V]) Range[V] {
+	return newRangeImpl(v, ReverseValuesContainer[V].ReverseValues)
+}
