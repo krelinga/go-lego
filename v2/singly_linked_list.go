@@ -191,3 +191,9 @@ func (l *SinglyLinkedList[V]) Remove(p SinglyLinkedListPosition) {
 	}
 	l.len--
 }
+
+func (l *SinglyLinkedList[V]) Clear() {
+	l.head = nil
+	l.tail = nil
+	l.len = 0
+}

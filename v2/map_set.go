@@ -46,3 +46,7 @@ func (s *MapSet[V]) Add(v V) {
 func (s *MapSet[V]) Remove(v V) {
 	delete(*s, v)
 }
+
+func (s *MapSet[V]) Clear() {
+	*s = nil
+}

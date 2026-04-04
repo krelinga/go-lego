@@ -223,3 +223,9 @@ func (l *LinkedList[V]) Remove(p LinkedListPosition) {
 	}
 	l.len--
 }
+
+func (l *LinkedList[V]) Clear() {
+	l.head = nil
+	l.tail = nil
+	l.len = 0
+}

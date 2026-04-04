@@ -20,6 +20,7 @@ type Dict[K, V any] interface {
 	FixedDict[K, V]
 	Set(K, V)
 	Remove(K)
+	Clear()
 }
 
 type KV[K, V any] struct {

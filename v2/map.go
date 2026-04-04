@@ -62,3 +62,7 @@ func (m *Map[K, V]) Reserve(n int) {
 func (m *Map[K, V]) Add(kv KV[K, V]) {
 	m.Set(kv.K, kv.V)
 }
+
+func (m *Map[K, V]) Clear() {
+	*m = nil
+}

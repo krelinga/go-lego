@@ -13,4 +13,5 @@ type Set[V any] interface {
 	FixedSet[V]
 	Add(V)
 	Remove(V)
+	Clear()
 }
