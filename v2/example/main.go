@@ -64,7 +64,7 @@ type Location string
 
 //pod:container
 //pod:view name=InventoryView values=SKUCountsView
-//pod:equal values=CanEqual
+//pod:equal values=Equal
 type Inventory struct {
 	v2.Map[Location, *SKUCounts]
 }
@@ -114,10 +114,10 @@ func (v InventoryView) Total() int {
 //pod:equal use=Compare
 type StatusCounts struct {
 	//pod:view expose
-	Ready         int
+	Ready int
 
 	// pod:view expose
-	Backordered   int
+	Backordered int
 
 	// pod:view expose
 	WaitingToShip int
