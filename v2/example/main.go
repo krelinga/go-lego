@@ -12,6 +12,9 @@ type SKU string
 
 ///////////////////////////////////////////////////////////////////////////////
 
+//pod:container
+//pod:view name=SKUCountsView values=direct
+//pod:equal values=comparable
 type SKUCounts struct {
 	v2.Map[SKU, int]
 }
@@ -22,6 +25,7 @@ func (s *SKUCounts) View() SKUCountsView {
 	}
 }
 
+//pod:view expose
 func (s *SKUCounts) Total() int {
 	return s.View().Total()
 }
@@ -58,6 +62,9 @@ type Location string
 
 ///////////////////////////////////////////////////////////////////////////////
 
+//pod:container
+//pod:view name=InventoryView values=SKUCountsView
+//pod:equal values=CanEqual
 type Inventory struct {
 	v2.Map[Location, *SKUCounts]
 }
@@ -69,6 +76,7 @@ func (i *Inventory) View() InventoryView {
 	}
 }
 
+//pod:view expose
 func (i *Inventory) Total() int {
 	return i.View().Total()
 }
@@ -101,9 +109,17 @@ func (v InventoryView) Total() int {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+//pod:view name=StatusCountsView
+//pod:compare order=desc(Ready),Backordered,WaitingToShip
+//pod:equal use=Compare
 type StatusCounts struct {
+	//pod:view expose
 	Ready         int
+
+	// pod:view expose
 	Backordered   int
+
+	// pod:view expose
 	WaitingToShip int
 }
 
@@ -151,6 +167,9 @@ func (s StatusCountsView) Equal(other StatusCountsView) bool {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+//pod:container
+//pod:view name=StatusCountsListView values=StatusCountsView
+//pod:equal values=comparable
 type StatusCountsList struct {
 	v2.Slice[*StatusCounts]
 }
