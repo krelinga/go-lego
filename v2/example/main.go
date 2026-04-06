@@ -25,7 +25,7 @@ func (s *SKUCounts) View() SKUCountsView {
 	}
 }
 
-//pod:view expose
+//pod:view expose=direct
 func (s *SKUCounts) Total() int {
 	return s.View().Total()
 }
@@ -76,7 +76,7 @@ func (i *Inventory) View() InventoryView {
 	}
 }
 
-//pod:view expose
+//pod:view expose=direct
 func (i *Inventory) Total() int {
 	return i.View().Total()
 }
@@ -113,13 +113,13 @@ func (v InventoryView) Total() int {
 //pod:compare order=desc(Ready),Backordered,WaitingToShip
 //pod:equal use=Compare
 type StatusCounts struct {
-	//pod:view expose
+	//pod:view expose=direct
 	Ready int
 
-	// pod:view expose
+	// pod:view expose=direct
 	Backordered int
 
-	// pod:view expose
+	// pod:view expose=direct
 	WaitingToShip int
 }
 
