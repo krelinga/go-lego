@@ -113,13 +113,8 @@ func (v InventoryView) Total() int {
 //pod:compare order=desc(Ready),Backordered,WaitingToShip
 //pod:equal use=Compare
 type StatusCounts struct {
-	//pod:view expose=direct
-	Ready int
-
-	// pod:view expose=direct
-	Backordered int
-
-	// pod:view expose=direct
+	Ready         int
+	Backordered   int
 	WaitingToShip int
 }
 
