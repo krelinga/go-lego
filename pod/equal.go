@@ -1,4 +1,4 @@
-package v2
+package pod
 
 type CanEqual[V any] interface {
 	Equal(V) bool

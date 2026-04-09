@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	v2 "github.com/krelinga/go-lego/v2"
+	"github.com/krelinga/go-lego/pod"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -16,7 +16,7 @@ type SKU string
 //pod:view name=SKUCountsView values=direct
 //pod:equal values=comparable
 type SKUCounts struct {
-	v2.Map[SKU, int]
+	pod.Map[SKU, int]
 }
 
 func (s *SKUCounts) View() SKUCountsView {
@@ -34,18 +34,18 @@ func (s SKUCounts) Equal(other SKUCounts) bool {
 	return s.View().Equal(other.View())
 }
 
-func NewSKUCounts(kvs ...v2.KV[SKU, int]) *SKUCounts {
+func NewSKUCounts(kvs ...pod.KV[SKU, int]) *SKUCounts {
 	m := SKUCounts{}
-	v2.AddAll(&m.Map, v2.RangeFrom(kvs...))
+	pod.AddAll(&m.Map, pod.RangeFrom(kvs...))
 	return &m
 }
 
 type SKUCountsView struct {
-	v2.FixedDict[SKU, int]
+	pod.FixedDict[SKU, int]
 }
 
 func (s SKUCountsView) Equal(other SKUCountsView) bool {
-	return v2.DictEqualValuesComparable(s, other)
+	return pod.DictEqualValuesComparable(s, other)
 }
 
 func (s SKUCountsView) Total() int {
@@ -66,11 +66,11 @@ type Location string
 //pod:view name=InventoryView values=SKUCountsView
 //pod:equal values=Equal
 type Inventory struct {
-	v2.Map[Location, *SKUCounts]
+	pod.Map[Location, *SKUCounts]
 }
 
 func (i *Inventory) View() InventoryView {
-	dve := v2.NewDictViewEmbed(i)
+	dve := pod.NewDictViewEmbed(i)
 	return InventoryView{
 		DictViewEmbed: dve,
 	}
@@ -85,18 +85,18 @@ func (i Inventory) Equal(other *Inventory) bool {
 	return i.View().Equal(other.View())
 }
 
-func NewInventory(kvs ...v2.KV[Location, *SKUCounts]) *Inventory {
+func NewInventory(kvs ...pod.KV[Location, *SKUCounts]) *Inventory {
 	m := Inventory{}
-	v2.AddAll(&m.Map, v2.RangeFrom(kvs...))
+	pod.AddAll(&m.Map, pod.RangeFrom(kvs...))
 	return &m
 }
 
 type InventoryView struct {
-	v2.DictViewEmbed[Location, *SKUCounts, SKUCountsView]
+	pod.DictViewEmbed[Location, *SKUCounts, SKUCountsView]
 }
 
 func (v InventoryView) Equal(other InventoryView) bool {
-	return v2.DictEqualValues(v, other)
+	return pod.DictEqualValues(v, other)
 }
 
 func (v InventoryView) Total() int {
@@ -149,10 +149,10 @@ func (s StatusCountsView) WaitingToShip() int {
 }
 
 func (s StatusCountsView) Compare(other StatusCountsView) int {
-	return v2.CompareUsing(s, other,
-		v2.NewComparatorReversed(v2.NewComparatorOrdered(StatusCountsView.Ready)),
-		v2.NewComparatorOrdered(StatusCountsView.Backordered),
-		v2.NewComparatorOrdered(StatusCountsView.WaitingToShip),
+	return pod.CompareUsing(s, other,
+		pod.NewComparatorReversed(pod.NewComparatorOrdered(StatusCountsView.Ready)),
+		pod.NewComparatorOrdered(StatusCountsView.Backordered),
+		pod.NewComparatorOrdered(StatusCountsView.WaitingToShip),
 	)
 }
 
@@ -166,7 +166,7 @@ func (s StatusCountsView) Equal(other StatusCountsView) bool {
 //pod:view name=StatusCountsListView values=StatusCountsView
 //pod:equal values=comparable
 type StatusCountsList struct {
-	v2.Slice[*StatusCounts]
+	pod.Slice[*StatusCounts]
 }
 
 func (l *StatusCountsList) View() StatusCountsListView {
@@ -181,25 +181,25 @@ func (l *StatusCountsList) Equal(other *StatusCountsList) bool {
 
 func NewStatusCountsList(items ...*StatusCounts) *StatusCountsList {
 	sl := StatusCountsList{}
-	v2.AddAll(&sl.Slice, v2.RangeFrom(items...))
+	pod.AddAll(&sl.Slice, pod.RangeFrom(items...))
 	return &sl
 }
 
 type StatusCountsListView struct {
-	v2.FixedList[int, *StatusCounts]
+	pod.FixedList[int, *StatusCounts]
 }
 
 func (l StatusCountsListView) Equal(other StatusCountsListView) bool {
-	return v2.ListEqualValues(l, other)
+	return pod.ListEqualValues(l, other)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 func main() {
 	inv := NewInventory(
-		v2.NewKV(Location("North America"), NewSKUCounts(
-			v2.NewKV(SKU("Widget"), 100),
-			v2.NewKV(SKU("Gizmo"), 50),
+		pod.NewKV(Location("North America"), NewSKUCounts(
+			pod.NewKV(SKU("Widget"), 100),
+			pod.NewKV(SKU("Gizmo"), 50),
 		)),
 	)
 	fmt.Println(inv.View().Total())
@@ -214,8 +214,8 @@ func main() {
 
 	sc1 := &StatusCounts{Ready: 10, Backordered: 5, WaitingToShip: 2}
 	sc2 := &StatusCounts{Ready: 8, Backordered: 10, WaitingToShip: 1}
-	fmt.Println("v2.LessThan(sc1, sc2):", v2.LessThan(sc1, sc2))
-	fmt.Println("v2.GreaterThan(sc1, sc2):", v2.GreaterThan(sc1, sc2))
+	fmt.Println("pod.LessThan(sc1, sc2):", pod.LessThan(sc1, sc2))
+	fmt.Println("pod.GreaterThan(sc1, sc2):", pod.GreaterThan(sc1, sc2))
 	fmt.Println("sc1.Equal(sc2):", sc1.Equal(sc2))
 	fmt.Println("sc1.Equal(sc1):", sc1.Equal(sc1))
 

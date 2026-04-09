@@ -1,4 +1,4 @@
-package v2
+package pod
 
 type CanAdd[V any] interface {
 	Add(V)
