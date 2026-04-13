@@ -19,7 +19,7 @@ func CloneVector[T any](vec VectorView[T]) *Vector[T] {
 	v := &Vector[T]{}
 	v.Reserve(vec.Len())
 	for i := 0; i < vec.Len(); i++ {
-		v.Append(vec.Get(i))
+		v.Push(vec.Get(i))
 	}
 	return v
 }
@@ -48,8 +48,14 @@ func (v *Vector[T]) Reserve(n int) {
 	}
 }
 
-func (v *Vector[T]) Append(value T) {
+func (v *Vector[T]) Push(value T) {
 	v.data = append(v.data, value)
+}
+
+func (v *Vector[T]) Pop() T {
+	value := v.data[len(v.data)-1]
+	v.data = v.data[:len(v.data)-1]
+	return value
 }
 
 func WrapVectorValues[T, V any](vec VectorView[T], wrap func(T) V) VectorView[V] {
