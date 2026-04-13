@@ -1,6 +1,9 @@
 package conx
 
-import "iter"
+import (
+	"iter"
+	"slices"
+)
 
 type Range[T any] interface {
 	Len() int
@@ -101,4 +104,20 @@ func (r fromKVsRange[K, V]) Range() iter.Seq2[K, V] {
 			}
 		}
 	}
+}
+
+func NewRange[T any](value ...T) Range[T] {
+	return newRange[T]{value: value}
+}
+
+type newRange[T any] struct {
+	value []T
+}
+
+func (r newRange[T]) Len() int {
+	return len(r.value)
+}
+
+func (r newRange[T]) Range() iter.Seq[T] {
+	return slices.Values(r.value)
 }
