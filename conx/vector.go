@@ -16,10 +16,14 @@ func NewVector[T any](data ...T) *Vector[T] {
 }
 
 func CloneVector[T any](vec VectorView[T]) *Vector[T] {
-	v := &Vector[T]{}
+	return CloneVectorFunc(vec, func(x T) T { return x })
+}
+
+func CloneVectorFunc[T any, U any](vec VectorView[T], valueFunc func(T) U) *Vector[U] {
+	v := &Vector[U]{}
 	v.Reserve(vec.Len())
 	for i := 0; i < vec.Len(); i++ {
-		v.Push(vec.Get(i))
+		v.Push(valueFunc(vec.Get(i)))
 	}
 	return v
 }

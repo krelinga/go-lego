@@ -28,10 +28,14 @@ func NewDict[K comparable, V any](data ...KV[K, V]) (d *Dict[K, V]) {
 }
 
 func CloneDict[K comparable, V any](dict DictView[K, V]) *Dict[K, V] {
-	d := &Dict[K, V]{}
+	return CloneDictFunc(dict, func(k K) K { return k }, func(v V) V { return v })
+}
+
+func CloneDictFunc[K any, KK comparable, V, VV any](dict DictView[K, V], keyFunc func(K) KK, valueFunc func(V) VV) *Dict[KK, VV] {
+	d := &Dict[KK, VV]{}
 	d.Reserve(dict.Len())
 	for k, v := range dict.All() {
-		d.Set(k, v)
+		d.Set(keyFunc(k), valueFunc(v))
 	}
 	return d
 }
