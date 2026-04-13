@@ -1,6 +1,10 @@
 package conx
 
-import "iter"
+import (
+	"cmp"
+	"iter"
+	"slices"
+)
 
 type VectorView[T any] interface {
 	Len() int
@@ -202,4 +206,12 @@ func VectorEqual[T comparable](a, b VectorView[T]) bool {
 	return VectorEqualFunc(a, b, func(x, y T) bool {
 		return x == y
 	})
+}
+
+func VectorSort[T cmp.Ordered](vec Vector[T]) {
+	VectorSortFunc(vec, cmp.Compare[T])
+}
+
+func VectorSortFunc[T any](vec Vector[T], order func(T, T) int) {
+	slices.SortFunc(vec.data, order)
 }
