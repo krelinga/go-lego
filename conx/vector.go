@@ -59,7 +59,7 @@ func (v *Vector[T]) Pop() T {
 }
 
 func WrapVectorValues[T, V any](vec VectorView[T], wrap func(T) V) VectorView[V] {
-	 return wrappedVectorValues[T, V]{
+	return wrappedVectorValues[T, V]{
 		vec:  vec,
 		wrap: wrap,
 	}
@@ -180,4 +180,22 @@ func (r vectorReverseValuesRange[T]) Range() iter.Seq[T] {
 			}
 		}
 	}
+}
+
+func VectorEqualFunc[T any](a, b VectorView[T], eq func(T, T) bool) bool {
+	if a.Len() != b.Len() {
+		return false
+	}
+	for i := 0; i < a.Len(); i++ {
+		if !eq(a.Get(i), b.Get(i)) {
+			return false
+		}
+	}
+	return true
+}
+
+func VectorEqual[T comparable](a, b VectorView[T]) bool {
+	return VectorEqualFunc(a, b, func(x, y T) bool {
+		return x == y
+	})
 }

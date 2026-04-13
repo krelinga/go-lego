@@ -217,3 +217,22 @@ func (r dictValuesRange[K, V]) Range() iter.Seq[V] {
 		}
 	}
 }
+
+func DictEqual[K, V comparable](a, b DictView[K, V]) bool {
+	return DictEqualFunc(a, b, func(vA, vB V) bool {
+		return vA == vB
+	})
+}
+
+func DictEqualFunc[K, V any](a, b DictView[K, V], eq func(V, V) bool) bool {
+	if a.Len() != b.Len() {
+		return false
+	}
+	for k, vA := range a.All() {
+		vB, ok := b.Get(k)
+		if !ok || !eq(vA, vB) {
+			return false
+		}
+	}
+	return true
+}

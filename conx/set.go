@@ -138,3 +138,21 @@ func (r setValuesRange[T]) Len() int {
 func (r setValuesRange[T]) Range() iter.Seq[T] {
 	return r.set.Values()
 }
+
+func SetEqualFunc[T any](a, b SetView[T], eq func(T, T) bool) bool {
+	if a.Len() != b.Len() {
+		return false
+	}
+	for x := range a.Values() {
+		if !b.Has(x) {
+			return false
+		}
+	}
+	return true
+}
+
+func SetEqual[T comparable](a, b SetView[T]) bool {
+	return SetEqualFunc(a, b, func(x, y T) bool {
+		return x == y
+	})
+}
