@@ -27,6 +27,15 @@ func NewDict[K comparable, V any](data ...KV[K, V]) (d *Dict[K, V]) {
 	return
 }
 
+func CloneDict[K comparable, V any](dict DictView[K, V]) *Dict[K, V] {
+	d := &Dict[K, V]{}
+	d.Reserve(dict.Len())
+	for k, v := range dict.All() {
+		d.Set(k, v)
+	}
+	return d
+}
+
 func (d Dict[K, V]) Len() int {
 	return len(d.data)
 }

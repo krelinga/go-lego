@@ -15,6 +15,15 @@ func NewVector[T any](data ...T) *Vector[T] {
 	return &Vector[T]{data: data}
 }
 
+func CloneVector[T any](vec VectorView[T]) *Vector[T] {
+	v := &Vector[T]{}
+	v.Reserve(vec.Len())
+	for i := 0; i < vec.Len(); i++ {
+		v.Append(vec.Get(i))
+	}
+	return v
+}
+
 func (v Vector[T]) Len() int {
 	return len(v.data)
 }

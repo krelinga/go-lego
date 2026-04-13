@@ -27,6 +27,15 @@ func NewSet[T comparable](values ...T) (s *Set[T]) {
 	return
 }
 
+func CloneSet[T comparable](set SetView[T]) *Set[T] {
+	s := &Set[T]{}
+	s.Reserve(set.Len())
+	for value := range set.Values() {
+		s.Add(value)
+	}
+	return s
+}
+
 func (s Set[T]) Len() int {
 	return len(s.data)
 }
