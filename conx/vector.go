@@ -78,7 +78,7 @@ func (w wrappedVectorValues[T, V]) Get(i int) V {
 	return w.wrap(w.vec.Get(i))
 }
 
-func WrapSlice[C ~[]T, T any](slice C) VectorView[T] {
+func NewVectorViewFromSlice[C ~[]T, T any](slice C) VectorView[T] {
 	return sliceVectorView[C, T]{slice: slice}
 }
 
