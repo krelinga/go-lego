@@ -10,12 +10,11 @@ type VectorView[T any] interface {
 	Get(i int) T
 }
 
-type Vector[T any] struct {
-	data []T
-}
+type Vector[T any] []T
 
 func NewVector[T any](data ...T) *Vector[T] {
-	return &Vector[T]{data: data}
+	v := Vector[T](data)
+	return &v
 }
 
 func CloneVector[T any](vec VectorView[T]) *Vector[T] {
@@ -31,37 +30,37 @@ func CloneVectorFunc[T any, U any](vec VectorView[T], valueFunc func(T) U) *Vect
 	return v
 }
 
-func (v Vector[T]) Len() int {
-	return len(v.data)
+func (v *Vector[T]) Len() int {
+	return len(*v)
 }
 
-func (v Vector[T]) Get(i int) T {
-	return v.data[i]
+func (v *Vector[T]) Get(i int) T {
+	return (*v)[i]
 }
 
 func (v *Vector[T]) Set(i int, value T) {
-	v.data[i] = value
+	(*v)[i] = value
 }
 
 func (v *Vector[T]) Clear() {
-	v.data = nil
+	*v = nil
 }
 
 func (v *Vector[T]) Reserve(n int) {
-	if cap(v.data) < n {
-		newData := make([]T, len(v.data), n)
-		copy(newData, v.data)
-		v.data = newData
+	if cap(*v) < n {
+		newData := make([]T, len(*v), n)
+		copy(newData, *v)
+		*v = newData
 	}
 }
 
 func (v *Vector[T]) Push(value T) {
-	v.data = append(v.data, value)
+	*v = append(*v, value)
 }
 
 func (v *Vector[T]) Pop() T {
-	value := v.data[len(v.data)-1]
-	v.data = v.data[:len(v.data)-1]
+	value := (*v)[len(*v)-1]
+	*v = (*v)[:len(*v)-1]
 	return value
 }
 
@@ -119,10 +118,10 @@ func VectorEqual[T comparable](a, b VectorView[T]) bool {
 	})
 }
 
-func VectorSort[T cmp.Ordered](vec Vector[T]) {
+func VectorSort[T cmp.Ordered](vec *Vector[T]) {
 	VectorSortFunc(vec, cmp.Compare[T])
 }
 
-func VectorSortFunc[T any](vec Vector[T], order func(T, T) int) {
-	slices.SortFunc(vec.data, order)
+func VectorSortFunc[T any](vec *Vector[T], order func(T, T) int) {
+	slices.SortFunc(*vec, order)
 }
