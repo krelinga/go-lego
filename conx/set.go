@@ -32,6 +32,27 @@ func (s setView[S, T, V]) Values() iter.Seq[T] {
 	return maps.Keys(s.s)
 }
 
+func SetOfMapKeys[T comparable, V any](m MapView[T, V]) SetView[T] {
+	return setOfMapKeys[T, V]{m: m}
+}
+
+type setOfMapKeys[T comparable, V any] struct {
+	m MapView[T, V]
+}
+
+func (s setOfMapKeys[T, V]) Len() int {
+	return s.m.Len()
+}
+
+func (s setOfMapKeys[T, V]) Has(value T) bool {
+	_, ok := s.m.Get(value)
+	return ok
+}
+
+func (s setOfMapKeys[T, V]) Values() iter.Seq[T] {
+	return s.m.Keys()
+}
+
 type Set[T comparable] map[T]struct{}
 
 func CloneSet[T comparable](set SetView[T]) *Set[T] {
