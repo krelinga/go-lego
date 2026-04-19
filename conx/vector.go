@@ -12,11 +12,6 @@ type VectorView[T any] interface {
 
 type Vector[T any] []T
 
-func NewVector[T any](data ...T) *Vector[T] {
-	v := Vector[T](data)
-	return &v
-}
-
 func CloneVector[T any](vec VectorView[T]) *Vector[T] {
 	return CloneVectorFunc(vec, func(x T) T { return x })
 }
