@@ -5,19 +5,19 @@ import (
 	"slices"
 )
 
-type VectorView[T any] interface {
+type VecView[T any] interface {
 	Len() int
 	At(i int) T
 }
 
-type Vector[T any] []T
+type Vec[T any] []T
 
-func CloneVector[T any](vec VectorView[T]) *Vector[T] {
-	return CloneVectorFunc(vec, func(x T) T { return x })
+func CloneVec[T any](vec VecView[T]) *Vec[T] {
+	return CloneVecFunc(vec, func(x T) T { return x })
 }
 
-func CloneVectorFunc[T any, U any](vec VectorView[T], valueFunc func(T) U) *Vector[U] {
-	v := &Vector[U]{}
+func CloneVecFunc[T any, U any](vec VecView[T], valueFunc func(T) U) *Vec[U] {
+	v := &Vec[U]{}
 	v.Reserve(vec.Len())
 	for i := 0; i < vec.Len(); i++ {
 		v.Push(valueFunc(vec.At(i)))
@@ -25,23 +25,23 @@ func CloneVectorFunc[T any, U any](vec VectorView[T], valueFunc func(T) U) *Vect
 	return v
 }
 
-func (v *Vector[T]) Len() int {
+func (v *Vec[T]) Len() int {
 	return len(*v)
 }
 
-func (v *Vector[T]) At(i int) T {
+func (v *Vec[T]) At(i int) T {
 	return (*v)[i]
 }
 
-func (v *Vector[T]) Set(i int, value T) {
+func (v *Vec[T]) Set(i int, value T) {
 	(*v)[i] = value
 }
 
-func (v *Vector[T]) Clear() {
+func (v *Vec[T]) Clear() {
 	*v = nil
 }
 
-func (v *Vector[T]) Reserve(n int) {
+func (v *Vec[T]) Reserve(n int) {
 	if cap(*v) < n {
 		newData := make([]T, len(*v), n)
 		copy(newData, *v)
@@ -49,53 +49,37 @@ func (v *Vector[T]) Reserve(n int) {
 	}
 }
 
-func (v *Vector[T]) Push(value T) {
+func (v *Vec[T]) Push(value T) {
 	*v = append(*v, value)
 }
 
-func (v *Vector[T]) Pop() T {
+func (v *Vec[T]) Pop() T {
 	value := (*v)[len(*v)-1]
 	*v = (*v)[:len(*v)-1]
 	return value
 }
 
-func WrapVectorValues[T, V any](vec VectorView[T], wrap func(T) V) VectorView[V] {
-	return wrappedVectorValues[T, V]{
+func WrapVecValues[T, V any](vec VecView[T], wrap func(T) V) VecView[V] {
+	return wrappedVecValues[T, V]{
 		vec:  vec,
 		wrap: wrap,
 	}
 }
 
-type wrappedVectorValues[T, V any] struct {
-	vec  VectorView[T]
+type wrappedVecValues[T, V any] struct {
+	vec  VecView[T]
 	wrap func(T) V
 }
 
-func (w wrappedVectorValues[T, V]) Len() int {
+func (w wrappedVecValues[T, V]) Len() int {
 	return w.vec.Len()
 }
 
-func (w wrappedVectorValues[T, V]) At(i int) V {
+func (w wrappedVecValues[T, V]) At(i int) V {
 	return w.wrap(w.vec.At(i))
 }
 
-func NewVectorViewFromSlice[C ~[]T, T any](slice C) VectorView[T] {
-	return sliceVectorView[C, T]{slice: slice}
-}
-
-type sliceVectorView[C ~[]T, T any] struct {
-	slice C
-}
-
-func (s sliceVectorView[C, T]) Len() int {
-	return len(s.slice)
-}
-
-func (s sliceVectorView[C, T]) At(i int) T {
-	return s.slice[i]
-}
-
-func VectorEqualFunc[T any](a, b VectorView[T], eq func(T, T) bool) bool {
+func VecEqualFunc[T any](a, b VecView[T], eq func(T, T) bool) bool {
 	if a.Len() != b.Len() {
 		return false
 	}
@@ -107,16 +91,16 @@ func VectorEqualFunc[T any](a, b VectorView[T], eq func(T, T) bool) bool {
 	return true
 }
 
-func VectorEqual[T comparable](a, b VectorView[T]) bool {
-	return VectorEqualFunc(a, b, func(x, y T) bool {
+func VecEqual[T comparable](a, b VecView[T]) bool {
+	return VecEqualFunc(a, b, func(x, y T) bool {
 		return x == y
 	})
 }
 
-func VectorSort[T cmp.Ordered](vec *Vector[T]) {
-	VectorSortFunc(vec, cmp.Compare[T])
+func VecSort[T cmp.Ordered](vec *Vec[T]) {
+	VecSortFunc(vec, cmp.Compare[T])
 }
 
-func VectorSortFunc[T any](vec *Vector[T], order func(T, T) int) {
+func VecSortFunc[T any](vec *Vec[T], order func(T, T) int) {
 	slices.SortFunc(*vec, order)
 }
