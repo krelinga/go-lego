@@ -13,18 +13,6 @@ type SetView[T any] interface {
 
 type Set[T comparable] map[T]struct{}
 
-func NewSet[T comparable](values ...T) (s *Set[T]) {
-	s = &Set[T]{}
-	if len(values) == 0 {
-		return
-	}
-	s.Reserve(len(values))
-	for _, value := range values {
-		s.Add(value)
-	}
-	return
-}
-
 func CloneSet[T comparable](set SetView[T]) *Set[T] {
 	return CloneSetFunc(set, func(x T) T { return x })
 }
