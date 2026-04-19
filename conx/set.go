@@ -127,22 +127,6 @@ func (w setViewFromMapKeys[M, K, V]) Values() iter.Seq[K] {
 	return maps.Keys(w.m)
 }
 
-func SetValues[T any](set SetView[T]) Range[T] {
-	return setValuesRange[T]{set: set}
-}
-
-type setValuesRange[T any] struct {
-	set SetView[T]
-}
-
-func (r setValuesRange[T]) Len() int {
-	return r.set.Len()
-}
-
-func (r setValuesRange[T]) Range() iter.Seq[T] {
-	return r.set.Values()
-}
-
 func SetEqualFunc[T any](a, b SetView[T], eq func(T, T) bool) bool {
 	if a.Len() != b.Len() {
 		return false

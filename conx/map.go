@@ -13,18 +13,6 @@ type MapView[K, V any] interface {
 
 type Map[K comparable, V any] map[K]V
 
-func NewMap[K comparable, V any](data ...KV[K, V]) (m *Map[K, V]) {
-	m = &Map[K, V]{}
-	if len(data) == 0 {
-		return
-	}
-	m.Reserve(len(data))
-	for _, kv := range data {
-		m.Set(kv.K, kv.V)
-	}
-	return
-}
-
 func CloneMap[K comparable, V any](m MapView[K, V]) *Map[K, V] {
 	return CloneMapFunc(m, func(k K) K { return k }, func(v V) V { return v })
 }

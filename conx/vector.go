@@ -2,7 +2,6 @@ package conx
 
 import (
 	"cmp"
-	"iter"
 	"slices"
 )
 
@@ -100,94 +99,6 @@ func (s sliceVectorView[C, T]) Len() int {
 
 func (s sliceVectorView[C, T]) Get(i int) T {
 	return s.slice[i]
-}
-
-func VectorAll[T any](vec VectorView[T]) Range2[int, T] {
-	return vectorAllRange[T]{vec: vec}
-}
-
-type vectorAllRange[T any] struct {
-	vec VectorView[T]
-}
-
-func (r vectorAllRange[T]) Len() int {
-	return r.vec.Len()
-}
-
-func (r vectorAllRange[T]) Range() iter.Seq2[int, T] {
-	return func(yield func(int, T) bool) {
-		for i := 0; i < r.vec.Len(); i++ {
-			if !yield(i, r.vec.Get(i)) {
-				return
-			}
-		}
-	}
-}
-
-func VectorValues[T any](vec VectorView[T]) Range[T] {
-	return vectorValuesRange[T]{vec: vec}
-}
-
-type vectorValuesRange[T any] struct {
-	vec VectorView[T]
-}
-
-func (r vectorValuesRange[T]) Len() int {
-	return r.vec.Len()
-}
-
-func (r vectorValuesRange[T]) Range() iter.Seq[T] {
-	return func(yield func(T) bool) {
-		for i := 0; i < r.vec.Len(); i++ {
-			if !yield(r.vec.Get(i)) {
-				return
-			}
-		}
-	}
-}
-
-func VectorReverseAll[T any](vec VectorView[T]) Range2[int, T] {
-	return vectorReverseAllRange[T]{vec: vec}
-}
-
-type vectorReverseAllRange[T any] struct {
-	vec VectorView[T]
-}
-
-func (r vectorReverseAllRange[T]) Len() int {
-	return r.vec.Len()
-}
-
-func (r vectorReverseAllRange[T]) Range() iter.Seq2[int, T] {
-	return func(yield func(int, T) bool) {
-		for i := r.vec.Len() - 1; i >= 0; i-- {
-			if !yield(i, r.vec.Get(i)) {
-				return
-			}
-		}
-	}
-}
-
-func VectorReverseValues[T any](vec VectorView[T]) Range[T] {
-	return vectorReverseValuesRange[T]{vec: vec}
-}
-
-type vectorReverseValuesRange[T any] struct {
-	vec VectorView[T]
-}
-
-func (r vectorReverseValuesRange[T]) Len() int {
-	return r.vec.Len()
-}
-
-func (r vectorReverseValuesRange[T]) Range() iter.Seq[T] {
-	return func(yield func(T) bool) {
-		for i := r.vec.Len() - 1; i >= 0; i-- {
-			if !yield(r.vec.Get(i)) {
-				return
-			}
-		}
-	}
 }
 
 func VectorEqualFunc[T any](a, b VectorView[T], eq func(T, T) bool) bool {
