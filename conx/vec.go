@@ -15,6 +15,50 @@ type VecView[T any] interface {
 	ReverseIndexValues() iter.Seq2[int, T]
 }
 
+func AsVec[V ~[]T, T any](v V) VecView[T] {
+	return vecView[V, T]{v: v}
+}
+
+type vecView[V ~[]T, T any] struct {
+	v V
+}
+
+func (v vecView[V, T]) Len() int {
+	return len(v.v)
+}
+
+func (v vecView[V, T]) At(i int) T {
+	return v.v[i]
+}
+
+func (v vecView[V, T]) Values() iter.Seq[T] {
+	return slices.Values(v.v)
+}
+
+func (v vecView[V, T]) IndexValues() iter.Seq2[int, T] {
+	return slices.All(v.v)
+}
+
+func (v vecView[V, T]) ReverseValues() iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for i := len(v.v) - 1; i >= 0; i-- {
+			if !yield(v.v[i]) {
+				return
+			}
+		}
+	}
+}
+
+func (v vecView[V, T]) ReverseIndexValues() iter.Seq2[int, T] {
+	return func(yield func(int, T) bool) {
+		for i := len(v.v) - 1; i >= 0; i-- {
+			if !yield(i, v.v[i]) {
+				return
+			}
+		}
+	}
+}
+
 type Vec[T any] []T
 
 func CloneVec[T any](vec VecView[T]) *Vec[T] {

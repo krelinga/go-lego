@@ -13,6 +13,35 @@ type MapView[K, V any] interface {
 	Values() iter.Seq[V]
 }
 
+func AsMap[M ~map[K]V, K comparable, V any](m M) MapView[K, V] {
+	return mapView[M, K, V]{m: m}
+}
+
+type mapView[M ~map[K]V, K comparable, V any] struct {
+	m M
+}
+
+func (m mapView[M, K, V]) Len() int {
+	return len(m.m)
+}
+
+func (m mapView[M, K, V]) Get(key K) (V, bool) {
+	value, ok := m.m[key]
+	return value, ok
+}
+
+func (m mapView[M, K, V]) KeyValues() iter.Seq2[K, V] {
+	return maps.All(m.m)
+}
+
+func (m mapView[M, K, V]) Keys() iter.Seq[K] {
+	return maps.Keys(m.m)
+}
+
+func (m mapView[M, K, V]) Values() iter.Seq[V] {
+	return maps.Values(m.m)
+}
+
 type Map[K comparable, V any] map[K]V
 
 func CloneMap[K comparable, V any](m MapView[K, V]) *Map[K, V] {

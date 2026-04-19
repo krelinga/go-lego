@@ -11,6 +11,27 @@ type SetView[T any] interface {
 	Values() iter.Seq[T]
 }
 
+func AsSet[S ~map[T]V, T comparable, V any](s S) SetView[T] {
+	return setView[S, T, V]{s: s}
+}
+
+type setView[S ~map[T]V, T comparable, V any] struct {
+	s S
+}
+
+func (s setView[S, T, V]) Len() int {
+	return len(s.s)
+}
+
+func (s setView[S, T, V]) Has(value T) bool {
+	_, ok := s.s[value]
+	return ok
+}
+
+func (s setView[S, T, V]) Values() iter.Seq[T] {
+	return maps.Keys(s.s)
+}
+
 type Set[T comparable] map[T]struct{}
 
 func CloneSet[T comparable](set SetView[T]) *Set[T] {
