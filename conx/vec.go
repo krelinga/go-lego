@@ -2,12 +2,17 @@ package conx
 
 import (
 	"cmp"
+	"iter"
 	"slices"
 )
 
 type VecView[T any] interface {
 	Len() int
 	At(i int) T
+	Values() iter.Seq[T]
+	IndexValues() iter.Seq2[int, T]
+	ReverseValues() iter.Seq[T]
+	ReverseIndexValues() iter.Seq2[int, T]
 }
 
 type Vec[T any] []T
@@ -31,6 +36,34 @@ func (v *Vec[T]) Len() int {
 
 func (v *Vec[T]) At(i int) T {
 	return (*v)[i]
+}
+
+func (v *Vec[T]) Values() iter.Seq[T] {
+	return slices.Values(*v)
+}
+
+func (v *Vec[T]) IndexValues() iter.Seq2[int, T] {
+	return slices.All(*v)
+}
+
+func (v *Vec[T]) ReverseValues() iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for i := len(*v) - 1; i >= 0; i-- {
+			if !yield((*v)[i]) {
+				return
+			}
+		}
+	}
+}
+
+func (v *Vec[T]) ReverseIndexValues() iter.Seq2[int, T] {
+	return func(yield func(int, T) bool) {
+		for i := len(*v) - 1; i >= 0; i-- {
+			if !yield(i, (*v)[i]) {
+				return
+			}
+		}
+	}
 }
 
 func (v *Vec[T]) Set(i int, value T) {
@@ -77,6 +110,46 @@ func (w wrappedVecValues[T, V]) Len() int {
 
 func (w wrappedVecValues[T, V]) At(i int) V {
 	return w.wrap(w.vec.At(i))
+}
+
+func (w wrappedVecValues[T, V]) Values() iter.Seq[V] {
+	return func(yield func(V) bool) {
+		for v := range w.vec.Values() {
+			if !yield(w.wrap(v)) {
+				return
+			}
+		}
+	}
+}
+
+func (w wrappedVecValues[T, V]) IndexValues() iter.Seq2[int, V] {
+	return func(yield func(int, V) bool) {
+		for i, v := range w.vec.IndexValues() {
+			if !yield(i, w.wrap(v)) {
+				return
+			}
+		}
+	}
+}
+
+func (w wrappedVecValues[T, V]) ReverseValues() iter.Seq[V] {
+	return func(yield func(V) bool) {
+		for v := range w.vec.ReverseValues() {
+			if !yield(w.wrap(v)) {
+				return
+			}
+		}
+	}
+}
+
+func (w wrappedVecValues[T, V]) ReverseIndexValues() iter.Seq2[int, V] {
+	return func(yield func(int, V) bool) {
+		for i, v := range w.vec.ReverseIndexValues() {
+			if !yield(i, w.wrap(v)) {
+				return
+			}
+		}
+	}
 }
 
 func VecEqualFunc[T any](a, b VecView[T], eq func(T, T) bool) bool {
