@@ -11,9 +11,7 @@ type SetView[T any] interface {
 	Values() iter.Seq[T]
 }
 
-type Set[T comparable] struct {
-	data map[T]struct{}
-}
+type Set[T comparable] map[T]struct{}
 
 func NewSet[T comparable](values ...T) (s *Set[T]) {
 	s = &Set[T]{}
@@ -40,38 +38,38 @@ func CloneSetFunc[T any, U comparable](set SetView[T], valueFunc func(T) U) *Set
 	return s
 }
 
-func (s Set[T]) Len() int {
-	return len(s.data)
+func (s *Set[T]) Len() int {
+	return len(*s)
 }
 
-func (s Set[T]) Has(value T) bool {
-	_, ok := s.data[value]
+func (s *Set[T]) Has(value T) bool {
+	_, ok := (*s)[value]
 	return ok
 }
 
-func (s Set[T]) Values() iter.Seq[T] {
-	return maps.Keys(s.data)
+func (s *Set[T]) Values() iter.Seq[T] {
+	return maps.Keys(*s)
 }
 
 func (s *Set[T]) Add(value T) {
-	if s.data == nil {
-		s.data = make(map[T]struct{})
+	if *s == nil {
+		*s = make(map[T]struct{})
 	}
-	s.data[value] = struct{}{}
+	(*s)[value] = struct{}{}
 }
 
 func (s *Set[T]) Clear() {
-	s.data = nil
+	*s = nil
 }
 
 func (s *Set[T]) Reserve(n int) {
-	if s.data == nil {
-		s.data = make(map[T]struct{}, n)
+	if *s == nil {
+		*s = make(map[T]struct{}, n)
 	}
 }
 
 func (s *Set[T]) Delete(value T) {
-	delete(s.data, value)
+	delete(*s, value)
 }
 
 func WrapSetValues[T, V any](set SetView[T], wrap func(T) V, unwrap func(V) T) SetView[V] {
