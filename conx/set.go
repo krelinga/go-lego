@@ -8,7 +8,7 @@ import (
 type SetView[T any] interface {
 	Len() int
 	Has(value T) bool
-	Values() iter.Seq[T]
+	Vals() iter.Seq[T]
 }
 
 func AsSet[S ~map[T]V, T comparable, V any](s S) SetView[T] {
@@ -28,7 +28,7 @@ func (s setView[S, T, V]) Has(value T) bool {
 	return ok
 }
 
-func (s setView[S, T, V]) Values() iter.Seq[T] {
+func (s setView[S, T, V]) Vals() iter.Seq[T] {
 	return maps.Keys(s.s)
 }
 
@@ -49,7 +49,7 @@ func (s setOfMapKeys[T, V]) Has(value T) bool {
 	return ok
 }
 
-func (s setOfMapKeys[T, V]) Values() iter.Seq[T] {
+func (s setOfMapKeys[T, V]) Vals() iter.Seq[T] {
 	return s.m.Keys()
 }
 
@@ -62,7 +62,7 @@ func CloneSet[T comparable](set SetView[T]) *Set[T] {
 func CloneSetFunc[T any, U comparable](set SetView[T], valueFunc func(T) U) *Set[U] {
 	s := &Set[U]{}
 	s.Reserve(set.Len())
-	for value := range set.Values() {
+	for value := range set.Vals() {
 		s.Add(valueFunc(value))
 	}
 	return s
@@ -77,7 +77,7 @@ func (s *Set[T]) Has(value T) bool {
 	return ok
 }
 
-func (s *Set[T]) Values() iter.Seq[T] {
+func (s *Set[T]) Vals() iter.Seq[T] {
 	return maps.Keys(*s)
 }
 
@@ -102,31 +102,31 @@ func (s *Set[T]) Delete(value T) {
 	delete(*s, value)
 }
 
-func WrapSetValues[T, V any](set SetView[T], wrap func(T) V, unwrap func(V) T) SetView[V] {
-	return wrappedSetValues[T, V]{
+func WrapSetVals[T, V any](set SetView[T], wrap func(T) V, unwrap func(V) T) SetView[V] {
+	return wrappedSetVals[T, V]{
 		set:    set,
 		wrap:   wrap,
 		unwrap: unwrap,
 	}
 }
 
-type wrappedSetValues[T, V any] struct {
+type wrappedSetVals[T, V any] struct {
 	set    SetView[T]
 	wrap   func(T) V
 	unwrap func(V) T
 }
 
-func (w wrappedSetValues[T, V]) Len() int {
+func (w wrappedSetVals[T, V]) Len() int {
 	return w.set.Len()
 }
 
-func (w wrappedSetValues[T, V]) Has(value V) bool {
+func (w wrappedSetVals[T, V]) Has(value V) bool {
 	return w.set.Has(w.unwrap(value))
 }
 
-func (w wrappedSetValues[T, V]) Values() iter.Seq[V] {
+func (w wrappedSetVals[T, V]) Vals() iter.Seq[V] {
 	return func(yield func(V) bool) {
-		for x := range w.set.Values() {
+		for x := range w.set.Vals() {
 			if !yield(w.wrap(x)) {
 				return
 			}
@@ -138,7 +138,7 @@ func SetEqualFunc[T any](a, b SetView[T], eq func(T, T) bool) bool {
 	if a.Len() != b.Len() {
 		return false
 	}
-	for x := range a.Values() {
+	for x := range a.Vals() {
 		if !b.Has(x) {
 			return false
 		}

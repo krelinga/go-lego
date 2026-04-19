@@ -9,10 +9,10 @@ import (
 type VecView[T any] interface {
 	Len() int
 	At(i int) T
-	Values() iter.Seq[T]
-	IndexValues() iter.Seq2[int, T]
-	ReverseValues() iter.Seq[T]
-	ReverseIndexValues() iter.Seq2[int, T]
+	Vals() iter.Seq[T]
+	IdxVals() iter.Seq2[int, T]
+	RevVals() iter.Seq[T]
+	RevIdxVals() iter.Seq2[int, T]
 }
 
 func AsVec[V ~[]T, T any](v V) VecView[T] {
@@ -31,15 +31,15 @@ func (v vecView[V, T]) At(i int) T {
 	return v.v[i]
 }
 
-func (v vecView[V, T]) Values() iter.Seq[T] {
+func (v vecView[V, T]) Vals() iter.Seq[T] {
 	return slices.Values(v.v)
 }
 
-func (v vecView[V, T]) IndexValues() iter.Seq2[int, T] {
+func (v vecView[V, T]) IdxVals() iter.Seq2[int, T] {
 	return slices.All(v.v)
 }
 
-func (v vecView[V, T]) ReverseValues() iter.Seq[T] {
+func (v vecView[V, T]) RevVals() iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for i := len(v.v) - 1; i >= 0; i-- {
 			if !yield(v.v[i]) {
@@ -49,7 +49,7 @@ func (v vecView[V, T]) ReverseValues() iter.Seq[T] {
 	}
 }
 
-func (v vecView[V, T]) ReverseIndexValues() iter.Seq2[int, T] {
+func (v vecView[V, T]) RevIdxVals() iter.Seq2[int, T] {
 	return func(yield func(int, T) bool) {
 		for i := len(v.v) - 1; i >= 0; i-- {
 			if !yield(i, v.v[i]) {
@@ -82,15 +82,15 @@ func (v *Vec[T]) At(i int) T {
 	return (*v)[i]
 }
 
-func (v *Vec[T]) Values() iter.Seq[T] {
+func (v *Vec[T]) Vals() iter.Seq[T] {
 	return slices.Values(*v)
 }
 
-func (v *Vec[T]) IndexValues() iter.Seq2[int, T] {
+func (v *Vec[T]) IdxVals() iter.Seq2[int, T] {
 	return slices.All(*v)
 }
 
-func (v *Vec[T]) ReverseValues() iter.Seq[T] {
+func (v *Vec[T]) RevVals() iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for i := len(*v) - 1; i >= 0; i-- {
 			if !yield((*v)[i]) {
@@ -100,7 +100,7 @@ func (v *Vec[T]) ReverseValues() iter.Seq[T] {
 	}
 }
 
-func (v *Vec[T]) ReverseIndexValues() iter.Seq2[int, T] {
+func (v *Vec[T]) RevIdxVals() iter.Seq2[int, T] {
 	return func(yield func(int, T) bool) {
 		for i := len(*v) - 1; i >= 0; i-- {
 			if !yield(i, (*v)[i]) {
@@ -136,29 +136,29 @@ func (v *Vec[T]) Pop() T {
 	return value
 }
 
-func WrapVecValues[T, V any](vec VecView[T], wrap func(T) V) VecView[V] {
-	return wrappedVecValues[T, V]{
+func WrapVecVals[T, V any](vec VecView[T], wrap func(T) V) VecView[V] {
+	return wrappedVecVals[T, V]{
 		vec:  vec,
 		wrap: wrap,
 	}
 }
 
-type wrappedVecValues[T, V any] struct {
+type wrappedVecVals[T, V any] struct {
 	vec  VecView[T]
 	wrap func(T) V
 }
 
-func (w wrappedVecValues[T, V]) Len() int {
+func (w wrappedVecVals[T, V]) Len() int {
 	return w.vec.Len()
 }
 
-func (w wrappedVecValues[T, V]) At(i int) V {
+func (w wrappedVecVals[T, V]) At(i int) V {
 	return w.wrap(w.vec.At(i))
 }
 
-func (w wrappedVecValues[T, V]) Values() iter.Seq[V] {
+func (w wrappedVecVals[T, V]) Vals() iter.Seq[V] {
 	return func(yield func(V) bool) {
-		for v := range w.vec.Values() {
+		for v := range w.vec.Vals() {
 			if !yield(w.wrap(v)) {
 				return
 			}
@@ -166,9 +166,9 @@ func (w wrappedVecValues[T, V]) Values() iter.Seq[V] {
 	}
 }
 
-func (w wrappedVecValues[T, V]) IndexValues() iter.Seq2[int, V] {
+func (w wrappedVecVals[T, V]) IdxVals() iter.Seq2[int, V] {
 	return func(yield func(int, V) bool) {
-		for i, v := range w.vec.IndexValues() {
+		for i, v := range w.vec.IdxVals() {
 			if !yield(i, w.wrap(v)) {
 				return
 			}
@@ -176,9 +176,9 @@ func (w wrappedVecValues[T, V]) IndexValues() iter.Seq2[int, V] {
 	}
 }
 
-func (w wrappedVecValues[T, V]) ReverseValues() iter.Seq[V] {
+func (w wrappedVecVals[T, V]) RevVals() iter.Seq[V] {
 	return func(yield func(V) bool) {
-		for v := range w.vec.ReverseValues() {
+		for v := range w.vec.RevVals() {
 			if !yield(w.wrap(v)) {
 				return
 			}
@@ -186,9 +186,9 @@ func (w wrappedVecValues[T, V]) ReverseValues() iter.Seq[V] {
 	}
 }
 
-func (w wrappedVecValues[T, V]) ReverseIndexValues() iter.Seq2[int, V] {
+func (w wrappedVecVals[T, V]) RevIdxVals() iter.Seq2[int, V] {
 	return func(yield func(int, V) bool) {
-		for i, v := range w.vec.ReverseIndexValues() {
+		for i, v := range w.vec.RevIdxVals() {
 			if !yield(i, w.wrap(v)) {
 				return
 			}

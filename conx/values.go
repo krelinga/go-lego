@@ -2,12 +2,12 @@ package conx
 
 import "iter"
 
-type Values[T any] interface {
+type Vals[T any] interface {
 	Len() int
-	Values() iter.Seq[T]
+	Vals() iter.Seq[T]
 }
 
-type OrderedValues[T any] interface {
-	Values[T]
-	ReverseValues() iter.Seq[T]
+type OrdVals[T any] interface {
+	Vals[T]
+	RevVals() iter.Seq[T]
 }

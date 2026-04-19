@@ -8,9 +8,9 @@ import (
 type MapView[K, V any] interface {
 	Len() int
 	Get(key K) (V, bool)
-	KeyValues() iter.Seq2[K, V]
+	KeyVals() iter.Seq2[K, V]
 	Keys() iter.Seq[K]
-	Values() iter.Seq[V]
+	Vals() iter.Seq[V]
 }
 
 func AsMap[M ~map[K]V, K comparable, V any](m M) MapView[K, V] {
@@ -30,7 +30,7 @@ func (m mapView[M, K, V]) Get(key K) (V, bool) {
 	return value, ok
 }
 
-func (m mapView[M, K, V]) KeyValues() iter.Seq2[K, V] {
+func (m mapView[M, K, V]) KeyVals() iter.Seq2[K, V] {
 	return maps.All(m.m)
 }
 
@@ -38,7 +38,7 @@ func (m mapView[M, K, V]) Keys() iter.Seq[K] {
 	return maps.Keys(m.m)
 }
 
-func (m mapView[M, K, V]) Values() iter.Seq[V] {
+func (m mapView[M, K, V]) Vals() iter.Seq[V] {
 	return maps.Values(m.m)
 }
 
@@ -51,7 +51,7 @@ func CloneMap[K comparable, V any](m MapView[K, V]) *Map[K, V] {
 func CloneMapFunc[K any, KK comparable, V, VV any](m MapView[K, V], keyFunc func(K) KK, valueFunc func(V) VV) *Map[KK, VV] {
 	c := &Map[KK, VV]{}
 	c.Reserve(m.Len())
-	for k, v := range m.KeyValues() {
+	for k, v := range m.KeyVals() {
 		c.Set(keyFunc(k), valueFunc(v))
 	}
 	return c
@@ -66,7 +66,7 @@ func (m *Map[K, V]) Get(key K) (V, bool) {
 	return value, ok
 }
 
-func (m *Map[K, V]) KeyValues() iter.Seq2[K, V] {
+func (m *Map[K, V]) KeyVals() iter.Seq2[K, V] {
 	return maps.All(*m)
 }
 
@@ -74,7 +74,7 @@ func (m *Map[K, V]) Keys() iter.Seq[K] {
 	return maps.Keys(*m)
 }
 
-func (m *Map[K, V]) Values() iter.Seq[V] {
+func (m *Map[K, V]) Vals() iter.Seq[V] {
 	return maps.Values(*m)
 }
 
@@ -99,23 +99,23 @@ func (m *Map[K, V]) Delete(key K) {
 	delete(*m, key)
 }
 
-func WrapMapValues[K, V, W any](m MapView[K, V], wrap func(V) W) MapView[K, W] {
-	return wrappedMapValues[K, V, W]{
+func WrapMapVals[K, V, W any](m MapView[K, V], wrap func(V) W) MapView[K, W] {
+	return wrappedMapVals[K, V, W]{
 		m: m,
 		wrap: wrap,
 	}
 }
 
-type wrappedMapValues[K, V, W any] struct {
+type wrappedMapVals[K, V, W any] struct {
 	m MapView[K, V]
 	wrap func(V) W
 }
 
-func (w wrappedMapValues[K, V, W]) Len() int {
+func (w wrappedMapVals[K, V, W]) Len() int {
 	return w.m.Len()
 }
 
-func (w wrappedMapValues[K, V, W]) Get(key K) (W, bool) {
+func (w wrappedMapVals[K, V, W]) Get(key K) (W, bool) {
 	value, ok := w.m.Get(key)
 	if !ok {
 		var zero W
@@ -124,9 +124,9 @@ func (w wrappedMapValues[K, V, W]) Get(key K) (W, bool) {
 	return w.wrap(value), true
 }
 
-func (w wrappedMapValues[K, V, W]) KeyValues() iter.Seq2[K, W] {
+func (w wrappedMapVals[K, V, W]) KeyVals() iter.Seq2[K, W] {
 	return func(yield func(K, W) bool) {
-		for k, v := range w.m.KeyValues() {
+		for k, v := range w.m.KeyVals() {
 			if !yield(k, w.wrap(v)) {
 				return
 			}
@@ -134,13 +134,13 @@ func (w wrappedMapValues[K, V, W]) KeyValues() iter.Seq2[K, W] {
 	}
 }
 
-func (w wrappedMapValues[K, V, W]) Keys() iter.Seq[K] {
+func (w wrappedMapVals[K, V, W]) Keys() iter.Seq[K] {
 	return w.m.Keys()
 }
 
-func (w wrappedMapValues[K, V, W]) Values() iter.Seq[W] {
+func (w wrappedMapVals[K, V, W]) Vals() iter.Seq[W] {
 	return func(yield func(W) bool) {
-		for v := range w.m.Values() {
+		for v := range w.m.Vals() {
 			if !yield(w.wrap(v)) {
 				return
 			}
@@ -170,9 +170,9 @@ func (w wrappedMapKeys[K, V, W]) Get(key W) (V, bool) {
 	return w.m.Get(w.unwrap(key))
 }
 
-func (w wrappedMapKeys[K, V, W]) KeyValues() iter.Seq2[W, V] {
+func (w wrappedMapKeys[K, V, W]) KeyVals() iter.Seq2[W, V] {
 	return func(yield func(W, V) bool) {
-		for k, v := range w.m.KeyValues() {
+		for k, v := range w.m.KeyVals() {
 			if !yield(w.wrap(k), v) {
 				return
 			}
@@ -190,8 +190,8 @@ func (w wrappedMapKeys[K, V, W]) Keys() iter.Seq[W] {
 	}
 }
 
-func (w wrappedMapKeys[K, V, W]) Values() iter.Seq[V] {
-	return w.m.Values()
+func (w wrappedMapKeys[K, V, W]) Vals() iter.Seq[V] {
+	return w.m.Vals()
 }
 
 func MapEqual[K, V comparable](a, b MapView[K, V]) bool {
@@ -204,7 +204,7 @@ func MapEqualFunc[K, V any](a, b MapView[K, V], eq func(V, V) bool) bool {
 	if a.Len() != b.Len() {
 		return false
 	}
-	for k, vA := range a.KeyValues() {
+	for k, vA := range a.KeyVals() {
 		vB, ok := b.Get(k)
 		if !ok || !eq(vA, vB) {
 			return false
