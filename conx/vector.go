@@ -7,7 +7,7 @@ import (
 
 type VectorView[T any] interface {
 	Len() int
-	Get(i int) T
+	At(i int) T
 }
 
 type Vector[T any] []T
@@ -20,7 +20,7 @@ func CloneVectorFunc[T any, U any](vec VectorView[T], valueFunc func(T) U) *Vect
 	v := &Vector[U]{}
 	v.Reserve(vec.Len())
 	for i := 0; i < vec.Len(); i++ {
-		v.Push(valueFunc(vec.Get(i)))
+		v.Push(valueFunc(vec.At(i)))
 	}
 	return v
 }
@@ -29,7 +29,7 @@ func (v *Vector[T]) Len() int {
 	return len(*v)
 }
 
-func (v *Vector[T]) Get(i int) T {
+func (v *Vector[T]) At(i int) T {
 	return (*v)[i]
 }
 
@@ -75,8 +75,8 @@ func (w wrappedVectorValues[T, V]) Len() int {
 	return w.vec.Len()
 }
 
-func (w wrappedVectorValues[T, V]) Get(i int) V {
-	return w.wrap(w.vec.Get(i))
+func (w wrappedVectorValues[T, V]) At(i int) V {
+	return w.wrap(w.vec.At(i))
 }
 
 func NewVectorViewFromSlice[C ~[]T, T any](slice C) VectorView[T] {
@@ -91,7 +91,7 @@ func (s sliceVectorView[C, T]) Len() int {
 	return len(s.slice)
 }
 
-func (s sliceVectorView[C, T]) Get(i int) T {
+func (s sliceVectorView[C, T]) At(i int) T {
 	return s.slice[i]
 }
 
@@ -100,7 +100,7 @@ func VectorEqualFunc[T any](a, b VectorView[T], eq func(T, T) bool) bool {
 		return false
 	}
 	for i := 0; i < a.Len(); i++ {
-		if !eq(a.Get(i), b.Get(i)) {
+		if !eq(a.At(i), b.At(i)) {
 			return false
 		}
 	}
