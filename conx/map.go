@@ -11,9 +11,7 @@ type MapView[K, V any] interface {
 	All() iter.Seq2[K, V]
 }
 
-type Map[K comparable, V any] struct {
-	data map[K]V
-}
+type Map[K comparable, V any] map[K]V
 
 func NewMap[K comparable, V any](data ...KV[K, V]) (m *Map[K, V]) {
 	m = &Map[K, V]{}
@@ -40,38 +38,38 @@ func CloneMapFunc[K any, KK comparable, V, VV any](m MapView[K, V], keyFunc func
 	return c
 }
 
-func (m Map[K, V]) Len() int {
-	return len(m.data)
+func (m *Map[K, V]) Len() int {
+	return len(*m)
 }
 
-func (m Map[K, V]) Get(key K) (V, bool) {
-	value, ok := m.data[key]
+func (m *Map[K, V]) Get(key K) (V, bool) {
+	value, ok := (*m)[key]
 	return value, ok
 }
 
-func (m Map[K, V]) All() iter.Seq2[K, V] {
-	return maps.All(m.data)
+func (m *Map[K, V]) All() iter.Seq2[K, V] {
+	return maps.All(*m)
 }
 
 func (m *Map[K, V]) Set(key K, value V) {
-	if m.data == nil {
-		m.data = make(map[K]V)
+	if *m == nil {
+		*m = make(map[K]V)
 	}
-	m.data[key] = value
+	(*m)[key] = value
 }
 
 func (m *Map[K, V]) Clear() {
-	m.data = nil
+	*m = nil
 }
 
 func (m *Map[K, V]) Reserve(n int) {
-	if m.data == nil {
-		m.data = make(map[K]V, n)
+	if *m == nil {
+		*m = make(map[K]V, n)
 	}
 }
 
 func (m *Map[K, V]) Delete(key K) {
-	delete(m.data, key)
+	delete(*m, key)
 }
 
 func WrapMapValues[K, V, W any](m MapView[K, V], wrap func(V) W) MapView[K, W] {
