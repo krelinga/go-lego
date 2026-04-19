@@ -92,27 +92,6 @@ func (w wrappedSetValues[T, V]) Values() iter.Seq[V] {
 	}
 }
 
-func NewSetViewFromMapKeys[M ~map[K]V, K comparable, V any](m M) SetView[K] {
-	return setViewFromMapKeys[M, K, V]{m: m}
-}
-
-type setViewFromMapKeys[M ~map[K]V, K comparable, V any] struct {
-	m M
-}
-
-func (w setViewFromMapKeys[M, K, V]) Len() int {
-	return len(w.m)
-}
-
-func (w setViewFromMapKeys[M, K, V]) Has(value K) bool {
-	_, ok := w.m[value]
-	return ok
-}
-
-func (w setViewFromMapKeys[M, K, V]) Values() iter.Seq[K] {
-	return maps.Keys(w.m)
-}
-
 func SetEqualFunc[T any](a, b SetView[T], eq func(T, T) bool) bool {
 	if a.Len() != b.Len() {
 		return false
