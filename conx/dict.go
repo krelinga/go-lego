@@ -5,93 +5,93 @@ import (
 	"maps"
 )
 
-type DictView[K, V any] interface {
+type MapView[K, V any] interface {
 	Len() int
 	Get(key K) (V, bool)
 	All() iter.Seq2[K, V]
 }
 
-type Dict[K comparable, V any] struct {
+type Map[K comparable, V any] struct {
 	data map[K]V
 }
 
-func NewDict[K comparable, V any](data ...KV[K, V]) (d *Dict[K, V]) {
-	d = &Dict[K, V]{}
+func NewMap[K comparable, V any](data ...KV[K, V]) (m *Map[K, V]) {
+	m = &Map[K, V]{}
 	if len(data) == 0 {
 		return
 	}
-	d.Reserve(len(data))
+	m.Reserve(len(data))
 	for _, kv := range data {
-		d.Set(kv.K, kv.V)
+		m.Set(kv.K, kv.V)
 	}
 	return
 }
 
-func CloneDict[K comparable, V any](dict DictView[K, V]) *Dict[K, V] {
-	return CloneDictFunc(dict, func(k K) K { return k }, func(v V) V { return v })
+func CloneMap[K comparable, V any](m MapView[K, V]) *Map[K, V] {
+	return CloneMapFunc(m, func(k K) K { return k }, func(v V) V { return v })
 }
 
-func CloneDictFunc[K any, KK comparable, V, VV any](dict DictView[K, V], keyFunc func(K) KK, valueFunc func(V) VV) *Dict[KK, VV] {
-	d := &Dict[KK, VV]{}
-	d.Reserve(dict.Len())
-	for k, v := range dict.All() {
-		d.Set(keyFunc(k), valueFunc(v))
+func CloneMapFunc[K any, KK comparable, V, VV any](m MapView[K, V], keyFunc func(K) KK, valueFunc func(V) VV) *Map[KK, VV] {
+	c := &Map[KK, VV]{}
+	c.Reserve(m.Len())
+	for k, v := range m.All() {
+		c.Set(keyFunc(k), valueFunc(v))
 	}
-	return d
+	return c
 }
 
-func (d Dict[K, V]) Len() int {
-	return len(d.data)
+func (m Map[K, V]) Len() int {
+	return len(m.data)
 }
 
-func (d Dict[K, V]) Get(key K) (V, bool) {
-	value, ok := d.data[key]
+func (m Map[K, V]) Get(key K) (V, bool) {
+	value, ok := m.data[key]
 	return value, ok
 }
 
-func (d Dict[K, V]) All() iter.Seq2[K, V] {
-	return maps.All(d.data)
+func (m Map[K, V]) All() iter.Seq2[K, V] {
+	return maps.All(m.data)
 }
 
-func (d *Dict[K, V]) Set(key K, value V) {
-	if d.data == nil {
-		d.data = make(map[K]V)
+func (m *Map[K, V]) Set(key K, value V) {
+	if m.data == nil {
+		m.data = make(map[K]V)
 	}
-	d.data[key] = value
+	m.data[key] = value
 }
 
-func (d *Dict[K, V]) Clear() {
-	d.data = nil
+func (m *Map[K, V]) Clear() {
+	m.data = nil
 }
 
-func (d *Dict[K, V]) Reserve(n int) {
-	if d.data == nil {
-		d.data = make(map[K]V, n)
+func (m *Map[K, V]) Reserve(n int) {
+	if m.data == nil {
+		m.data = make(map[K]V, n)
 	}
 }
 
-func (d *Dict[K, V]) Delete(key K) {
-	delete(d.data, key)
+func (m *Map[K, V]) Delete(key K) {
+	delete(m.data, key)
 }
 
-func WrapDictValues[K, V, W any](dict DictView[K, V], wrap func(V) W) DictView[K, W] {
-	return wrappedDictValues[K, V, W]{
-		dict: dict,
+func WrapMapValues[K, V, W any](m MapView[K, V], wrap func(V) W) MapView[K, W] {
+	return wrappedMapValues[K, V, W]{
+		m: m,
 		wrap: wrap,
 	}
 }
 
-type wrappedDictValues[K, V, W any] struct {
-	dict DictView[K, V]
+type wrappedMapValues[K, V, W any] struct {
+	m MapView[K, V]
 	wrap func(V) W
 }
 
-func (w wrappedDictValues[K, V, W]) Len() int {
-	return w.dict.Len()
+func (w wrappedMapValues[K, V, W]) Len() int {
+	return w.m.Len()
 }
 
-func (w wrappedDictValues[K, V, W]) Get(key K) (W, bool) {
-	value, ok := w.dict.Get(key)
+func (w wrappedMapValues[K, V, W]) Get(key K) (W, bool) {
+	value, ok := w.m.Get(key)
 	if !ok {
 		var zero W
 		return zero, false
@@ -99,9 +99,9 @@ func (w wrappedDictValues[K, V, W]) Get(key K) (W, bool) {
 	return w.wrap(value), true
 }
 
-func (w wrappedDictValues[K, V, W]) All() iter.Seq2[K, W] {
+func (w wrappedMapValues[K, V, W]) All() iter.Seq2[K, W] {
 	return func(yield func(K, W) bool) {
-		for k, v := range w.dict.All() {
+		for k, v := range w.m.All() {
 			if !yield(k, w.wrap(v)) {
 				return
 			}
@@ -109,31 +109,31 @@ func (w wrappedDictValues[K, V, W]) All() iter.Seq2[K, W] {
 	}
 }
 
-func WrapDictKeys[K, V, W any](dict DictView[K, V], wrap func(K) W, unwrap func(W) K) DictView[W, V] {
-	return wrappedDictKeys[K, V, W]{
-		dict:   dict,
+func WrapMapKeys[K, V, W any](m MapView[K, V], wrap func(K) W, unwrap func(W) K) MapView[W, V] {
+	return wrappedMapKeys[K, V, W]{
+		m:   m,
 		wrap:   wrap,
 		unwrap: unwrap,
 	}
 }
 
-type wrappedDictKeys[K, V, W any] struct {
-	dict   DictView[K, V]
+type wrappedMapKeys[K, V, W any] struct {
+	m   MapView[K, V]
 	wrap   func(K) W
 	unwrap func(W) K
 }
 
-func (w wrappedDictKeys[K, V, W]) Len() int {
-	return w.dict.Len()
+func (w wrappedMapKeys[K, V, W]) Len() int {
+	return w.m.Len()
 }
 
-func (w wrappedDictKeys[K, V, W]) Get(key W) (V, bool) {
-	return w.dict.Get(w.unwrap(key))
+func (w wrappedMapKeys[K, V, W]) Get(key W) (V, bool) {
+	return w.m.Get(w.unwrap(key))
 }
 
-func (w wrappedDictKeys[K, V, W]) All() iter.Seq2[W, V] {
+func (w wrappedMapKeys[K, V, W]) All() iter.Seq2[W, V] {
 	return func(yield func(W, V) bool) {
-		for k, v := range w.dict.All() {
+		for k, v := range w.m.All() {
 			if !yield(w.wrap(k), v) {
 				return
 			}
@@ -141,94 +141,13 @@ func (w wrappedDictKeys[K, V, W]) All() iter.Seq2[W, V] {
 	}
 }
 
-func NewDictViewFromMap[M ~map[K]V, K comparable, V any](m M) DictView[K, V] {
-	return mapDictView[M, K, V]{m: m}
-}
-
-type mapDictView[M ~map[K]V, K comparable, V any] struct {
-	m M
-}
-
-func (v mapDictView[M, K, V]) Len() int {
-	return len(v.m)
-}
-
-func (v mapDictView[M, K, V]) Get(key K) (V, bool) {
-	value, ok := v.m[key]
-	return value, ok
-}
-
-func (v mapDictView[M, K, V]) All() iter.Seq2[K, V] {
-	return maps.All(v.m)
-}
-
-func DictAll[K, V any](dict DictView[K, V]) Range2[K, V] {
-	return dictAllRange[K, V]{dict: dict}
-}
-
-type dictAllRange[K, V any] struct {
-	dict DictView[K, V]
-}
-
-func (r dictAllRange[K, V]) Len() int {
-	return r.dict.Len()
-}
-
-func (r dictAllRange[K, V]) Range() iter.Seq2[K, V] {
-	return r.dict.All()
-}
-
-func DictKeys[K, V any](dict DictView[K, V]) Range[K] {
-	return dictKeysRange[K, V]{dict: dict}
-}
-
-type dictKeysRange[K, V any] struct {
-	dict DictView[K, V]
-}
-
-func (r dictKeysRange[K, V]) Len() int {
-	return r.dict.Len()
-}
-
-func (r dictKeysRange[K, V]) Range() iter.Seq[K] {
-	return func(yield func(K) bool) {
-		for k := range r.dict.All() {
-			if !yield(k) {
-				return
-			}
-		}
-	}
-}
-
-func DictValues[K, V any](dict DictView[K, V]) Range[V] {
-	return dictValuesRange[K, V]{dict: dict}
-}
-
-type dictValuesRange[K, V any] struct {
-	dict DictView[K, V]
-}
-
-func (r dictValuesRange[K, V]) Len() int {
-	return r.dict.Len()
-}
-
-func (r dictValuesRange[K, V]) Range() iter.Seq[V] {
-	return func(yield func(V) bool) {
-		for _, v := range r.dict.All() {
-			if !yield(v) {
-				return
-			}
-		}
-	}
-}
-
-func DictEqual[K, V comparable](a, b DictView[K, V]) bool {
-	return DictEqualFunc(a, b, func(vA, vB V) bool {
+func MapEqual[K, V comparable](a, b MapView[K, V]) bool {
+	return MapEqualFunc(a, b, func(vA, vB V) bool {
 		return vA == vB
 	})
 }
 
-func DictEqualFunc[K, V any](a, b DictView[K, V], eq func(V, V) bool) bool {
+func MapEqualFunc[K, V any](a, b MapView[K, V], eq func(V, V) bool) bool {
 	if a.Len() != b.Len() {
 		return false
 	}
