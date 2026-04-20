@@ -42,13 +42,19 @@ func TestExample(t *testing.T) {
 
 	e.Run("simple int comparison", func(e exam.E) {
 		exam.Equal(e, 1, 1).Must()
-		exam.Match(e, 1, match.GreaterThan(0))
+		exam.Match(e, 1, match.GreaterThan{X: 0})
 	})
 	
 	e.Run("struct comparison", func(e exam.E) {
 		a := FooStruct{Foo: 1, Bar: "a"}
 		b := FooStruct{Foo: 1, Bar: "b"}
-		exam.Match(e, b, match.GreaterThan(a).Using(FooOrder))
-		exam.Match(e, a, match.Equal(b).Using(FooEqual))
+		exam.Match(e, b, match.GreaterThan{
+			X: a,
+			Use: FooOrder,
+		})
+		exam.Match(e, a, match.Equal{
+			X: b,
+			Use: FooEqual,
+		})
 	})
 }

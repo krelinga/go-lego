@@ -4,38 +4,20 @@ type Matcher interface {
 	Match(got any) error
 }
 
-type GreaterThanMatcher struct {
-	threshold any
-	using     any
+type Equal struct {
+	X any
+	Use any
 }
 
-func (m GreaterThanMatcher) Match(got any) error {
-	return nil // TODO
+func (e Equal) Match(got any) error {
+	return nil  // TODO
 }
 
-func (m GreaterThanMatcher) Using(using any) GreaterThanMatcher {
-	m.using = using
-	return m
+type GreaterThan struct {
+	X any
+	Use any
 }
 
-func GreaterThan(threshold any) GreaterThanMatcher {
-	return GreaterThanMatcher{threshold: threshold}
-}
-
-type EqualMatcher struct {
-	expected any
-	using    any
-}
-
-func (m EqualMatcher) Match(got any) error {
-	return nil // TODO
-}
-
-func (m EqualMatcher) Using(using any) EqualMatcher {
-	m.using = using
-	return m
-}
-
-func Equal(expected any) EqualMatcher {
-	return EqualMatcher{expected: expected}
+func (g GreaterThan) Match(got any) error {
+	return nil  // TODO
 }
