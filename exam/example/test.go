@@ -73,6 +73,6 @@ func TestExample(t *testing.T) {
 			Use: func(a, b *pod.Map[string, FooStructView]) bool {
 				return pod.MapEqualFunc(a, b, FooEqual)
 			},
-		})
+		}).Must()
 	})
 }
