@@ -67,4 +67,13 @@ func TestExample(t *testing.T) {
 			return pod.MapEqualFunc(a, b, FooEqual)
 		})(e, a, b, exam.Must())
 	})
+
+	e.Run("nil comparison", func(e exam.E) {
+		var a *int
+		var b []int
+		var c map[string]int
+		exam.Nil(e, a)
+		exam.Nil(e, b)
+		exam.Nil(e, c)
+	})
 }

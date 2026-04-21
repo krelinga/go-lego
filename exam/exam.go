@@ -2,6 +2,8 @@ package exam
 
 import (
 	"cmp"
+	"fmt"
+	"reflect"
 	"testing"
 )
 
@@ -37,9 +39,21 @@ func NewPred2[T any](op, p1, p2 string, f func(T, T) bool) Pred2[T] {
 	}
 }
 
+func NewPred2Err[T any](op, p1, p2 string, f func(T, T) (bool, error)) Pred2[T] {
+	return func(e E, got T, want T, opts ...Option) bool {
+		return false // TODO
+	}
+}
+
 type Pred[T any] func(E, T, ...Option) bool
 
 func NewPred[T any](op, p string, f func(T) bool) Pred[T] {
+	return func(e E, got T, opts ...Option) bool {
+		return false // TODO
+	}
+}
+
+func NewPredErr[T any](op, p string, f func(T) (bool, error)) Pred[T] {
 	return func(e E, got T, opts ...Option) bool {
 		return false // TODO
 	}
@@ -63,4 +77,19 @@ func Logf(format string, args ...any) Option {
 
 func Quiet() Option {
 	return nil // TODO
+}
+
+func Nil(e E, got any, opts ...Option) bool {
+	return NewPredErr("Nil", "value", func(got any) (bool, error) {
+		if got == nil {
+			return true, nil
+		}
+		val := reflect.ValueOf(got)
+		switch val.Kind() {
+		case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
+			return val.IsNil(), nil
+		default:
+			return false, fmt.Errorf("value of type %T cannot be nil", got)
+		}
+	})(e, got, opts...)
 }
