@@ -38,3 +38,11 @@ func NewPred2[T any](f func(T, T) bool) Pred2[T] {
 		return nil // TODO
 	}
 }
+
+type Pred[T any] func(E, T) Result
+
+func NewPred[T any](f func(T) bool) Pred[T] {
+	return func(e E, got T) Result {
+		return nil // TODO
+	}
+}
