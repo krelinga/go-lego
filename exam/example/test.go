@@ -48,10 +48,10 @@ func TestExample(t *testing.T) {
 	e.Run("struct comparison", func(e exam.E) {
 		a := FooStruct{Foo: 1, Bar: "a"}
 		b := FooStruct{Foo: 1, Bar: "b"}
-		exam.Pred2(func(a, b FooStructView) bool {
+		exam.NewPred2(func(a, b FooStructView) bool {
 			return order.Greater(a, b, FooOrder)
 		})(e, b, a).Must()
-		exam.Pred2(FooEqual)(e, a, b).Must()
+		exam.NewPred2(FooEqual)(e, a, b).Must()
 	})
 
 	e.Run("Map of struct comparison", func(e exam.E) {
@@ -63,7 +63,7 @@ func TestExample(t *testing.T) {
 			"a": FooStruct{Foo: 1, Bar: "a"},
 			"b": FooStruct{Foo: 2, Bar: "b"},
 		}
-		exam.Pred2(func(a, b pod.MapView[string, FooStructView]) bool {
+		exam.NewPred2(func(a, b pod.MapView[string, FooStructView]) bool {
 			return pod.MapEqualFunc(a, b, FooEqual)
 		})(e, a, b).Must()
 	})

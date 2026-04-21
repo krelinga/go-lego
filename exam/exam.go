@@ -20,18 +20,20 @@ type Result interface {
 }
 
 func New(t *testing.T) E {
-	return nil  // TODO
+	return nil // TODO
 }
 
 func Equal(e E, got, want any) Result {
-	return nil  // TODO
+	return nil // TODO
 }
 
 func GreaterThan[T cmp.Ordered](e E, x, t T) Result {
-	return nil  // TODO
+	return nil // TODO
 }
 
-func Pred2[T any](f func(T, T) bool) func(E, T, T) Result {
+type Pred2[T any] func(E, T, T) Result
+
+func NewPred2[T any](f func(T, T) bool) Pred2[T] {
 	return func(e E, got T, want T) Result {
 		return nil // TODO
 	}
