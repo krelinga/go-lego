@@ -17,12 +17,16 @@ func New(t *testing.T) E {
 	return nil // TODO
 }
 
-func Equal[T comparable](e E, got, want T, opts ...Option) bool {
-	return false // TODO
+func Equal[T comparable](e E, actual, expected T, opts ...Option) bool {
+	return NewPred2("Equal", "actual", "expected", func(got, want T) bool {
+		return got == want
+	})(e, actual, expected, opts...)
 }
 
-func GreaterThan[T cmp.Ordered](e E, x, t T, opts ...Option) bool {
-	return false // TODO
+func GreaterThan[T cmp.Ordered](e E, value, threshold T, opts ...Option) bool {
+	return NewPred2("GreaterThan", "value", "threshold", func(got, want T) bool {
+		return got > want
+	})(e, value, threshold, opts...)
 }
 
 type Pred2[T any] func(E, T, T, ...Option) bool
