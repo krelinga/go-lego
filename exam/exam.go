@@ -24,35 +24,56 @@ func New(t *testing.T) E {
 
 var ErrCritical = errors.New("exam: critical failure")
 
-func WithParam(name string, value any) any {
-	return fmt.Sprintf("  %s: %v", name, value)
+type errorBuilderParam struct {
+	name  string
+	value any
 }
 
-func NewError(op string, lines ...any) error {
-	return fmt.Errorf("exam: %s failed\n%s", op, fmt.Sprintln(lines...))
+type ErrorBuilder struct {
+	op     string
+	params []errorBuilderParam
+}
+
+func (e *ErrorBuilder) AddParam(name string, value any) *ErrorBuilder {
+	e.params = append(e.params, errorBuilderParam{name: name, value: value})
+	return e
+}
+
+func (e *ErrorBuilder) Error() error {
+	return fmt.Errorf("exam: %s failed: %v", e.op, e.params)
+}
+
+func NewErrorBuilder(op string) *ErrorBuilder {
+	return &ErrorBuilder{op: op}
 }
 
 func Equal[T comparable](e E, actual, expected T, opts ...Option) bool {
-	return NewPred2("Equal", "actual", "expected", func(got, want T) bool {
-		return got == want
+	return NewPred2(func(got, want T) error {
+		if got == want {
+			return nil
+		}
+		return NewErrorBuilder("Equal").
+			AddParam("actual", got).
+			AddParam("expected", want).
+			Error()
 	})(e, actual, expected, opts...)
 }
 
 func GreaterThan[T cmp.Ordered](e E, value, threshold T, opts ...Option) bool {
-	return NewPred2("GreaterThan", "value", "threshold", func(got, want T) bool {
-		return got > want
+	return NewPred2(func(got, want T) error {
+		if got > want {
+			return nil
+		}
+		return NewErrorBuilder("GreaterThan").
+			AddParam("value", got).
+			AddParam("threshold", want).
+			Error()
 	})(e, value, threshold, opts...)
 }
 
 type Pred2[T any] func(E, T, T, ...Option) bool
 
-func NewPred2[T any](op, p1, p2 string, f func(T, T) bool) Pred2[T] {
-	return func(e E, got T, want T, opts ...Option) bool {
-		return false // TODO
-	}
-}
-
-func NewPred2Err[T any](op, p1, p2 string, f func(T, T) (bool, error)) Pred2[T] {
+func NewPred2[T any](f func(T, T) error) Pred2[T] {
 	return func(e E, got T, want T, opts ...Option) bool {
 		return false // TODO
 	}
@@ -60,13 +81,7 @@ func NewPred2Err[T any](op, p1, p2 string, f func(T, T) (bool, error)) Pred2[T] 
 
 type Pred[T any] func(E, T, ...Option) bool
 
-func NewPred[T any](op, p string, f func(T) bool) Pred[T] {
-	return func(e E, got T, opts ...Option) bool {
-		return false // TODO
-	}
-}
-
-func NewPredErr[T any](op, p string, f func(T) (bool, error)) Pred[T] {
+func NewPred[T any](f func(T) error) Pred[T] {
 	return func(e E, got T, opts ...Option) bool {
 		return false // TODO
 	}
@@ -106,39 +121,60 @@ func isNil(v any) (bool, error) {
 }
 
 func Nil(e E, got any, opts ...Option) bool {
-	return NewPredErr("Nil", "value", isNil)(e, got, opts...)
+	return NewPred(func(got any) error {
+		isNil, err := isNil(got)
+		if err != nil {
+			return err
+		} else if isNil {
+			return nil
+		}
+		return NewErrorBuilder("Nil").
+			AddParam("value", got).
+			Error()
+	})(e, got, opts...)
 }
 
 func NotNil(e E, got any, opts ...Option) bool {
-	return NewPredErr("NotNil", "value", func(v any) (bool, error) {
-		isNil, err := isNil(v)
+	return NewPred(func(got any) error {
+		isNil, err := isNil(got)
 		if err != nil {
-			return false, err
+			return err
+		} else if !isNil {
+			return nil
 		}
-		return !isNil, nil
+		return NewErrorBuilder("NotNil").
+			AddParam("value", got).
+			Error()
 	})(e, got, opts...)
 }
 
 func PodMapIsSubset[K, V comparable](e E, subset, superset pod.MapView[K, V], opts ...Option) bool {
-	return NewPred2("PodMapIsSubset", "subset", "superset", func(sub, super pod.MapView[K, V]) bool {
+	return NewPred2(func(sub, super pod.MapView[K, V]) error {
+
 		for k, v := range sub.KeyVals() {
 			superVal, ok := super.Get(k)
 			if !ok || superVal != v {
-				return false
+				return NewErrorBuilder("PodMapIsSubset").
+					AddParam("subset", sub).
+					AddParam("superset", super).
+					Error()
 			}
 		}
-		return true
+		return nil
 	})(e, subset, superset, opts...)
 }
 
 func PodMapIsSubsetFunc[K, V any](e E, subset, superset pod.MapView[K, V], equal func(V, V) bool, opts ...Option) bool {
-	return NewPred2("PodMapIsSubsetFunc", "subset", "superset", func(sub, super pod.MapView[K, V]) bool {
+	return NewPred2(func(sub, super pod.MapView[K, V]) error {
 		for k, v := range sub.KeyVals() {
 			superVal, ok := super.Get(k)
 			if !ok || !equal(superVal, v) {
-				return false
+				return NewErrorBuilder("PodMapIsSubsetFunc").
+					AddParam("subset", sub).
+					AddParam("superset", super).
+					Error()
 			}
 		}
-		return true
+		return nil
 	})(e, subset, superset, opts...)
 }
