@@ -66,6 +66,7 @@ func TestExample(t *testing.T) {
 		exam.NewPred2("MapEqualFunc", "actual", "expected", func(a, b pod.MapView[string, FooStructView]) bool {
 			return pod.MapEqualFunc(a, b, FooEqual)
 		})(e, a, b, exam.Must())
+		exam.PodMapIsSubsetFunc(e, a, b, FooEqual)
 	})
 
 	e.Run("nil comparison", func(e exam.E) {

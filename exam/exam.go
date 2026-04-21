@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+
+	"github.com/krelinga/go-lego/pod"
 )
 
 type E interface {
@@ -59,7 +61,7 @@ func NewPredErr[T any](op, p string, f func(T) (bool, error)) Pred[T] {
 	}
 }
 
-type options struct {}
+type options struct{}
 
 type Option func(*options)
 
@@ -104,4 +106,28 @@ func NotNil(e E, got any, opts ...Option) bool {
 		}
 		return !isNil, nil
 	})(e, got, opts...)
+}
+
+func PodMapIsSubset[K, V comparable](e E, subset, superset pod.MapView[K, V], opts ...Option) bool {
+	return NewPred2("PodMapIsSubset", "subset", "superset", func(sub, super pod.MapView[K, V]) bool {
+		for k, v := range sub.KeyVals() {
+			superVal, ok := super.Get(k)
+			if !ok || superVal != v {
+				return false
+			}
+		}
+		return true
+	})(e, subset, superset, opts...)
+}
+
+func PodMapIsSubsetFunc[K, V any](e E, subset, superset pod.MapView[K, V], equal func(V, V) bool, opts ...Option) bool {
+	return NewPred2("PodMapIsSubsetFunc", "subset", "superset", func(sub, super pod.MapView[K, V]) bool {
+		for k, v := range sub.KeyVals() {
+			superVal, ok := super.Get(k)
+			if !ok || !equal(superVal, v) {
+				return false
+			}
+		}
+		return true
+	})(e, subset, superset, opts...)
 }
