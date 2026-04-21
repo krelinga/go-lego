@@ -31,8 +31,8 @@ func GreaterThan[T cmp.Ordered](e E, x, t T) Result {
 	return nil  // TODO
 }
 
-func Pred2[T1, T2 any](f func(T1, T2) bool) func(E, T1, T2) Result {
-	return func(e E, got T1, want T2) Result {
+func Pred2[T any](f func(T, T) bool) func(E, T, T) Result {
+	return func(e E, got T, want T) Result {
 		return nil // TODO
 	}
 }
