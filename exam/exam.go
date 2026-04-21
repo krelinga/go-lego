@@ -23,7 +23,7 @@ func New(t *testing.T) E {
 	return nil // TODO
 }
 
-func Equal(e E, got, want any) Result {
+func Equal[T comparable](e E, got, want T) Result {
 	return nil // TODO
 }
 
