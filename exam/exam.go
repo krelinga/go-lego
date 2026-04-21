@@ -27,7 +27,7 @@ func GreaterThan[T cmp.Ordered](e E, x, t T, opts ...Option) bool {
 
 type Pred2[T any] func(E, T, T, ...Option) bool
 
-func NewPred2[T any](f func(T, T) bool) Pred2[T] {
+func NewPred2[T any](op, p1, p2 string, f func(T, T) bool) Pred2[T] {
 	return func(e E, got T, want T, opts ...Option) bool {
 		return false // TODO
 	}
@@ -35,7 +35,7 @@ func NewPred2[T any](f func(T, T) bool) Pred2[T] {
 
 type Pred[T any] func(E, T, ...Option) bool
 
-func NewPred[T any](f func(T) bool) Pred[T] {
+func NewPred[T any](op, p string, f func(T) bool) Pred[T] {
 	return func(e E, got T, opts ...Option) bool {
 		return false // TODO
 	}
