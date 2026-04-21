@@ -79,17 +79,29 @@ func Quiet() Option {
 	return nil // TODO
 }
 
+func isNil(v any) (bool, error) {
+	if v == nil {
+		return true, nil
+	}
+	val := reflect.ValueOf(v)
+	switch val.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
+		return val.IsNil(), nil
+	default:
+		return false, fmt.Errorf("value of type %T cannot be nil", v)
+	}
+}
+
 func Nil(e E, got any, opts ...Option) bool {
-	return NewPredErr("Nil", "value", func(got any) (bool, error) {
-		if got == nil {
-			return true, nil
+	return NewPredErr("Nil", "value", isNil)(e, got, opts...)
+}
+
+func NotNil(e E, got any, opts ...Option) bool {
+	return NewPredErr("NotNil", "value", func(v any) (bool, error) {
+		isNil, err := isNil(v)
+		if err != nil {
+			return false, err
 		}
-		val := reflect.ValueOf(got)
-		switch val.Kind() {
-		case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
-			return val.IsNil(), nil
-		default:
-			return false, fmt.Errorf("value of type %T cannot be nil", got)
-		}
+		return !isNil, nil
 	})(e, got, opts...)
 }
