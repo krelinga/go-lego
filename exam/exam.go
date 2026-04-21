@@ -2,6 +2,7 @@ package exam
 
 import (
 	"cmp"
+	"errors"
 	"fmt"
 	"reflect"
 	"testing"
@@ -19,6 +20,16 @@ type E interface {
 
 func New(t *testing.T) E {
 	return nil // TODO
+}
+
+var ErrCritical = errors.New("exam: critical failure")
+
+func WithParam(name string, value any) any {
+	return fmt.Sprintf("  %s: %v", name, value)
+}
+
+func NewError(op string, lines ...any) error {
+	return fmt.Errorf("exam: %s failed\n%s", op, fmt.Sprintln(lines...))
 }
 
 func Equal[T comparable](e E, actual, expected T, opts ...Option) bool {
