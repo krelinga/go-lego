@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/krelinga/go-lego/exam"
-	"github.com/krelinga/go-lego/match"
 	"github.com/krelinga/go-lego/order"
 	"github.com/krelinga/go-lego/pod"
 )
@@ -43,20 +42,16 @@ func TestExample(t *testing.T) {
 
 	e.Run("simple int comparison", func(e exam.E) {
 		exam.Equal(e, 1, 1).Must()
-		exam.Match(e, 1, match.GreaterThan{X: 0})
+		exam.GreaterThan(e, 1, 0)
 	})
 
 	e.Run("struct comparison", func(e exam.E) {
 		a := FooStruct{Foo: 1, Bar: "a"}
 		b := FooStruct{Foo: 1, Bar: "b"}
-		exam.Match(e, b, match.GreaterThan{
-			X:   a,
-			Use: FooOrder,
-		})
-		exam.Match(e, a, match.Equal{
-			X:   b,
-			Use: FooEqual,
-		})
+		exam.Pred2(func(a, b FooStructView) bool {
+			return order.Greater(a, b, FooOrder)
+		})(e, b, a).Must()
+		exam.Pred2(FooEqual)(e, a, b).Must()
 	})
 
 	e.Run("Map of struct comparison", func(e exam.E) {
@@ -68,11 +63,8 @@ func TestExample(t *testing.T) {
 			"a": FooStruct{Foo: 1, Bar: "a"},
 			"b": FooStruct{Foo: 2, Bar: "b"},
 		}
-		exam.Match(e, b, match.Equal{
-			X: a,
-			Use: func(a, b *pod.Map[string, FooStructView]) bool {
-				return pod.MapEqualFunc(a, b, FooEqual)
-			},
-		}).Must()
+		exam.Pred2(func(a, b pod.MapView[string, FooStructView]) bool {
+			return pod.MapEqualFunc(a, b, FooEqual)
+		})(e, a, b).Must()
 	})
 }

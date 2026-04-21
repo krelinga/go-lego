@@ -1,9 +1,8 @@
 package exam
 
 import (
+	"cmp"
 	"testing"
-
-	"github.com/krelinga/go-lego/match"
 )
 
 type E interface {
@@ -28,6 +27,12 @@ func Equal(e E, got, want any) Result {
 	return nil  // TODO
 }
 
-func Match(e E, got any, matcher match.Matcher) Result {
+func GreaterThan[T cmp.Ordered](e E, x, t T) Result {
 	return nil  // TODO
+}
+
+func Pred2[T1, T2 any](f func(T1, T2) bool) func(E, T1, T2) Result {
+	return func(e E, got T1, want T2) Result {
+		return nil // TODO
+	}
 }
