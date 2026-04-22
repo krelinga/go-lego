@@ -52,19 +52,25 @@ func TestExample(t *testing.T) {
 			if order.Greater(a, b, FooOrder) {
 				return nil
 			}
-			return exam.NewErrorBuilder("GreaterThan").
-				AddParam("a", a).
-				AddParam("b", b).
-				Error()
+			return exam.Error{
+				Name: "Greater",
+				Params: exam.Params{
+					exam.Param("a", a),
+					exam.Param("b", b),
+				},
+			}
 		})(e, b, a, exam.Must())
 		exam.NewPred2(func(a, b FooStructView) error {
 			if FooEqual(a, b) {
 				return nil
 			}
-			return exam.NewErrorBuilder("FooEqual").
-				AddParam("a", a).
-				AddParam("b", b).
-				Error()
+			return exam.Error{
+				Name: "FooEqual",
+				Params: exam.Params{
+					exam.Param("a", a),
+					exam.Param("b", b),
+				},
+			}
 		})(e, a, b, exam.Must())
 	})
 
@@ -81,10 +87,13 @@ func TestExample(t *testing.T) {
 			if pod.MapEqualFunc(a, b, FooEqual) {
 				return nil
 			}
-			return exam.NewErrorBuilder("MapEqualFunc").
-				AddParam("actual", a).
-				AddParam("expected", b).
-				Error()
+			return exam.Error{
+				Name: "MapEqualFunc",
+				Params: exam.Params{
+					exam.Param("actual", a),
+					exam.Param("expected", b),
+				},
+			}
 		})(e, a, b, exam.Must())
 		exam.PodMapIsSubsetFunc(e, a, b, FooEqual)
 	})

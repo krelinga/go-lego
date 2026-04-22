@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/krelinga/go-lego/pod"
@@ -24,27 +25,28 @@ func New(t *testing.T) E {
 
 var ErrCritical = errors.New("exam: critical failure")
 
-type errorBuilderParam struct {
-	name  string
-	value any
+type ErrorParam struct {
+	Name  string
+	Value any
 }
 
-type ErrorBuilder struct {
-	op     string
-	params []errorBuilderParam
+func Param(name string, value any) ErrorParam {
+	return ErrorParam{Name: name, Value: value}
 }
 
-func (e *ErrorBuilder) AddParam(name string, value any) *ErrorBuilder {
-	e.params = append(e.params, errorBuilderParam{name: name, value: value})
-	return e
+type Params = []ErrorParam
+
+type Error struct {
+	Name   string
+	Params []ErrorParam
 }
 
-func (e *ErrorBuilder) Error() error {
-	return fmt.Errorf("exam: %s failed: %v", e.op, e.params)
-}
-
-func NewErrorBuilder(op string) *ErrorBuilder {
-	return &ErrorBuilder{op: op}
+func (e Error) Error() string {
+	paramsFmt := make([]string, len(e.Params))
+	for i, p := range e.Params {
+		paramsFmt[i] = fmt.Sprintf("  %s: %v", p.Name, p.Value)
+	}
+	return fmt.Sprintf("exam: %s failed:\n%s", e.Name, strings.Join(paramsFmt, "\n"))
 }
 
 func Equal[T comparable](e E, actual, expected T, opts ...Option) bool {
@@ -52,10 +54,13 @@ func Equal[T comparable](e E, actual, expected T, opts ...Option) bool {
 		if got == want {
 			return nil
 		}
-		return NewErrorBuilder("Equal").
-			AddParam("actual", got).
-			AddParam("expected", want).
-			Error()
+		return Error{
+			Name:   "Equal",
+			Params: Params{
+				Param("actual", got),
+				Param("expected", want),
+			},
+		}
 	})(e, actual, expected, opts...)
 }
 
@@ -64,10 +69,13 @@ func GreaterThan[T cmp.Ordered](e E, value, threshold T, opts ...Option) bool {
 		if got > want {
 			return nil
 		}
-		return NewErrorBuilder("GreaterThan").
-			AddParam("value", got).
-			AddParam("threshold", want).
-			Error()
+		return Error{
+			Name:   "GreaterThan",
+			Params: Params{
+				Param("value", got),
+				Param("threshold", want),
+			},
+		}
 	})(e, value, threshold, opts...)
 }
 
@@ -128,9 +136,10 @@ func Nil(e E, got any, opts ...Option) bool {
 		} else if isNil {
 			return nil
 		}
-		return NewErrorBuilder("Nil").
-			AddParam("value", got).
-			Error()
+		return Error{
+			Name:   "Nil",
+			Params: Params{Param("value", got)},
+		}
 	})(e, got, opts...)
 }
 
@@ -142,9 +151,10 @@ func NotNil(e E, got any, opts ...Option) bool {
 		} else if !isNil {
 			return nil
 		}
-		return NewErrorBuilder("NotNil").
-			AddParam("value", got).
-			Error()
+		return Error{
+			Name:   "NotNil",
+			Params: Params{Param("value", got)},
+		}
 	})(e, got, opts...)
 }
 
@@ -154,10 +164,13 @@ func PodMapIsSubset[K, V comparable](e E, subset, superset pod.MapView[K, V], op
 		for k, v := range sub.KeyVals() {
 			superVal, ok := super.Get(k)
 			if !ok || superVal != v {
-				return NewErrorBuilder("PodMapIsSubset").
-					AddParam("subset", sub).
-					AddParam("superset", super).
-					Error()
+				return Error{
+					Name:   "PodMapIsSubset",
+					Params: Params{
+						Param("subset", sub),
+						Param("superset", super),
+					},
+				}
 			}
 		}
 		return nil
@@ -169,10 +182,13 @@ func PodMapIsSubsetFunc[K, V any](e E, subset, superset pod.MapView[K, V], equal
 		for k, v := range sub.KeyVals() {
 			superVal, ok := super.Get(k)
 			if !ok || !equal(superVal, v) {
-				return NewErrorBuilder("PodMapIsSubsetFunc").
-					AddParam("subset", sub).
-					AddParam("superset", super).
-					Error()
+				return Error{
+					Name:   "PodMapIsSubsetFunc",
+					Params: Params{
+						Param("subset", sub),
+						Param("superset", super),
+					},
+				}
 			}
 		}
 		return nil
