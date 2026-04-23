@@ -91,6 +91,9 @@ func makeErrorf(fatal bool, context string, format string, args ...any) string {
 	return sb.String()
 }
 
+// Try checks condition and, if false, records a non-fatal test failure using t.Error.
+// The failure message includes the source text of the call site and any optional args.
+// Returns true if the condition passed, false otherwise.
 func Try(t *testing.T, condition bool, args ...any) bool {
 	t.Helper()
 	if !condition {
@@ -104,6 +107,9 @@ func Try(t *testing.T, condition bool, args ...any) bool {
 	return condition
 }
 
+// Tryf checks condition and, if false, records a non-fatal test failure using t.Error.
+// The failure message includes the source text of the call site and a formatted message
+// constructed from format and args. Returns true if the condition passed, false otherwise.
 func Tryf(t *testing.T, condition bool, format string, args ...any) bool {
 	t.Helper()
 	if !condition {
@@ -117,6 +123,9 @@ func Tryf(t *testing.T, condition bool, format string, args ...any) bool {
 	return condition
 }
 
+// Must checks condition and, if false, records a fatal test failure using t.Fatal,
+// stopping the test immediately. The failure message includes the source text of the
+// call site and any optional args. Returns true if the condition passed, false otherwise.
 func Must(t *testing.T, condition bool, args ...any) bool {
 	t.Helper()
 	if !condition {
@@ -130,6 +139,10 @@ func Must(t *testing.T, condition bool, args ...any) bool {
 	return condition
 }
 
+// Mustf checks condition and, if false, records a fatal test failure using t.Fatal,
+// stopping the test immediately. The failure message includes the source text of the
+// call site and a formatted message constructed from format and args.
+// Returns true if the condition passed, false otherwise.
 func Mustf(t *testing.T, condition bool, format string, args ...any) bool {
 	t.Helper()
 	if !condition {
@@ -143,16 +156,21 @@ func Mustf(t *testing.T, condition bool, format string, args ...any) bool {
 	return condition
 }
 
+// Loc identifies a specific location in a source file by file path and line number.
+// It is typically obtained by calling Here() at the point of interest.
 type Loc struct {
 	File string
 	Line int
 }
 
+// String returns a short human-readable representation of the location in the form
+// "filename.go:line".
 func (l Loc) String() string {
 	basename := filepath.Base(l.File)
 	return fmt.Sprintf("%s:%d", basename, l.Line)
 }
 
+// Here returns a Loc representing the source location of the caller.
 func Here() Loc {
 	return here(1)
 }
@@ -232,6 +250,9 @@ func loadAssertionContext(loc Loc) (string, error) {
 	return strings.TrimSpace(sb.String()), nil
 }
 
+// Run executes a named subtest using t.Run and logs the source text of the table-driven
+// test case identified by loc. loc should be obtained by calling Here() on the same line
+// as the struct literal that defines the test case data.
 func Run(t *testing.T, name string, loc Loc, f func(*testing.T)) bool {
 	t.Helper()
 	return t.Run(name, func(t *testing.T) {
