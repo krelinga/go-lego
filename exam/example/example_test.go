@@ -39,8 +39,10 @@ func FooEqual(a, b FooStructView) bool {
 
 func TestExample(t *testing.T) {
 	t.Run("simple int comparison", func(t *testing.T) {
-		exam.Must(t, 1 == 1)
-		exam.Try(t, 1 > 0)
+		one := 1
+		zero := 0
+		exam.Must(t, one == 1)
+		exam.Try(t, one > zero)
 	})
 
 	t.Run("struct comparison", func(t *testing.T) {

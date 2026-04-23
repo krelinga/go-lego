@@ -184,16 +184,40 @@ func loadTableContext(loc Loc) (string, error) {
 	}
 	defer f.Close()
 
-	var sb strings.Builder
+	var lines []string
 	scanner := bufio.NewScanner(f)
 	for i := 1; scanner.Scan(); i++ {
 		if i >= startLine && i <= endLine {
-			sb.WriteString(scanner.Text())
-			sb.WriteString("\n")
+			lines = append(lines, scanner.Text())
 		}
 		if i > endLine {
 			break
 		}
 	}
-	return sb.String(), nil
+
+	// find minimum indentation among non-empty lines
+	minIndent := -1
+	for _, line := range lines {
+		trimmed := strings.TrimLeft(line, " \t")
+		if trimmed == "" {
+			continue
+		}
+		indent := len(line) - len(trimmed)
+		if minIndent < 0 || indent < minIndent {
+			minIndent = indent
+		}
+	}
+	if minIndent < 0 {
+		minIndent = 0
+	}
+
+	var sb strings.Builder
+	for _, line := range lines {
+		if len(line) >= minIndent {
+			line = line[minIndent:]
+		}
+		sb.WriteString(strings.TrimRight(line, " \t"))
+		sb.WriteString("\n")
+	}
+	return strings.TrimSpace(sb.String()), nil
 }
