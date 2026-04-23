@@ -1,33 +1,21 @@
 package order
 
-type Op[T any] = func(a, b T) bool
-
-func OpLess[T any](order Func[T]) Op[T] {
-	return func(a, b T) bool {
-		return order(a, b) < 0
-	}
+func Less(order int) bool {
+	return order < 0
 }
 
-func OpGreater[T any](order Func[T]) Op[T] {
-	return func(a, b T) bool {
-		return order(a, b) > 0
-	}
+func Greater(order int) bool {
+	return order > 0
 }
 
-func OpEqual[T any](order Func[T]) Op[T] {
-	return func(a, b T) bool {
-		return order(a, b) == 0
-	}
+func Equal(order int) bool {
+	return order == 0
 }
 
-func OpLessEqual[T any](order Func[T]) Op[T] {
-	return func(a, b T) bool {
-		return order(a, b) <= 0
-	}
+func LessEqual(order int) bool {
+	return order <= 0
 }
 
-func OpGreaterEqual[T any](order Func[T]) Op[T] {
-	return func(a, b T) bool {
-		return order(a, b) >= 0
-	}
+func GreaterEqual(order int) bool {
+	return order >= 0
 }

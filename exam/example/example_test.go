@@ -48,7 +48,7 @@ func TestExample(t *testing.T) {
 	t.Run("struct comparison", func(t *testing.T) {
 		a := FooStruct{Foo: 1, Bar: "a"}
 		b := FooStruct{Foo: 1, Bar: "b"}
-		exam.Must(t, order.OpGreater(FooOrder)(a, b), a, b)
+		exam.Must(t, order.Less(FooOrder(a, b)), a, b)
 		exam.Must(t, FooEqual(a, b), a, b)
 	})
 
