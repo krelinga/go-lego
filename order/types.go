@@ -1,3 +1,3 @@
 package order
 
-type Func[T any] func(T, T) int
+type Func[T any] = func(T, T) int
