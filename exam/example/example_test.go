@@ -38,43 +38,20 @@ func FooEqual(a, b FooStructView) bool {
 }
 
 func TestExample(t *testing.T) {
-	e := exam.New(t)
-
-	e.Run("simple int comparison", func(e exam.E) {
-		exam.Equal(e, 1, 1, exam.Must())
-		exam.GreaterThan(e, 1, 0)
+	t.Run("simple int comparison", func(t *testing.T) {
+		exam.Must(t, 1 == 1)
+		exam.Try(t, 1 > 0)
 	})
 
-	e.Run("struct comparison", func(e exam.E) {
+	t.Run("struct comparison", func(t *testing.T) {
 		a := FooStruct{Foo: 1, Bar: "a"}
 		b := FooStruct{Foo: 1, Bar: "b"}
-		exam.NewPred2(func(a, b FooStructView) error {
-			if order.Greater(a, b, FooOrder) {
-				return nil
-			}
-			return exam.Error{
-				Name: "Greater",
-				Params: exam.Params{
-					exam.Param("a", a),
-					exam.Param("b", b),
-				},
-			}
-		})(e, b, a, exam.Must())
-		exam.NewPred2(func(a, b FooStructView) error {
-			if FooEqual(a, b) {
-				return nil
-			}
-			return exam.Error{
-				Name: "FooEqual",
-				Params: exam.Params{
-					exam.Param("a", a),
-					exam.Param("b", b),
-				},
-			}
-		})(e, a, b, exam.Must())
+		type FSV = FooStructView
+		exam.Must(t, order.Greater(FSV(b), FSV(a), FooOrder), a, b)
+		exam.Must(t, FooEqual(a, b), a, b)
 	})
 
-	e.Run("Map of struct comparison", func(e exam.E) {
+	t.Run("Map of struct comparison", func(t *testing.T) {
 		a := &pod.Map[string, FooStructView]{
 			"a": FooStruct{Foo: 1, Bar: "a"},
 			"b": FooStruct{Foo: 2, Bar: "b"},
@@ -83,27 +60,29 @@ func TestExample(t *testing.T) {
 			"a": FooStruct{Foo: 1, Bar: "a"},
 			"b": FooStruct{Foo: 2, Bar: "b"},
 		}
-		exam.NewPred2(func(a, b pod.MapView[string, FooStructView]) error {
-			if pod.MapEqualFunc(a, b, FooEqual) {
-				return nil
-			}
-			return exam.Error{
-				Name: "MapEqualFunc",
-				Params: exam.Params{
-					exam.Param("actual", a),
-					exam.Param("expected", b),
-				},
-			}
-		})(e, a, b, exam.Must())
-		exam.PodMapIsSubsetFunc(e, a, b, FooEqual)
+		exam.Must(t, pod.MapEqualFunc(a, b, FooEqual), a, b)
 	})
 
-	e.Run("nil comparison", func(e exam.E) {
+	t.Run("nil comparison", func(t *testing.T) {
 		var a *int
 		var b []int
 		var c map[string]int
-		exam.Nil(e, a)
-		exam.Nil(e, b)
-		exam.Nil(e, c)
+		exam.Try(t, a == nil, a)
+		exam.Try(t, b == nil, b)
+		exam.Try(t, c == nil, c)
 	})
+
+	cases := []struct {
+		Name string
+		Loc exam.Loc
+		A, B, C int
+	}{
+		{Name: "case 1", Loc: exam.Here(), A: 1, B: 2, C: 3},
+		{Name: "case 2", Loc: exam.Here(), A: 4, B: 5, C: 9},
+	}
+	for _, c := range cases {
+		exam.Run(t, c.Name, c.Loc, func(t *testing.T) {
+			exam.Try(t, c.A + c.B == c.C + 1, c.A, c.B, c.C)
+		})
+	}
 }
