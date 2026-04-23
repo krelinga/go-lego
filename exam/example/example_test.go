@@ -78,7 +78,13 @@ func TestExample(t *testing.T) {
 		A, B, C int
 	}{
 		{Name: "case 1", Loc: exam.Here(), A: 1, B: 2, C: 3},
-		{Name: "case 2", Loc: exam.Here(), A: 4, B: 5, C: 9},
+		{
+			Name: "case 2",
+			Loc: exam.Here(),
+			A: 4,
+			B: 5,
+			C: 9,
+		},
 	}
 	for _, c := range cases {
 		exam.Run(t, c.Name, c.Loc, func(t *testing.T) {

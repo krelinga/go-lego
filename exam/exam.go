@@ -3,6 +3,9 @@ package exam
 import (
 	"bufio"
 	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -17,7 +20,7 @@ func errorPrefix(sb *strings.Builder, fatal bool, context string) {
 	sb.WriteString(context)
 }
 
-func makeError(fatal bool, context string, args ... any) string {
+func makeError(fatal bool, context string, args ...any) string {
 	sb := &strings.Builder{}
 	errorPrefix(sb, fatal, context)
 	if len(args) > 0 {
@@ -27,7 +30,7 @@ func makeError(fatal bool, context string, args ... any) string {
 	return sb.String()
 }
 
-func makeErrorf(fatal bool, context string, format string, args ... any) string {
+func makeErrorf(fatal bool, context string, format string, args ...any) string {
 	sb := &strings.Builder{}
 	errorPrefix(sb, fatal, context)
 	if len(args) > 0 {
@@ -125,9 +128,72 @@ func loadAssertionContext(loc Loc) (string, error) {
 }
 
 func Run(t *testing.T, name string, loc Loc, f func(*testing.T)) bool {
+	t.Helper()
 	return t.Run(name, func(t *testing.T) {
 		t.Helper()
-		t.Log("using data from", loc)
+		context, err := loadTableContext(loc)
+		if err != nil {
+			context = "unknown table context"
+		}
+
+		t.Logf("using data from %s\n%s", loc, context)
 		f(t)
 	})
+}
+
+func loadTableContext(loc Loc) (string, error) {
+	fset := token.NewFileSet()
+	parsed, err := parser.ParseFile(fset, loc.File, nil, 0)
+	if err != nil {
+		return "", err
+	}
+
+	var found *ast.CompositeLit
+	ast.Inspect(parsed, func(n ast.Node) bool {
+		lit, ok := n.(*ast.CompositeLit)
+		if !ok {
+			return true
+		}
+		start := fset.Position(lit.Pos()).Line
+		end := fset.Position(lit.End()).Line
+		if loc.Line >= start && loc.Line <= end {
+			// prefer the innermost (smallest span) literal containing the line
+			if found == nil {
+				found = lit
+			} else {
+				foundStart := fset.Position(found.Pos()).Line
+				foundEnd := fset.Position(found.End()).Line
+				if (end - start) < (foundEnd - foundStart) {
+					found = lit
+				}
+			}
+		}
+		return true
+	})
+
+	if found == nil {
+		return "", fmt.Errorf("no struct literal found containing line %d in %s", loc.Line, loc.File)
+	}
+
+	startLine := fset.Position(found.Pos()).Line
+	endLine := fset.Position(found.End()).Line
+
+	f, err := os.Open(loc.File)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+
+	var sb strings.Builder
+	scanner := bufio.NewScanner(f)
+	for i := 1; scanner.Scan(); i++ {
+		if i >= startLine && i <= endLine {
+			sb.WriteString(scanner.Text())
+			sb.WriteString("\n")
+		}
+		if i > endLine {
+			break
+		}
+	}
+	return sb.String(), nil
 }
