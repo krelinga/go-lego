@@ -181,9 +181,14 @@ func loadAssertionContext(loc Loc) (string, error) {
 	}
 
 	var sb strings.Builder
-	for _, line := range lines {
+	for i, line := range lines {
 		if len(line) >= minIndent {
 			line = line[minIndent:]
+		}
+		if i > 0 && strings.HasPrefix(line, "\t") {
+			// Go's builtin testing framework will automatically indent subsequent lines in log messages,
+			// so we trim one level of indentation if it's present to avoid double-indenting.
+			line = line[1:]
 		}
 		sb.WriteString(strings.TrimRight(line, " \t"))
 		sb.WriteString("\n")
