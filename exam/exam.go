@@ -15,6 +15,9 @@ import (
 )
 
 type parsedFile struct {
+	// It is not safe to concurrently access the same *ast.File, even for seemingly read-only
+	// operations, so we use a mutex to ensure that only one goroutine is accessing it at a time.
+	mu    sync.Mutex
 	fset  *token.FileSet
 	file  *ast.File
 	lines []string
@@ -25,23 +28,24 @@ var (
 	parsedFileCacheMu sync.Mutex
 )
 
-func getParsedFile(path string) (*parsedFile, error) {
+func getParsedFile(path string) (*parsedFile, func(), error) {
 	parsedFileCacheMu.Lock()
 	defer parsedFileCacheMu.Unlock()
 
 	if pf, ok := parsedFileCache[path]; ok {
-		return pf, nil
+		pf.mu.Lock()
+		return pf, pf.mu.Unlock, nil
 	}
 
 	fset := token.NewFileSet()
 	astFile, err := parser.ParseFile(fset, path, nil, 0)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	f, err := os.Open(path)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer f.Close()
 
@@ -51,12 +55,13 @@ func getParsedFile(path string) (*parsedFile, error) {
 		lines = append(lines, scanner.Text())
 	}
 	if err := scanner.Err(); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	pf := &parsedFile{fset: fset, file: astFile, lines: lines}
 	parsedFileCache[path] = pf
-	return pf, nil
+	pf.mu.Lock()
+	return pf, pf.mu.Unlock, nil
 }
 
 func errorPrefix(sb *strings.Builder, fatal bool, context string) {
@@ -158,10 +163,11 @@ func here(n int) Loc {
 }
 
 func loadAssertionContext(loc Loc) (string, error) {
-	pf, err := getParsedFile(loc.File)
+	pf, unlock, err := getParsedFile(loc.File)
 	if err != nil {
 		return "", err
 	}
+	defer unlock()
 	fset := pf.fset
 
 	var found *ast.CallExpr
@@ -241,10 +247,11 @@ func Run(t *testing.T, name string, loc Loc, f func(*testing.T)) bool {
 }
 
 func loadTableContext(loc Loc) (string, error) {
-	pf, err := getParsedFile(loc.File)
+	pf, unlock, err := getParsedFile(loc.File)
 	if err != nil {
 		return "", err
 	}
+	defer unlock()
 	fset := pf.fset
 
 	var found *ast.CompositeLit
