@@ -10,8 +10,54 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"testing"
 )
+
+type parsedFile struct {
+	fset  *token.FileSet
+	file  *ast.File
+	lines []string
+}
+
+var (
+	parsedFileCache   = map[string]*parsedFile{}
+	parsedFileCacheMu sync.Mutex
+)
+
+func getParsedFile(path string) (*parsedFile, error) {
+	parsedFileCacheMu.Lock()
+	defer parsedFileCacheMu.Unlock()
+
+	if pf, ok := parsedFileCache[path]; ok {
+		return pf, nil
+	}
+
+	fset := token.NewFileSet()
+	astFile, err := parser.ParseFile(fset, path, nil, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	var lines []string
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	pf := &parsedFile{fset: fset, file: astFile, lines: lines}
+	parsedFileCache[path] = pf
+	return pf, nil
+}
 
 func errorPrefix(sb *strings.Builder, fatal bool, context string) {
 	if fatal {
@@ -112,14 +158,14 @@ func here(n int) Loc {
 }
 
 func loadAssertionContext(loc Loc) (string, error) {
-	fset := token.NewFileSet()
-	parsed, err := parser.ParseFile(fset, loc.File, nil, 0)
+	pf, err := getParsedFile(loc.File)
 	if err != nil {
 		return "", err
 	}
+	fset := pf.fset
 
 	var found *ast.CallExpr
-	ast.Inspect(parsed, func(n ast.Node) bool {
+	ast.Inspect(pf.file, func(n ast.Node) bool {
 		call, ok := n.(*ast.CallExpr)
 		if !ok {
 			return true
@@ -146,23 +192,7 @@ func loadAssertionContext(loc Loc) (string, error) {
 
 	startLine := fset.Position(found.Pos()).Line
 	endLine := fset.Position(found.End()).Line
-
-	f, err := os.Open(loc.File)
-	if err != nil {
-		return "", err
-	}
-	defer f.Close()
-
-	var lines []string
-	scanner := bufio.NewScanner(f)
-	for i := 1; scanner.Scan(); i++ {
-		if i >= startLine && i <= endLine {
-			lines = append(lines, scanner.Text())
-		}
-		if i > endLine {
-			break
-		}
-	}
+	lines := pf.lines[startLine-1 : endLine]
 
 	// find minimum indentation among non-empty lines
 	minIndent := -1
@@ -211,14 +241,14 @@ func Run(t *testing.T, name string, loc Loc, f func(*testing.T)) bool {
 }
 
 func loadTableContext(loc Loc) (string, error) {
-	fset := token.NewFileSet()
-	parsed, err := parser.ParseFile(fset, loc.File, nil, 0)
+	pf, err := getParsedFile(loc.File)
 	if err != nil {
 		return "", err
 	}
+	fset := pf.fset
 
 	var found *ast.CompositeLit
-	ast.Inspect(parsed, func(n ast.Node) bool {
+	ast.Inspect(pf.file, func(n ast.Node) bool {
 		lit, ok := n.(*ast.CompositeLit)
 		if !ok {
 			return true
@@ -246,23 +276,7 @@ func loadTableContext(loc Loc) (string, error) {
 
 	startLine := fset.Position(found.Pos()).Line
 	endLine := fset.Position(found.End()).Line
-
-	f, err := os.Open(loc.File)
-	if err != nil {
-		return "", err
-	}
-	defer f.Close()
-
-	var lines []string
-	scanner := bufio.NewScanner(f)
-	for i := 1; scanner.Scan(); i++ {
-		if i >= startLine && i <= endLine {
-			lines = append(lines, scanner.Text())
-		}
-		if i > endLine {
-			break
-		}
-	}
+	lines := pf.lines[startLine-1 : endLine]
 
 	// find minimum indentation among non-empty lines
 	minIndent := -1
