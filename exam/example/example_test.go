@@ -75,22 +75,23 @@ func TestExample(t *testing.T) {
 	})
 
 	cases := []struct {
-		Name string
-		Loc exam.Loc
+		Name    string
+		Loc     exam.Loc
 		A, B, C int
 	}{
 		{Name: "case 1", Loc: exam.Here(), A: 1, B: 2, C: 3},
 		{
 			Name: "case 2",
-			Loc: exam.Here(),
-			A: 4,
-			B: 5,
-			C: 9,
+			Loc:  exam.Here(),
+			A:    4,
+			B:    5,
+			C:    9,
 		},
 	}
 	for _, c := range cases {
 		exam.Run(t, c.Name, c.Loc, func(t *testing.T) {
-			exam.Try(t, c.A + c.B == c.C + 1, c.A, c.B, c.C)
+			exam.Try(t, c.A+c.B == c.C+1,
+				c.A, c.B, c.C)
 		})
 	}
 }

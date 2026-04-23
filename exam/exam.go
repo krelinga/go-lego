@@ -112,19 +112,83 @@ func here(n int) Loc {
 }
 
 func loadAssertionContext(loc Loc) (string, error) {
+	fset := token.NewFileSet()
+	parsed, err := parser.ParseFile(fset, loc.File, nil, 0)
+	if err != nil {
+		return "", err
+	}
+
+	var found *ast.CallExpr
+	ast.Inspect(parsed, func(n ast.Node) bool {
+		call, ok := n.(*ast.CallExpr)
+		if !ok {
+			return true
+		}
+		if fset.Position(call.Pos()).Line != loc.Line {
+			return true
+		}
+		// prefer the outermost (largest span) call starting on this line
+		if found == nil {
+			found = call
+		} else {
+			foundEnd := fset.Position(found.End()).Line
+			callEnd := fset.Position(call.End()).Line
+			if callEnd > foundEnd {
+				found = call
+			}
+		}
+		return true
+	})
+
+	if found == nil {
+		return "", fmt.Errorf("no call expression found at line %d in %s", loc.Line, loc.File)
+	}
+
+	startLine := fset.Position(found.Pos()).Line
+	endLine := fset.Position(found.End()).Line
+
 	f, err := os.Open(loc.File)
 	if err != nil {
 		return "", err
 	}
 	defer f.Close()
 
+	var lines []string
 	scanner := bufio.NewScanner(f)
 	for i := 1; scanner.Scan(); i++ {
-		if i == loc.Line {
-			return strings.TrimSpace(scanner.Text()), nil
+		if i >= startLine && i <= endLine {
+			lines = append(lines, scanner.Text())
+		}
+		if i > endLine {
+			break
 		}
 	}
-	return "", fmt.Errorf("line %d not found in file %s", loc.Line, loc.File)
+
+	// find minimum indentation among non-empty lines
+	minIndent := -1
+	for _, line := range lines {
+		trimmed := strings.TrimLeft(line, " \t")
+		if trimmed == "" {
+			continue
+		}
+		indent := len(line) - len(trimmed)
+		if minIndent < 0 || indent < minIndent {
+			minIndent = indent
+		}
+	}
+	if minIndent < 0 {
+		minIndent = 0
+	}
+
+	var sb strings.Builder
+	for _, line := range lines {
+		if len(line) >= minIndent {
+			line = line[minIndent:]
+		}
+		sb.WriteString(strings.TrimRight(line, " \t"))
+		sb.WriteString("\n")
+	}
+	return strings.TrimSpace(sb.String()), nil
 }
 
 func Run(t *testing.T, name string, loc Loc, f func(*testing.T)) bool {
