@@ -2,121 +2,129 @@ package exam
 
 import (
 	"cmp"
-	"errors"
+	"fmt"
 
 	"github.com/krelinga/go-lego/mirror"
 )
 
-var ErrFailed = errors.New("failed")
-
-func AsError(ok bool) error {
-	if ok {
-		return nil
-	}
-	return ErrFailed
-}
-
-type Result struct {
-	Error error
+type Failure struct {
 	Args []any
 }
 
-func (r Result) isFatal() bool {
-	return r.Error != nil && r.Error != ErrFailed
+func (e Failure) Error() string {
+	args := make([]any, len(e.Args)+1)
+	args[0] = "assertion failed with args:"
+	copy(args[1:], e.Args)
+	return fmt.Sprint(args...)
 }
 
-func (r Result) passed() bool {
-	return r.Error == nil
-}
-
-func Equal[T comparable](x, y T) Result {
-	return Result{
-		Error: AsError(x == y),
+func Equal[T comparable](x, y T) error {
+	if x == y {
+		return nil
+	}
+	return Failure{
 		Args: []any{x, y},
 	}
 }
 
-func EqualFunc[T any](x, y T, f any) Result {
+func EqualFunc[T any](x, y T, f any) error {
 	eq, err := mirror.WrapFunc2In1Out[T, T, bool](f)
-	if err == nil && !eq(x, y) {
-		err = ErrFailed
+	if err != nil {
+		return err
+	} else if eq(x, y) {
+		return nil
 	}
-	return Result{
-		Error: err,
+	return Failure{
 		Args: []any{x, y},
 	}
 }
 
-func NotEqual[T comparable](x, y T) Result {
-	return Result{
-		Error: AsError(x != y),
+func NotEqual[T comparable](x, y T) error {
+	if x != y {
+		return nil
+	}
+	return Failure{
 		Args: []any{x, y},
 	}
 }
 
-func NotEqualFunc[T any](x, y T, f any) Result {
+func NotEqualFunc[T any](x, y T, f any) error {
 	eq, err := mirror.WrapFunc2In1Out[T, T, bool](f)
-	if err == nil && eq(x, y) {
-		err = ErrFailed
+	if err != nil {
+		return err
+	} else if !eq(x, y) {
+		return nil
 	}
-	return Result{
-		Error: err,
+	return Failure{
 		Args: []any{x, y},
 	}
 }
 
-func Greater[T cmp.Ordered](x, y T) Result {
-	return Result{
-		Error: AsError(x > y),
+func Greater[T cmp.Ordered](x, y T) error {
+	if x > y {
+		return nil
+	}
+	return Failure{
 		Args: []any{x, y},
 	}
 }
 
-func Less[T cmp.Ordered](x, y T) Result {
-	return Result{
-		Error: AsError(x < y),
-		Args: []any{x, y},
+func Less[T cmp.Ordered](x, y T) error {
+	if x < y {
+		return nil
 	}
-}
-func GreaterEqual[T cmp.Ordered](x, y T) Result {
-	return Result{
-		Error: AsError(x >= y),
+	return Failure{
 		Args: []any{x, y},
 	}
 }
 
-func LessEqual[T cmp.Ordered](x, y T) Result {
-	return Result{
-		Error: AsError(x <= y),
+func GreaterEqual[T cmp.Ordered](x, y T) error {
+	if x >= y {
+		return nil
+	}
+	return Failure{
 		Args: []any{x, y},
 	}
 }
 
-func True(condition bool) Result {
-	return Result{
-		Error: AsError(condition),
+func LessEqual[T cmp.Ordered](x, y T) error {
+	if x <= y {
+		return nil
+	}
+	return Failure{
+		Args: []any{x, y},
+	}
+}
+
+func True(condition bool) error {
+	if condition {
+		return nil
+	}
+	return Failure{
 		Args: []any{condition},
 	}
 }
 
-func Nil[T any](x T) Result {
+func Nil[T any](x T) error {
 	isNil, err := mirror.IsNil(x)
-	if err == nil && !isNil {
-		err = ErrFailed
+	if err != nil {
+		return err
+	} else if isNil {
+		return nil
 	}
-	return Result{
-		Error: err,
-		Args:  []any{x},
+	return Failure{
+		Args: []any{x},
 	}
 }
 
-func NotNil[T any](x T) Result {
+func NotNil[T any](x T) error {
 	isNil, err := mirror.IsNil(x)
-	if err == nil && isNil {
-		err = ErrFailed
+	if err != nil {
+		return err
+	} else if !isNil {
+		return nil
 	}
-	return Result{
-		Error: err,
-		Args:  []any{x},
+	return Failure{
+		Args: []any{x},
 	}
 }

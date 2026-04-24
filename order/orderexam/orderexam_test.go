@@ -21,7 +21,7 @@ func Test(t *testing.T) {
 		Name string
 		Loc exam.Loc
 		A, B Struct
-		Func func(Struct, Struct, any) exam.Result
+		Func func(Struct, Struct, any) error
 		WantPass bool
 	}{
 		{
@@ -125,9 +125,9 @@ func Test(t *testing.T) {
 		exam.Run(t, c.Name, c.Loc, func(t *testing.T) {
 			result := c.Func(c.A, c.B, StructOrder)
 			if c.WantPass {
-				exam.Must(t, exam.Nil(result.Error))
+				exam.Must(t, exam.Nil(result))
 			} else {
-				exam.Must(t, exam.NotNil(result.Error))
+				exam.Must(t, exam.NotNil(result))
 			}
 		})
 	}
