@@ -101,15 +101,6 @@ func True(condition bool) Result {
 	}
 }
 
-func EqualOp[T any](f func(T, T) bool) func(x, y T) Result {
-	return func(x, y T) Result {
-		return Result{
-			Error: AsError(f(x, y)),
-			Args: []any{x, y},
-		}
-	}
-}
-
 func isNil(x any) (bool, error) {
 	if x == nil {
 		return true, nil

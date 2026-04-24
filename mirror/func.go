@@ -47,7 +47,7 @@ func Call(f reflect.Value, args []reflect.Value, outTypes []reflect.Type) ([]ref
 }
 
 func Call2In1Out[O, I1, I2 any](f any, i1 I1, i2 I2) (O, error) {
-	args := []reflect.Value{reflect.ValueOf(i1), reflect.ValueOf(i2)}
+	args := []reflect.Value{ValueFor(i1), ValueFor(i2)}
 	outTypes := []reflect.Type{reflect.TypeFor[O]()}
 	results, err := Call(reflect.ValueOf(f), args, outTypes)
 	if err != nil {
