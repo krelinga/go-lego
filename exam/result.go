@@ -37,7 +37,7 @@ func Equal[T comparable](x, y T) Result {
 }
 
 func EqualFunc[T any](x, y T, f any) Result {
-	eq, err := mirror.WrapFunc2In1Out[bool, T, T](f)
+	eq, err := mirror.WrapFunc2In1Out[T, T, bool](f)
 	if err == nil && !eq(x, y) {
 		err = ErrFailed
 	}
@@ -55,7 +55,7 @@ func NotEqual[T comparable](x, y T) Result {
 }
 
 func NotEqualFunc[T any](x, y T, f any) Result {
-	eq, err := mirror.WrapFunc2In1Out[bool, T, T](f)
+	eq, err := mirror.WrapFunc2In1Out[T, T, bool](f)
 	if err == nil && eq(x, y) {
 		err = ErrFailed
 	}

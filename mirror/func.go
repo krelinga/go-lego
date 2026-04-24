@@ -51,7 +51,7 @@ func WrapFunc(f reflect.Value, inTypes []reflect.Type, outTypes []reflect.Type) 
 	return wrapperFunc, nil
 }
 
-func WrapFunc2In1Out[O, I1, I2 any](f any) (func(I1, I2) O, error) {
+func WrapFunc2In1Out[I1, I2, O any](f any) (func(I1, I2) O, error) {
 	inTypes := []reflect.Type{reflect.TypeFor[I1](), reflect.TypeFor[I2]()}
 	outTypes := []reflect.Type{reflect.TypeFor[O]()}
 	wrapperFunc, err := WrapFunc(reflect.ValueOf(f), inTypes, outTypes)
