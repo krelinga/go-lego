@@ -14,6 +14,6 @@ func IsNil[T any](x T) (bool, error) {
 	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
 		return val.IsNil(), nil
 	default:
-		return false, fmt.Errorf("value of type %T cannot be nil", x)
+		return false, fmt.Errorf("value of type %s cannot be nil", val.Type())
 	}
 }
