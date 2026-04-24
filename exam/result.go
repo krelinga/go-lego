@@ -3,8 +3,6 @@ package exam
 import (
 	"cmp"
 	"errors"
-	"fmt"
-	"reflect"
 
 	"github.com/krelinga/go-lego/mirror"
 )
@@ -101,21 +99,8 @@ func True(condition bool) Result {
 	}
 }
 
-func isNil(x any) (bool, error) {
-	if x == nil {
-		return true, nil
-	}
-	val := reflect.ValueOf(x)
-	switch val.Kind() {
-	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
-		return val.IsNil(), nil
-	default:
-		return false, fmt.Errorf("value of type %T cannot be nil", x)
-	}
-}
-
-func Nil(x any) Result {
-	isNil, err := isNil(x)
+func Nil[T any](x T) Result {
+	isNil, err := mirror.IsNil(x)
 	if err == nil && !isNil {
 		err = ErrFailed
 	}
@@ -125,8 +110,8 @@ func Nil(x any) Result {
 	}
 }
 
-func NotNil(x any) Result {
-	isNil, err := isNil(x)
+func NotNil[T any](x T) Result {
+	isNil, err := mirror.IsNil(x)
 	if err == nil && isNil {
 		err = ErrFailed
 	}
