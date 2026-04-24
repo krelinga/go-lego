@@ -7,6 +7,7 @@ import (
 	"github.com/krelinga/go-lego/order"
 	"github.com/krelinga/go-lego/order/orderexam"
 	"github.com/krelinga/go-lego/pod"
+	"github.com/krelinga/go-lego/pod/podexam"
 )
 
 type FooStructView interface {
@@ -54,16 +55,15 @@ func TestExample(t *testing.T) {
 	})
 
 	t.Run("Map of struct comparison", func(t *testing.T) {
-		a := &pod.Map[string, FooStructView]{
+		a := &pod.Map[string, FooStruct]{
 			"a": FooStruct{Foo: 1, Bar: "a"},
 			"b": FooStruct{Foo: 2, Bar: "b"},
 		}
-		b := &pod.Map[string, FooStructView]{
+		b := &pod.Map[string, FooStruct]{
 			"a": FooStruct{Foo: 1, Bar: "a"},
 			"b": FooStruct{Foo: 2, Bar: "b"},
 		}
-		// TODO: add a pod helper for this pattern of comparing two maps with a custom equality function.
-		exam.Must(t, exam.True(pod.MapEqualFunc(a, b, FooEqual)), a, b)
+		exam.Must(t, podexam.MapEqualFunc(a, b, FooEqual))
 	})
 
 	t.Run("nil comparison", func(t *testing.T) {
