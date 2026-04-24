@@ -85,7 +85,7 @@ func handleResult(t *testing.T, must bool, result error, extra string) bool {
 	}
 	sb.WriteString(context)
 	if !isFailure {
-		fmt.Fprintf(sb, "\ncritical failure in assertion: %v", result)
+		fmt.Fprintf(sb, "\ncritical error in assertion: %v", result)
 	} else {
 		for i, arg := range failure.Args {
 			fmt.Fprintf(sb, "\narg %d: %#v", i, arg)
