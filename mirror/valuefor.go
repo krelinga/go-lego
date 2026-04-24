@@ -21,5 +21,5 @@ func ValueFor[T any](v T) reflect.Value {
 			return n.Elem()
 		}
 	}
-	return reflect.ValueOf(v)
+	return val
 }
