@@ -64,96 +64,71 @@ func getParsedFile(path string) (*parsedFile, func(), error) {
 	return pf, pf.mu.Unlock, nil
 }
 
-func errorPrefix(sb *strings.Builder, fatal bool, context string) {
+func handleResult(t *testing.T, must bool, result Result, extra string) bool {
+	t.Helper()
+	if result.passed() {
+		return true
+	}
+
+	loc := here(2)
+	context, err := loadAssertionContext(loc)
+	if err != nil {
+		context = "unknown assertion context"
+	}
+	fatal := must || result.isFatal()
+	sb := &strings.Builder{}
 	if fatal {
 		sb.WriteString("FATAL: ")
 	}
 	sb.WriteString(context)
-}
-
-func makeError(fatal bool, context string, args ...any) string {
-	sb := &strings.Builder{}
-	errorPrefix(sb, fatal, context)
-	if len(args) > 0 {
-		sb.WriteString("\n")
-		fmt.Fprint(sb, args...)
+	if result.isFatal() {
+		fmt.Fprintf(sb, "\ncritical failure in assertion: %v", result.Error)
 	}
-	return sb.String()
-}
-
-func makeErrorf(fatal bool, context string, format string, args ...any) string {
-	sb := &strings.Builder{}
-	errorPrefix(sb, fatal, context)
-	if len(args) > 0 {
-		sb.WriteString("\n")
-		fmt.Fprintf(sb, format, args...)
+	for i, arg := range result.Args {
+		fmt.Fprintf(sb, "\narg %d: %#v", i, arg)
 	}
-	return sb.String()
+	if extra != "" {
+		fmt.Fprintf(sb, "\n%s", extra)
+	}
+	if fatal {
+		t.Fatal(sb.String())
+	} else {
+		t.Error(sb.String())
+	}
+	return false
 }
 
 // Try checks condition and, if false, records a non-fatal test failure using t.Error.
 // The failure message includes the source text of the call site and any optional args.
 // Returns true if the condition passed, false otherwise.
-func Try(t *testing.T, condition bool, args ...any) bool {
+func Try(t *testing.T, result Result, args ...any) bool {
 	t.Helper()
-	if !condition {
-		loc := here(1)
-		context, err := loadAssertionContext(loc)
-		if err != nil {
-			context = "unknown assertion context"
-		}
-		t.Error(makeError(false, context, args...))
-	}
-	return condition
+	return handleResult(t, false, result, fmt.Sprint(args...))
 }
 
 // Tryf checks condition and, if false, records a non-fatal test failure using t.Error.
 // The failure message includes the source text of the call site and a formatted message
 // constructed from format and args. Returns true if the condition passed, false otherwise.
-func Tryf(t *testing.T, condition bool, format string, args ...any) bool {
+func Tryf(t *testing.T, result Result, format string, args ...any) bool {
 	t.Helper()
-	if !condition {
-		loc := here(1)
-		context, err := loadAssertionContext(loc)
-		if err != nil {
-			context = "unknown assertion context"
-		}
-		t.Error(makeErrorf(false, context, format, args...))
-	}
-	return condition
+	return handleResult(t, false, result, fmt.Sprintf(format, args...))
 }
 
 // Must checks condition and, if false, records a fatal test failure using t.Fatal,
 // stopping the test immediately. The failure message includes the source text of the
 // call site and any optional args. Returns true if the condition passed, false otherwise.
-func Must(t *testing.T, condition bool, args ...any) bool {
+func Must(t *testing.T, result Result, args ...any) bool {
 	t.Helper()
-	if !condition {
-		loc := here(1)
-		context, err := loadAssertionContext(loc)
-		if err != nil {
-			context = "unknown assertion context"
-		}
-		t.Fatal(makeError(true, context, args...))
-	}
-	return condition
+	return handleResult(t, true, result, fmt.Sprint(args...))
 }
 
 // Mustf checks condition and, if false, records a fatal test failure using t.Fatal,
 // stopping the test immediately. The failure message includes the source text of the
 // call site and a formatted message constructed from format and args.
 // Returns true if the condition passed, false otherwise.
-func Mustf(t *testing.T, condition bool, format string, args ...any) bool {
+func Mustf(t *testing.T, result Result, format string, args ...any) bool {
 	t.Helper()
-	if !condition {
-		loc := here(1)
-		context, err := loadAssertionContext(loc)
-		if err != nil {
-			context = "unknown assertion context"
-		}
-		t.Fatal(makeErrorf(true, context, format, args...))
-	}
-	return condition
+	return handleResult(t, true, result, fmt.Sprintf(format, args...))
 }
 
 // Loc identifies a specific location in a source file by file path and line number.

@@ -74,7 +74,7 @@ func TestUsingGet(t *testing.T) {
 	}
 	for _, c := range cases {
 		exam.Run(t, c.Name, c.Loc, func(t *testing.T) {
-			exam.Must(t, c.Want(StructOrder(c.A, c.B)), c.A, c.B)
+			exam.Must(t, exam.True(c.Want(StructOrder(c.A, c.B))), c.A, c.B)
 		})
 	}
 }
@@ -153,7 +153,7 @@ func TestUsingGetFunc(t *testing.T) {
 	}
 	for _, c := range cases {
 		exam.Run(t, c.Name, c.Loc, func(t *testing.T) {
-			exam.Must(t, c.Want(Struct2Order(c.A, c.B)), c.A, c.B)
+			exam.Must(t, exam.True(c.Want(Struct2Order(c.A, c.B))), c.A, c.B)
 		})
 	}
 }

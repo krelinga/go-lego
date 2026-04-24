@@ -5,6 +5,7 @@ import (
 
 	"github.com/krelinga/go-lego/exam"
 	"github.com/krelinga/go-lego/order"
+	"github.com/krelinga/go-lego/order/orderexam"
 	"github.com/krelinga/go-lego/pod"
 )
 
@@ -41,15 +42,15 @@ func TestExample(t *testing.T) {
 	t.Run("simple int comparison", func(t *testing.T) {
 		one := 1
 		zero := 0
-		exam.Must(t, one == 1)
-		exam.Try(t, one > zero)
+		exam.Must(t, exam.Equal(one, 1))
+		exam.Try(t, exam.Greater(one, zero))
 	})
 
 	t.Run("struct comparison", func(t *testing.T) {
 		a := FooStruct{Foo: 1, Bar: "a"}
 		b := FooStruct{Foo: 1, Bar: "b"}
-		exam.Must(t, order.Less(FooOrder(a, b)), a, b)
-		exam.Must(t, FooEqual(a, b), a, b)
+		exam.Must(t, orderexam.LessFunc(a, b, FooOrder))
+		exam.Must(t, exam.EqualFunc(a, b, FooEqual))
 	})
 
 	t.Run("Map of struct comparison", func(t *testing.T) {
@@ -61,16 +62,17 @@ func TestExample(t *testing.T) {
 			"a": FooStruct{Foo: 1, Bar: "a"},
 			"b": FooStruct{Foo: 2, Bar: "b"},
 		}
-		exam.Must(t, pod.MapEqualFunc(a, b, FooEqual), a, b)
+		// TODO: add a pod helper for this pattern of comparing two maps with a custom equality function.
+		exam.Must(t, exam.True(pod.MapEqualFunc(a, b, FooEqual)), a, b)
 	})
 
 	t.Run("nil comparison", func(t *testing.T) {
 		var a *int
 		var b []int
 		var c map[string]int
-		exam.Try(t, a == nil, a)
-		exam.Try(t, b == nil, b)
-		exam.Try(t, c == nil, c)
+		exam.Try(t, exam.Nil(a))
+		exam.Try(t, exam.Nil(b))
+		exam.Try(t, exam.Nil(c))
 	})
 
 	cases := []struct {
@@ -89,8 +91,7 @@ func TestExample(t *testing.T) {
 	}
 	for _, c := range cases {
 		exam.Run(t, c.Name, c.Loc, func(t *testing.T) {
-			exam.Try(t, c.A+c.B == c.C+1,
-				c.A, c.B, c.C)
+			exam.Try(t, exam.Equal(c.A+c.B, c.C+1))
 		})
 	}
 }

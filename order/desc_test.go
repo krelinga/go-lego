@@ -39,7 +39,7 @@ func TestDesc(t *testing.T) {
 
 	for _, c := range cases {
 		exam.Run(t, c.Name, c.Loc, func(t *testing.T) {
-			exam.Try(t, c.Want(order.Desc(cmp.Compare[int])(c.A, c.B)), c.A, c.B)
+			exam.Try(t, exam.True(c.Want(order.Desc(cmp.Compare[int])(c.A, c.B))))
 		})
 	}
 }
