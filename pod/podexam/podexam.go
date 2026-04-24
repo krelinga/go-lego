@@ -12,8 +12,7 @@ func MapEqualFunc[K comparable, V any](x, y pod.MapView[K, V], f any) error {
 	valueEqual, err := mirror.WrapFunc2In1Out[V, V, bool](f)
 	if err != nil {
 		return fmt.Errorf("failed to wrap value equality function: %w", err)
-	}
-	if pod.MapEqualFunc(x, y, valueEqual) {
+	} else if pod.MapEqualFunc(x, y, valueEqual) {
 		return nil
 	}
 	return exam.Failure{
@@ -25,8 +24,7 @@ func VecEqualFunc[T any](x, y pod.VecView[T], f any) error {
 	valueEqual, err := mirror.WrapFunc2In1Out[T, T, bool](f)
 	if err != nil {
 		return fmt.Errorf("failed to wrap value equality function: %w", err)
-	}
-	if pod.VecEqualFunc(x, y, valueEqual) {
+	} else if pod.VecEqualFunc(x, y, valueEqual) {
 		return nil
 	}
 	return exam.Failure{
