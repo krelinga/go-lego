@@ -8,43 +8,95 @@ import (
 	"github.com/krelinga/go-lego/pod"
 )
 
-func TestVec(t *testing.T) {
-	t.Run("literals", func(t *testing.T) {
-		cases := []struct {
-			Name        string
-			Loc         exam.Loc
-			Vec         *pod.Vec[int]
-			WantVals    []int
-			WantRevVals []int
-		}{
-			{
-				Name:        "empty",
-				Loc:         exam.Here(),
-				Vec:         &pod.Vec[int]{},
-				WantVals:    nil,
-				WantRevVals: nil,
-			},
-		}
-		for _, c := range cases {
-			exam.Run(t, c.Name, c.Loc, func(t *testing.T) {
-				exam.Must(t, exam.Equal(len(c.WantVals), len(c.WantRevVals)))
+func TestVecView(t *testing.T) {
+	cases := []struct {
+		Name        string
+		Loc         exam.Loc
+		VecView     pod.VecView[int]
+		WantVals    []int
+	}{
+		{
+			Name:        "empty Vec",
+			Loc:         exam.Here(),
+			VecView:     &pod.Vec[int]{},
+			WantVals:    nil,
+		},
+		{
+			Name:        "non-empty Vec",
+			Loc:         exam.Here(),
+			VecView:     &pod.Vec[int]{1, 2, 3},
+			WantVals:    []int{1, 2, 3},
+		},
+		{
+			Name:        "AsVec nil",
+			Loc:         exam.Here(),
+			VecView:     pod.AsVec([]int(nil)),
+			WantVals:    nil,
+		},
+		{
+			Name:        "AsVec empty",
+			Loc:         exam.Here(),
+			VecView:     pod.AsVec([]int{}),
+			WantVals:    nil,
+		},
+		{
+			Name:        "AsVec non-empty",
+			Loc:         exam.Here(),
+			VecView:     pod.AsVec([]int{1, 2, 3}),
+			WantVals:    []int{1, 2, 3},
+		},
+		{
+			Name: "Wrapped Empty",
+			Loc:  exam.Here(),
+			VecView: pod.WrapVecVals(
+				pod.AsVec([]float64(nil)),
+				func(x float64) int { return int(x) },
+			),
+			WantVals:    nil,
+		},
+		{
+			Name: "Wrapped non-empty",
+			Loc:  exam.Here(),
+			VecView: pod.WrapVecVals(
+				pod.AsVec([]float64{1.0, 2.0, 3.0}),
+				func(x float64) int { return int(x) },
+			),
+			WantVals:    []int{1, 2, 3},
+		},
+	}
+	for _, c := range cases {
+		exam.Run(t, c.Name, c.Loc, func(t *testing.T) {
+			exam.Must(t, exam.Equal(c.VecView.Len(), len(c.WantVals)))
 
-				exam.Must(t, exam.Equal(c.Vec.Len(), len(c.WantVals)))
+			for i := range c.WantVals {
+				exam.Try(t, exam.Equal(c.VecView.At(i), c.WantVals[i]))
+			}
 
-				for i := range c.WantVals {
-					exam.Try(t, exam.Equal(c.Vec.At(i), c.WantVals[i]))
-				}
+			gotVals := slices.Collect(c.VecView.Vals())
+			for i := range gotVals {
+				exam.Try(t, exam.Equal(gotVals[i], c.WantVals[i]))
+			}
+			wantIdx := 0
+			for idx, val := range c.VecView.IdxVals() {
+				exam.Try(t, exam.Equal(idx, wantIdx))
+				exam.Try(t, exam.Equal(val, c.WantVals[idx]))
+				wantIdx++
+			}
+			exam.Try(t, exam.Equal(wantIdx, len(c.WantVals)))
 
-				gotVals := slices.Collect(c.Vec.Vals())
-				for i := range gotVals {
-					exam.Try(t, exam.Equal(gotVals[i], c.WantVals[i]))
-				}
-
-				gotRevVals := slices.Collect(c.Vec.RevVals())
-				for i := range gotRevVals {
-					exam.Must(t, exam.Equal(gotRevVals[i], c.WantRevVals[i]))
-				}
-			})
-		}
-	})
+			gotRevVals := slices.Collect(c.VecView.RevVals())
+			wantRevVals := slices.Clone(c.WantVals)
+			slices.Reverse(wantRevVals)
+			for i := range gotRevVals {
+				exam.Must(t, exam.Equal(gotRevVals[i], wantRevVals[i]))
+			}
+			wantIdx = len(c.WantVals) - 1
+			for idx, val := range c.VecView.RevIdxVals() {
+				exam.Try(t, exam.Equal(idx, wantIdx))
+				exam.Try(t, exam.Equal(val, c.WantVals[idx]))
+				wantIdx--
+			}
+			exam.Try(t, exam.Equal(wantIdx, -1))
+		})
+	}
 }
