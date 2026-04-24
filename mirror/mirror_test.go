@@ -33,12 +33,13 @@ var invalidValue = reflect.Value{}
 var nilFunc func(int, int) int = nil
 var nilFooInterface fooInterface = nil
 
-func TestCall(t *testing.T) {
+func TestWrap(t *testing.T) {
 	cases := []struct {
 		Name      string
 		Loc       exam.Loc
 		F         reflect.Value
 		Args      []reflect.Value
+		InTypes   []reflect.Type
 		OutTypes  []reflect.Type
 		WantError bool
 		WantOut   []reflect.Value
@@ -48,6 +49,7 @@ func TestCall(t *testing.T) {
 			Loc:       exam.Here(),
 			F:         invalidValue,
 			Args:      []reflect.Value{mirror.ValueFor(1), mirror.ValueFor(2)},
+			InTypes:   []reflect.Type{reflect.TypeFor[int](), reflect.TypeFor[int]()},
 			OutTypes:  []reflect.Type{reflect.TypeFor[int]()},
 			WantError: true,
 		},
@@ -56,6 +58,7 @@ func TestCall(t *testing.T) {
 			Loc:       exam.Here(),
 			F:         mirror.ValueFor(nilFunc),
 			Args:      []reflect.Value{mirror.ValueFor(1), mirror.ValueFor(2)},
+			InTypes:   []reflect.Type{reflect.TypeFor[int](), reflect.TypeFor[int]()},
 			OutTypes:  []reflect.Type{reflect.TypeFor[int]()},
 			WantError: true,
 		},
@@ -64,6 +67,7 @@ func TestCall(t *testing.T) {
 			Loc:       exam.Here(),
 			F:         mirror.ValueFor(42),
 			Args:      []reflect.Value{mirror.ValueFor(1), mirror.ValueFor(2)},
+			InTypes:   []reflect.Type{reflect.TypeFor[int](), reflect.TypeFor[int]()},
 			OutTypes:  []reflect.Type{reflect.TypeFor[int]()},
 			WantError: true,
 		},
@@ -72,6 +76,7 @@ func TestCall(t *testing.T) {
 			Loc:       exam.Here(),
 			F:         mirror.ValueFor(add),
 			Args:      []reflect.Value{mirror.ValueFor(1)},
+			InTypes:   []reflect.Type{reflect.TypeFor[int]()},
 			OutTypes:  []reflect.Type{reflect.TypeFor[int]()},
 			WantError: true,
 		},
@@ -80,14 +85,7 @@ func TestCall(t *testing.T) {
 			Loc:       exam.Here(),
 			F:         mirror.ValueFor(add),
 			Args:      []reflect.Value{mirror.ValueFor(1), mirror.ValueFor("2")},
-			OutTypes:  []reflect.Type{reflect.TypeFor[int]()},
-			WantError: true,
-		},
-		{
-			Name:      "invalid arg",
-			Loc:       exam.Here(),
-			F:         mirror.ValueFor(add),
-			Args:      []reflect.Value{mirror.ValueFor(1), invalidValue},
+			InTypes:   []reflect.Type{reflect.TypeFor[int](), reflect.TypeFor[string]()},
 			OutTypes:  []reflect.Type{reflect.TypeFor[int]()},
 			WantError: true,
 		},
@@ -96,6 +94,7 @@ func TestCall(t *testing.T) {
 			Loc:       exam.Here(),
 			F:         mirror.ValueFor(add),
 			Args:      []reflect.Value{mirror.ValueFor(1), mirror.ValueFor(2)},
+			InTypes:   []reflect.Type{reflect.TypeFor[int](), reflect.TypeFor[int]()},
 			OutTypes:  []reflect.Type{},
 			WantError: true,
 		},
@@ -104,32 +103,36 @@ func TestCall(t *testing.T) {
 			Loc:       exam.Here(),
 			F:         mirror.ValueFor(add),
 			Args:      []reflect.Value{mirror.ValueFor(1), mirror.ValueFor(2)},
+			InTypes:   []reflect.Type{reflect.TypeFor[int](), reflect.TypeFor[int]()},
 			OutTypes:  []reflect.Type{reflect.TypeFor[string]()},
 			WantError: true,
 		},
 		{
-			Name:      "valid call",
+			Name:      "valid wrapping",
 			Loc:       exam.Here(),
 			F:         mirror.ValueFor(add),
 			Args:      []reflect.Value{mirror.ValueFor(1), mirror.ValueFor(2)},
+			InTypes:   []reflect.Type{reflect.TypeFor[int](), reflect.TypeFor[int]()},
 			OutTypes:  []reflect.Type{reflect.TypeFor[int]()},
 			WantError: false,
 			WantOut:   []reflect.Value{mirror.ValueFor(3)},
 		},
 		{
-			Name:      "interface call",
+			Name:      "interface wrap",
 			Loc:       exam.Here(),
 			F:         mirror.ValueFor(fooFunc),
 			Args:      []reflect.Value{mirror.ValueFor(fooImpl(42))},
+			InTypes:   []reflect.Type{reflect.TypeFor[fooInterface]()},
 			OutTypes:  []reflect.Type{reflect.TypeFor[int]()},
 			WantError: false,
 			WantOut:   []reflect.Value{mirror.ValueFor(42)},
 		},
 		{
-			Name:      "nil interface call",
+			Name:      "nil interface wrap",
 			Loc:       exam.Here(),
 			F:         mirror.ValueFor(fooFunc),
 			Args:      []reflect.Value{mirror.ValueFor(nilFooInterface)},
+			InTypes:   []reflect.Type{reflect.TypeFor[fooInterface]()},
 			OutTypes:  []reflect.Type{reflect.TypeFor[int]()},
 			WantError: false,
 			WantOut:   []reflect.Value{mirror.ValueFor(0)},
@@ -137,11 +140,12 @@ func TestCall(t *testing.T) {
 	}
 	for _, c := range cases {
 		exam.Run(t, c.Name, c.Loc, func(t *testing.T) {
-			out, err := mirror.Call(c.F, c.Args, c.OutTypes)
+			w, err := mirror.WrapFunc(c.F, c.InTypes, c.OutTypes)
 			if c.WantError {
 				exam.Try(t, exam.NotNil(err))
 			} else {
 				exam.Must(t, exam.Nil(err))
+				out := w.Call(c.Args)
 				exam.Must(t, exam.Equal(len(out), len(c.WantOut)))
 				for i := range out {
 					exam.Must(t, exam.True(out[i].CanInterface()))
@@ -152,16 +156,16 @@ func TestCall(t *testing.T) {
 	}
 }
 
-func TestCall2In1Out(t *testing.T) {
+func TestWrapFunc2In1Out(t *testing.T) {
 	t.Run("valid call", func(t *testing.T) {
-		result, err := mirror.Call2In1Out[int](add, 1, 2)
+		f, err := mirror.WrapFunc2In1Out[int, int, int](add)
 		exam.Must(t, exam.Nil(err))
-		exam.Try(t, exam.Equal(result, 3))
+		exam.Try(t, exam.Equal(f(1, 2), 3))
 	})
 
 	t.Run("invalid func", func(t *testing.T) {
 		var notFunc any = 42
-		_, err := mirror.Call2In1Out[int](notFunc, 1, 2)
+		_, err := mirror.WrapFunc2In1Out[int, int, int](notFunc)
 		exam.Try(t, exam.NotNil(err))
 	})
 }

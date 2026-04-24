@@ -12,12 +12,12 @@ func callOrderFunc[T any](x, y T, order any, want func(int) bool) (result exam.R
 	result = exam.Result{
 		Args: []any{x, y},
 	}
-	orderInt, err := mirror.Call2In1Out[int](order, x, y)
+	wrapped, err := mirror.WrapFunc2In1Out[int, T, T](order)
 	if err != nil {
 		result.Error = fmt.Errorf("failed to call order function: %w", err)
 		return
 	}
-	if !want(orderInt) {
+	if !want(wrapped(x, y)) {
 		result.Error = exam.ErrFailed
 	}
 	return
