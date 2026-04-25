@@ -21,7 +21,7 @@ func Test(t *testing.T) {
 		Name string
 		Loc exam.Loc
 		A, B Struct
-		Func func(Struct, Struct, any) error
+		Func func(Struct, Struct, any) *exam.Failure2
 		WantPass bool
 	}{
 		{

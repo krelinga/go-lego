@@ -2,7 +2,6 @@ package exam
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"go/ast"
 	"go/parser"
@@ -65,9 +64,9 @@ func getParsedFile(path string) (*parsedFile, func(), error) {
 	return pf, pf.mu.Unlock, nil
 }
 
-func handleResult(t *testing.T, must bool, result error, extra string) bool {
+func handleResult(t *testing.T, must bool, failure *Failure2, extra string) bool {
 	t.Helper()
-	if result == nil {
+	if failure == nil {
 		return true
 	}
 
@@ -76,20 +75,17 @@ func handleResult(t *testing.T, must bool, result error, extra string) bool {
 	if err != nil {
 		context = "unknown assertion context"
 	}
-	var failure Failure
-	isFailure := errors.As(result, &failure)
-	fatal := must || !isFailure
+	fatal := must || failure.IsCritical()
 	sb := &strings.Builder{}
 	if fatal {
 		sb.WriteString("FATAL: ")
 	}
 	sb.WriteString(context)
-	if !isFailure {
-		fmt.Fprintf(sb, "\ncritical error in assertion: %v", result)
-	} else {
-		for i, arg := range failure.Args {
-			fmt.Fprintf(sb, "\narg %d: %#v", i, arg)
-		}
+	if failure.Wrapped != nil {
+		fmt.Fprintf(sb, "\nSTRUCTURAL ERROR: %v", failure.Wrapped)
+	}
+	for i, arg := range failure.Args {
+		fmt.Fprintf(sb, "\narg %d %s", i, arg)
 	}
 	if extra != "" {
 		fmt.Fprintf(sb, "\n%s", extra)
@@ -105,34 +101,34 @@ func handleResult(t *testing.T, must bool, result error, extra string) bool {
 // Try checks condition and, if false, records a non-fatal test failure using t.Error.
 // The failure message includes the source text of the call site and any optional args.
 // Returns true if the condition passed, false otherwise.
-func Try(t *testing.T, result error, args ...any) bool {
+func Try(t *testing.T, failure *Failure2, args ...any) bool {
 	t.Helper()
-	return handleResult(t, false, result, fmt.Sprint(args...))
+	return handleResult(t, false, failure, fmt.Sprint(args...))
 }
 
 // Tryf checks condition and, if false, records a non-fatal test failure using t.Error.
 // The failure message includes the source text of the call site and a formatted message
 // constructed from format and args. Returns true if the condition passed, false otherwise.
-func Tryf(t *testing.T, result error, format string, args ...any) bool {
+func Tryf(t *testing.T, failure *Failure2, format string, args ...any) bool {
 	t.Helper()
-	return handleResult(t, false, result, fmt.Sprintf(format, args...))
+	return handleResult(t, false, failure, fmt.Sprintf(format, args...))
 }
 
 // Must checks condition and, if false, records a fatal test failure using t.Fatal,
 // stopping the test immediately. The failure message includes the source text of the
 // call site and any optional args. Returns true if the condition passed, false otherwise.
-func Must(t *testing.T, result error, args ...any) bool {
+func Must(t *testing.T, failure *Failure2, args ...any) bool {
 	t.Helper()
-	return handleResult(t, true, result, fmt.Sprint(args...))
+	return handleResult(t, true, failure, fmt.Sprint(args...))
 }
 
 // Mustf checks condition and, if false, records a fatal test failure using t.Fatal,
 // stopping the test immediately. The failure message includes the source text of the
 // call site and a formatted message constructed from format and args.
 // Returns true if the condition passed, false otherwise.
-func Mustf(t *testing.T, result error, format string, args ...any) bool {
+func Mustf(t *testing.T, failure *Failure2, format string, args ...any) bool {
 	t.Helper()
-	return handleResult(t, true, result, fmt.Sprintf(format, args...))
+	return handleResult(t, true, failure, fmt.Sprintf(format, args...))
 }
 
 // Loc identifies a specific location in a source file by file path and line number.

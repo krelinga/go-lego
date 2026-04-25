@@ -64,6 +64,7 @@ func TestExample(t *testing.T) {
 			"b": FooStruct{Foo: 2, Bar: "b"},
 		}
 		exam.Must(t, podexam.MapEqualFunc(a, b, FooEqual))
+		exam.Try(t, podexam.MapEqualFunc(a, b, FooOrder))
 	})
 
 	t.Run("nil comparison", func(t *testing.T) {
