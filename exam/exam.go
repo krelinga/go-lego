@@ -14,6 +14,13 @@ import (
 	"testing"
 )
 
+type T interface {
+	Helper()
+	Error(args ...any)
+	Fatal(args ...any)
+	Run(name string, f func(t *testing.T)) bool
+}
+
 type parsedFile struct {
 	// It is not safe to concurrently access the same *ast.File, even for seemingly read-only
 	// operations, so we use a mutex to ensure that only one goroutine is accessing it at a time.
@@ -64,7 +71,7 @@ func getParsedFile(path string) (*parsedFile, func(), error) {
 	return pf, pf.mu.Unlock, nil
 }
 
-func handleResult(t *testing.T, must bool, failure *Failure, extra string) bool {
+func handleResult(t T, must bool, failure *Failure, extra string) bool {
 	t.Helper()
 	if failure == nil {
 		return true
@@ -101,7 +108,7 @@ func handleResult(t *testing.T, must bool, failure *Failure, extra string) bool 
 // Try checks condition and, if false, records a non-fatal test failure using t.Error.
 // The failure message includes the source text of the call site and any optional args.
 // Returns true if the condition passed, false otherwise.
-func Try(t *testing.T, failure *Failure, args ...any) bool {
+func Try(t T, failure *Failure, args ...any) bool {
 	t.Helper()
 	return handleResult(t, false, failure, fmt.Sprint(args...))
 }
@@ -109,7 +116,7 @@ func Try(t *testing.T, failure *Failure, args ...any) bool {
 // Tryf checks condition and, if false, records a non-fatal test failure using t.Error.
 // The failure message includes the source text of the call site and a formatted message
 // constructed from format and args. Returns true if the condition passed, false otherwise.
-func Tryf(t *testing.T, failure *Failure, format string, args ...any) bool {
+func Tryf(t T, failure *Failure, format string, args ...any) bool {
 	t.Helper()
 	return handleResult(t, false, failure, fmt.Sprintf(format, args...))
 }
@@ -117,7 +124,7 @@ func Tryf(t *testing.T, failure *Failure, format string, args ...any) bool {
 // Must checks condition and, if false, records a fatal test failure using t.Fatal,
 // stopping the test immediately. The failure message includes the source text of the
 // call site and any optional args. Returns true if the condition passed, false otherwise.
-func Must(t *testing.T, failure *Failure, args ...any) bool {
+func Must(t T, failure *Failure, args ...any) bool {
 	t.Helper()
 	return handleResult(t, true, failure, fmt.Sprint(args...))
 }
@@ -126,7 +133,7 @@ func Must(t *testing.T, failure *Failure, args ...any) bool {
 // stopping the test immediately. The failure message includes the source text of the
 // call site and a formatted message constructed from format and args.
 // Returns true if the condition passed, false otherwise.
-func Mustf(t *testing.T, failure *Failure, format string, args ...any) bool {
+func Mustf(t T, failure *Failure, format string, args ...any) bool {
 	t.Helper()
 	return handleResult(t, true, failure, fmt.Sprintf(format, args...))
 }
@@ -228,7 +235,7 @@ func loadAssertionContext(loc Loc) (string, error) {
 // Run executes a named subtest using t.Run and logs the source text of the table-driven
 // test case identified by loc. loc should be obtained by calling Here() on the same line
 // as the struct literal that defines the test case data.
-func Run(t *testing.T, name string, loc Loc, f func(*testing.T)) bool {
+func Run(t T, name string, loc Loc, f func(*testing.T)) bool {
 	t.Helper()
 	return t.Run(name, func(t *testing.T) {
 		t.Helper()
