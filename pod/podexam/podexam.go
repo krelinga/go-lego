@@ -8,7 +8,7 @@ import (
 	"github.com/krelinga/go-lego/pod"
 )
 
-func MapEqualFunc[K comparable, V any](x, y pod.MapView[K, V], f any) *exam.Failure2 {
+func MapEqualFunc[K comparable, V any](x, y pod.MapView[K, V], f any) *exam.Failure {
 	failure := exam.NewFailure2("x", x, "y", y)
 	valueEqual, err := mirror.WrapFunc2In1Out[V, V, bool](f)
 	if err != nil {
@@ -19,7 +19,7 @@ func MapEqualFunc[K comparable, V any](x, y pod.MapView[K, V], f any) *exam.Fail
 	return failure
 }
 
-func VecEqualFunc[T any](x, y pod.VecView[T], f any) *exam.Failure2 {
+func VecEqualFunc[T any](x, y pod.VecView[T], f any) *exam.Failure {
 	failure := exam.NewFailure2("x", x, "y", y)
 	valueEqual, err := mirror.WrapFunc2In1Out[T, T, bool](f)
 	if err != nil {

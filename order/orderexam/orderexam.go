@@ -8,7 +8,7 @@ import (
 	"github.com/krelinga/go-lego/order"
 )
 
-func callOrderFunc[T any](x, y T, order any, want func(int) bool) *exam.Failure2 {
+func callOrderFunc[T any](x, y T, order any, want func(int) bool) *exam.Failure {
 	failure := exam.NewFailure2("x", x, "y", y)
 	wrapped, err := mirror.WrapFunc2In1Out[T, T, int](order)
 	if err != nil {
@@ -19,22 +19,22 @@ func callOrderFunc[T any](x, y T, order any, want func(int) bool) *exam.Failure2
 	return failure
 }
 
-func GreaterFunc[T any](x, y T, f any) *exam.Failure2 {
+func GreaterFunc[T any](x, y T, f any) *exam.Failure {
 	return callOrderFunc(x, y, f, order.Greater)
 }
 
-func LessFunc[T any](x, y T, f any) *exam.Failure2 {
+func LessFunc[T any](x, y T, f any) *exam.Failure {
 	return callOrderFunc(x, y, f, order.Less)
 }
 
-func EqualFunc[T any](x, y T, f any) *exam.Failure2 {
+func EqualFunc[T any](x, y T, f any) *exam.Failure {
 	return callOrderFunc(x, y, f, order.Equal)
 }
 
-func LessEqualFunc[T any](x, y T, f any) *exam.Failure2 {
+func LessEqualFunc[T any](x, y T, f any) *exam.Failure {
 	return callOrderFunc(x, y, f, order.LessEqual)
 }
 
-func GreaterEqualFunc[T any](x, y T, f any) *exam.Failure2 {
+func GreaterEqualFunc[T any](x, y T, f any) *exam.Failure {
 	return callOrderFunc(x, y, f, order.GreaterEqual)
 }

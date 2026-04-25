@@ -64,7 +64,7 @@ func getParsedFile(path string) (*parsedFile, func(), error) {
 	return pf, pf.mu.Unlock, nil
 }
 
-func handleResult(t *testing.T, must bool, failure *Failure2, extra string) bool {
+func handleResult(t *testing.T, must bool, failure *Failure, extra string) bool {
 	t.Helper()
 	if failure == nil {
 		return true
@@ -101,7 +101,7 @@ func handleResult(t *testing.T, must bool, failure *Failure2, extra string) bool
 // Try checks condition and, if false, records a non-fatal test failure using t.Error.
 // The failure message includes the source text of the call site and any optional args.
 // Returns true if the condition passed, false otherwise.
-func Try(t *testing.T, failure *Failure2, args ...any) bool {
+func Try(t *testing.T, failure *Failure, args ...any) bool {
 	t.Helper()
 	return handleResult(t, false, failure, fmt.Sprint(args...))
 }
@@ -109,7 +109,7 @@ func Try(t *testing.T, failure *Failure2, args ...any) bool {
 // Tryf checks condition and, if false, records a non-fatal test failure using t.Error.
 // The failure message includes the source text of the call site and a formatted message
 // constructed from format and args. Returns true if the condition passed, false otherwise.
-func Tryf(t *testing.T, failure *Failure2, format string, args ...any) bool {
+func Tryf(t *testing.T, failure *Failure, format string, args ...any) bool {
 	t.Helper()
 	return handleResult(t, false, failure, fmt.Sprintf(format, args...))
 }
@@ -117,7 +117,7 @@ func Tryf(t *testing.T, failure *Failure2, format string, args ...any) bool {
 // Must checks condition and, if false, records a fatal test failure using t.Fatal,
 // stopping the test immediately. The failure message includes the source text of the
 // call site and any optional args. Returns true if the condition passed, false otherwise.
-func Must(t *testing.T, failure *Failure2, args ...any) bool {
+func Must(t *testing.T, failure *Failure, args ...any) bool {
 	t.Helper()
 	return handleResult(t, true, failure, fmt.Sprint(args...))
 }
@@ -126,7 +126,7 @@ func Must(t *testing.T, failure *Failure2, args ...any) bool {
 // stopping the test immediately. The failure message includes the source text of the
 // call site and a formatted message constructed from format and args.
 // Returns true if the condition passed, false otherwise.
-func Mustf(t *testing.T, failure *Failure2, format string, args ...any) bool {
+func Mustf(t *testing.T, failure *Failure, format string, args ...any) bool {
 	t.Helper()
 	return handleResult(t, true, failure, fmt.Sprintf(format, args...))
 }
