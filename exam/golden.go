@@ -3,6 +3,8 @@ package exam
 import (
 	"flag"
 	"fmt"
+	"reflect"
+	"strings"
 	"sync"
 
 	"github.com/krelinga/go-lego/exam/internal"
@@ -24,12 +26,26 @@ func GoldenHere(text string) Golden {
 	}
 }
 
+// StringIndentLines is a FmtFunc that formats a string value by indenting each line with a tab.  It returns an error if the value is not a string.
+func StringIndentLines(val reflect.Value) (string, error) {
+	if !val.IsValid() {
+		return "", fmt.Errorf("invalid value")
+	} else if val.Kind() != reflect.String {
+		return "", fmt.Errorf("value is of kind %s, expected string", val.Kind())
+	}
+	valStr := fmt.Sprintf("%s", val.String())
+	return strings.ReplaceAll(valStr, "\n", "\n\t"), nil
+}
+
 var examGoldensDiffPath = flag.String("exam_goldens_diff_path", "", "Path to write golden diffs to.  If set, the golden data assertions will always pass.")
 var examGoldensMu = sync.Mutex{}
 
 func GoldenEqual(actual string, expected Golden) *Failure {
 	actual = "\n" + actual
 	failure := NewFailure2("actual", actual, "expected", expected.text)
+	for i := range failure.Args {
+		failure.Args[i].Fmt = StringIndentLines
+	}
 
 	if len(expected.text) == 0 || expected.text[0] != '\n' {
 		return failure.Wrap(fmt.Errorf("expected text must start with a newline"))
