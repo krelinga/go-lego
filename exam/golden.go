@@ -2,6 +2,10 @@ package exam
 
 import (
 	"flag"
+	"fmt"
+	"sync"
+
+	"github.com/krelinga/go-lego/exam/internal"
 )
 
 type Golden struct {
@@ -17,23 +21,36 @@ func GoldenHere(text string) Golden {
 }
 
 var examGoldensDiffPath = flag.String("exam_goldens_diff_path", "", "Path to write golden diffs to.  If set, the golden data assertions will always pass.")
+var examGoldensMu = sync.Mutex{}
 
 func GoldenEqual(actual string, expected Golden) *Failure {
-	expectedText := expected.text
-	if len(expectedText) > 0 && expectedText[0] == '\n' {
-		expectedText = expectedText[1:]
+	actual = "\n" + actual
+	failure := NewFailure2("actual", actual, "expected", expected.text)
+
+	
+	if len(expected.text) == 0 || expected.text[0] != '\n' {
+		return failure.Wrap(fmt.Errorf("expected text must start with a newline"))
 	}
 
 	if *examGoldensDiffPath != "" {
-		if actual == expectedText {
+		if actual == expected.text {
 			return nil
 		}
-		// TODO: implement writing the golden diff to the file at *examGoldensDiffPath
+
+		examGoldensMu.Lock()
+		defer examGoldensMu.Unlock()
+		if err := internal.WriteGoldenEntry(*examGoldensDiffPath, internal.GoldenEntry{
+			Path: expected.loc.File,
+			Line: expected.loc.Line,
+			Text: actual,
+		}); err != nil {
+			return failure.Wrap(fmt.Errorf("writing golden entry: %w", err))
+		}
 		return nil
 	}
 
-	if actual == expectedText {
+	if actual == expected.text {
 		return nil
 	}
-	return nil // TODO: implement
+	return failure
 }
