@@ -64,7 +64,9 @@ arg 0 Foo: "bar"`),
 		{
 			Name: "MultiArgFailure",
 			FatalGolden: exam.GoldenHere(`
-`),
+FATAL: exam.Must(fakeT, c.Failure)
+arg 0 Foo: "bar"
+arg 1 Baz: 42`),
 			Failure: exam.NewFailure2("Foo", "bar", "Baz", 42),
 		},
 	}
