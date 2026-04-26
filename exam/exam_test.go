@@ -62,6 +62,7 @@ func TestTryMust(t *testing.T) {
 	cases := []struct {
 		Name        string
 		FatalGolden exam.Golden
+		ErrorGolden exam.Golden
 		Failure     *exam.Failure
 	}{
 		{
@@ -69,6 +70,8 @@ func TestTryMust(t *testing.T) {
 			FatalGolden: exam.GoldenHere(`
 FATAL: exam.Must(fakeT, c.Failure)
 arg 0 Foo: "bar"`),
+			ErrorGolden: exam.GoldenHere(`
+`),
 			Failure: exam.NewFailure1("Foo", "bar"),
 		},
 		{
@@ -77,17 +80,29 @@ arg 0 Foo: "bar"`),
 FATAL: exam.Must(fakeT, c.Failure)
 arg 0 Foo: "bar"
 arg 1 Baz: 42`),
+			ErrorGolden: exam.GoldenHere(`
+`),
 			Failure: exam.NewFailure2("Foo", "bar", "Baz", 42),
 		},
 	}
 	for _, c := range cases {
 		exam.Run(t, c.Name, c.FatalGolden.GetLoc(), func(t *testing.T) {
-			fakeT := &FakeT{T: t}
-			exam.Must(fakeT, c.Failure)
-			if fakeT.ErrorBody != "" {
-				t.Errorf("Must unexpectedly called Error: %q", fakeT.ErrorBody)
-			}
-			exam.Try(t, exam.GoldenEqual(fakeT.FatalBody, c.FatalGolden))
+			func() {
+				fakeT := &FakeT{T: t}
+				exam.Must(fakeT, c.Failure)
+				if fakeT.ErrorBody != "" {
+					t.Errorf("Must unexpectedly called Error: %q", fakeT.ErrorBody)
+				}
+				exam.Try(t, exam.GoldenEqual(fakeT.FatalBody, c.FatalGolden))
+			}()
+			func() {
+				fakeT := &FakeT{T: t}
+				exam.Try(fakeT, c.Failure)
+				if fakeT.FatalBody != "" {
+					t.Errorf("Try unexpectedly called Fatal: %q", fakeT.FatalBody)
+				}
+				exam.Try(t, exam.GoldenEqual(fakeT.ErrorBody, c.ErrorGolden))
+			}()
 		})
 	}
 }
