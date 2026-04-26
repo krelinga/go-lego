@@ -9,13 +9,17 @@ import (
 )
 
 type Golden struct {
-	loc Loc
+	loc  Loc
 	text string
+}
+
+func (g Golden) GetLoc() Loc {
+	return g.loc
 }
 
 func GoldenHere(text string) Golden {
 	return Golden{
-		loc:  here(2),
+		loc:  here(1),
 		text: text,
 	}
 }
@@ -27,7 +31,6 @@ func GoldenEqual(actual string, expected Golden) *Failure {
 	actual = "\n" + actual
 	failure := NewFailure2("actual", actual, "expected", expected.text)
 
-	
 	if len(expected.text) == 0 || expected.text[0] != '\n' {
 		return failure.Wrap(fmt.Errorf("expected text must start with a newline"))
 	}
