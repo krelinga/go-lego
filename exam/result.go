@@ -8,13 +8,26 @@ import (
 	"github.com/krelinga/go-lego/mirror"
 )
 
+type FmtFunc = func(reflect.Value) (string, error)
+
 type Arg struct {
 	Name  string
 	Value reflect.Value
+	Fmt FmtFunc
 }
 
-func (a Arg) String() string {
-	return fmt.Sprintf("%s: %#v", a.Name, a.Value)
+func (a Arg) ToString() (string, error) {
+	var valueStr string
+	if a.Fmt != nil {
+		var err error
+		valueStr, err = a.Fmt(a.Value)
+		if err != nil {
+			return "", fmt.Errorf("formatting argument %#v: %w", a.Name, err)
+		}
+	} else {
+		valueStr = fmt.Sprintf("%#v", a.Value)
+	}
+	return fmt.Sprintf("%s: %s", a.Name, valueStr), nil
 }
 
 type Args []Arg

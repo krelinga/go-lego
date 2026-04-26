@@ -92,7 +92,12 @@ func handleResult(t T, must bool, failure *Failure, extra string) bool {
 		fmt.Fprintf(sb, "\nSTRUCTURAL ERROR: %v", failure.Wrapped)
 	}
 	for i, arg := range failure.Args {
-		fmt.Fprintf(sb, "\narg %d %s", i, arg)
+		argStr, err := arg.ToString()
+		if err != nil {
+			fmt.Fprintf(sb, "\nERROR FORMATTING ARG %d (%s): %v", i, arg.Name, err)
+		} else {
+			fmt.Fprintf(sb, "\narg %d %s", i, argStr)
+		}
 	}
 	if extra != "" {
 		fmt.Fprintf(sb, "\n%s", extra)
