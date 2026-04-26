@@ -16,7 +16,7 @@ func GoldenHere(text string) Golden {
 	}
 }
 
-var examUpdateGoldens = flag.Bool("exam_update_goldens", false, "update golden data instead of comparing it")
+var examGoldensDiffPath = flag.String("exam_goldens_diff_path", "", "Path to write golden diffs to.  If set, the golden data assertions will always pass.")
 
 func GoldenEqual(actual string, expected Golden) *Failure {
 	expectedText := expected.text
@@ -24,12 +24,16 @@ func GoldenEqual(actual string, expected Golden) *Failure {
 		expectedText = expectedText[1:]
 	}
 
-	if *examUpdateGoldens {
+	if *examGoldensDiffPath != "" {
 		if actual == expectedText {
 			return nil
 		}
-		// TODO: implement updating the golden data in the source file at expected.loc with actual
+		// TODO: implement writing the golden diff to the file at *examGoldensDiffPath
 		return nil
 	}
-	return nil // TODO: implement comparison and failure reporting
+
+	if actual == expectedText {
+		return nil
+	}
+	return nil // TODO: implement
 }
