@@ -71,7 +71,7 @@ func getParsedFile(path string) (*parsedFile, func(), error) {
 	return pf, pf.mu.Unlock, nil
 }
 
-func handleResult(t T, must bool, failure *Failure, extra string) bool {
+func handleResult(t T, must bool, failure *Failure, extras ...any) bool {
 	t.Helper()
 	if failure == nil {
 		return true
@@ -99,8 +99,8 @@ func handleResult(t T, must bool, failure *Failure, extra string) bool {
 			fmt.Fprintf(sb, "\narg %d %s", i, argStr)
 		}
 	}
-	if extra != "" {
-		fmt.Fprintf(sb, "\n%s", extra)
+	for i := range extras {
+		fmt.Fprintf(sb, "\n%v", extras[i])
 	}
 	if fatal {
 		t.Fatal(sb.String())
@@ -113,17 +113,17 @@ func handleResult(t T, must bool, failure *Failure, extra string) bool {
 // Try checks condition and, if false, records a non-fatal test failure using t.Error.
 // The failure message includes the source text of the call site and any optional args.
 // Returns true if the condition passed, false otherwise.
-func Try(t T, failure *Failure, args ...any) bool {
+func Try(t T, failure *Failure, extras ...any) bool {
 	t.Helper()
-	return handleResult(t, false, failure, fmt.Sprint(args...))
+	return handleResult(t, false, failure, extras...)
 }
 
 // Must checks condition and, if false, records a fatal test failure using t.Fatal,
 // stopping the test immediately. The failure message includes the source text of the
 // call site and any optional args. Returns true if the condition passed, false otherwise.
-func Must(t T, failure *Failure, args ...any) bool {
+func Must(t T, failure *Failure, extras ...any) bool {
 	t.Helper()
-	return handleResult(t, true, failure, fmt.Sprint(args...))
+	return handleResult(t, true, failure, extras...)
 }
 
 // Loc identifies a specific location in a source file by file path and line number.

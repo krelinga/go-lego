@@ -123,6 +123,21 @@ arg 0 Foo: line1
 			}(),
 			Fatal: false,
 		},
+		{
+			Name: "ExtrasPrintedOnePerLine",
+			MustGolden: exam.GoldenHere(`
+FATAL: exam.Must(fakeT, c.Failure, c.Args...)
+arg 0 Foo: "bar"
+baz
+biff`),
+			TryGolden: exam.GoldenHere(`
+exam.Try(fakeT, c.Failure, c.Args...)
+arg 0 Foo: "bar"
+baz
+biff`),
+			Failure: exam.NewFailure1("Foo", "bar"),
+			Args: []any{"baz", "biff"},
+		},
 	}
 	for _, c := range cases {
 		exam.Run(t, c.Name, c.MustGolden.GetLoc(), func(t *testing.T) {
