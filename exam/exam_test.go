@@ -71,7 +71,8 @@ func TestTryMust(t *testing.T) {
 FATAL: exam.Must(fakeT, c.Failure)
 arg 0 Foo: "bar"`),
 			ErrorGolden: exam.GoldenHere(`
-`),
+exam.Try(fakeT, c.Failure)
+arg 0 Foo: "bar"`),
 			Failure: exam.NewFailure1("Foo", "bar"),
 		},
 		{
@@ -81,7 +82,9 @@ FATAL: exam.Must(fakeT, c.Failure)
 arg 0 Foo: "bar"
 arg 1 Baz: 42`),
 			ErrorGolden: exam.GoldenHere(`
-`),
+exam.Try(fakeT, c.Failure)
+arg 0 Foo: "bar"
+arg 1 Baz: 42`),
 			Failure: exam.NewFailure2("Foo", "bar", "Baz", 42),
 		},
 	}
