@@ -40,8 +40,8 @@ func main() {
 	cmd := exec.Command("go", "test",
 		"-count=1",
 		"-p=1",
-		fmt.Sprintf("-exam_goldens_diff_path=%s", diffPath),
-		pattern)
+		pattern,
+		fmt.Sprintf("-exam_goldens_diff_path=%s", diffPath))
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
