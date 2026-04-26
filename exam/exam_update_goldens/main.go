@@ -22,6 +22,7 @@ func main() {
 		os.Exit(1)
 	}
 	pattern := os.Args[1]
+	fmt.Printf("Running tests matching pattern %q\n", pattern)
 
 	// Temporary file that test binaries write golden diffs into.
 	tmpFile, err := os.CreateTemp("", "exam_goldens_diff_*")
@@ -31,6 +32,7 @@ func main() {
 	}
 	tmpFile.Close()
 	diffPath := tmpFile.Name()
+	fmt.Printf("Using %s as golden diff file\n", diffPath)
 	defer os.Remove(diffPath)
 
 	// Run the tests.  -p=1 keeps them sequential so multiple test binaries
