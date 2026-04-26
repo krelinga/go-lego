@@ -60,11 +60,11 @@ func TestTryMust(t *testing.T) {
 	})
 
 	cases := []struct {
-		Name        string
+		Name       string
 		MustGolden exam.Golden
-		TryGolden exam.Golden
-		Failure     *exam.Failure
-		Fatal       bool
+		TryGolden  exam.Golden
+		Failure    *exam.Failure
+		Fatal      bool
 	}{
 		{
 			Name: "SingleArgFailure",
@@ -75,7 +75,7 @@ arg 0 Foo: "bar"`),
 exam.Try(fakeT, c.Failure)
 arg 0 Foo: "bar"`),
 			Failure: exam.NewFailure1("Foo", "bar"),
-			Fatal: false,
+			Fatal:   false,
 		},
 		{
 			Name: "MultiArgFailure",
@@ -88,7 +88,7 @@ exam.Try(fakeT, c.Failure)
 arg 0 Foo: "bar"
 arg 1 Baz: 42`),
 			Failure: exam.NewFailure2("Foo", "bar", "Baz", 42),
-			Fatal: false,
+			Fatal:   false,
 		},
 		{
 			Name: "WrappedFailure",
@@ -101,7 +101,7 @@ FATAL: exam.Try(fakeT, c.Failure)
 STRUCTURAL ERROR: wrapped error
 arg 0 Foo: "bar"`),
 			Failure: exam.NewFailure1("Foo", "bar").Wrap(fmt.Errorf("wrapped error")),
-			Fatal: true,
+			Fatal:   true,
 		},
 		{
 			Name: "ArgWithStringIndentLinesFmt",
