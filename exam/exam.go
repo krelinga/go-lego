@@ -118,29 +118,12 @@ func Try(t T, failure *Failure, args ...any) bool {
 	return handleResult(t, false, failure, fmt.Sprint(args...))
 }
 
-// Tryf checks condition and, if false, records a non-fatal test failure using t.Error.
-// The failure message includes the source text of the call site and a formatted message
-// constructed from format and args. Returns true if the condition passed, false otherwise.
-func Tryf(t T, failure *Failure, format string, args ...any) bool {
-	t.Helper()
-	return handleResult(t, false, failure, fmt.Sprintf(format, args...))
-}
-
 // Must checks condition and, if false, records a fatal test failure using t.Fatal,
 // stopping the test immediately. The failure message includes the source text of the
 // call site and any optional args. Returns true if the condition passed, false otherwise.
 func Must(t T, failure *Failure, args ...any) bool {
 	t.Helper()
 	return handleResult(t, true, failure, fmt.Sprint(args...))
-}
-
-// Mustf checks condition and, if false, records a fatal test failure using t.Fatal,
-// stopping the test immediately. The failure message includes the source text of the
-// call site and a formatted message constructed from format and args.
-// Returns true if the condition passed, false otherwise.
-func Mustf(t T, failure *Failure, format string, args ...any) bool {
-	t.Helper()
-	return handleResult(t, true, failure, fmt.Sprintf(format, args...))
 }
 
 // Loc identifies a specific location in a source file by file path and line number.
