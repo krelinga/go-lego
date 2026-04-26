@@ -63,7 +63,7 @@ arg 0 Foo: "bar"`),
 		},
 	}
 	for _, c := range cases {
-		t.Run(c.Name, func(t *testing.T) {
+		exam.Run(t, c.Name, c.FatalGolden.GetLoc(), func(t *testing.T) {
 			fakeT := &FakeT{T: t}
 			exam.Must(fakeT, c.Failure)
 			if fakeT.ErrorBody != "" {
