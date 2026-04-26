@@ -103,6 +103,25 @@ arg 0 Foo: "bar"`),
 			Failure: exam.NewFailure1("Foo", "bar").Wrap(fmt.Errorf("wrapped error")),
 			Fatal: true,
 		},
+		{
+			Name: "ArgWithStringIndentLinesFmt",
+			MustGolden: exam.GoldenHere(`
+FATAL: exam.Must(fakeT, c.Failure)
+arg 0 Foo: line1
+	line2
+	line3`),
+			TryGolden: exam.GoldenHere(`
+exam.Try(fakeT, c.Failure)
+arg 0 Foo: line1
+	line2
+	line3`),
+			Failure: func() *exam.Failure {
+				f := exam.NewFailure1("Foo", "line1\nline2\nline3")
+				f.Args[0].Fmt = exam.StringIndentLines
+				return f
+			}(),
+			Fatal: false,
+		},
 	}
 	for _, c := range cases {
 		exam.Run(t, c.Name, c.MustGolden.GetLoc(), func(t *testing.T) {
