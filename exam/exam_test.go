@@ -61,6 +61,12 @@ FATAL: exam.Must(fakeT, c.Failure)
 arg 0 Foo: "bar"`),
 			Failure: exam.NewFailure1("Foo", "bar"),
 		},
+		{
+			Name: "MultiArgFailure",
+			FatalGolden: exam.GoldenHere(`
+`),
+			Failure: exam.NewFailure2("Foo", "bar", "Baz", 42),
+		},
 	}
 	for _, c := range cases {
 		exam.Run(t, c.Name, c.FatalGolden.GetLoc(), func(t *testing.T) {
