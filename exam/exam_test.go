@@ -57,7 +57,8 @@ func TestMust(t *testing.T) {
 		{
 			Name: "SingleArgFailure",
 			FatalGolden: exam.GoldenHere(`
-`),
+FATAL: exam.Must(fakeT, c.Failure)
+arg 0 Foo: "bar"`),
 			Failure: exam.NewFailure1("Foo", "bar"),
 		},
 	}
