@@ -37,8 +37,8 @@ func (t *FakeT) Run(name string, f func(t *testing.T)) bool {
 	return false
 }
 
-func TestMust(t *testing.T) {
-	t.Run("NoFailure", func(t *testing.T) {
+func TestTryMust(t *testing.T) {
+	t.Run("NoFailureMust", func(t *testing.T) {
 		fakeT := &FakeT{T: t}
 		exam.Must(fakeT, nil)
 		if fakeT.ErrorBody != "" {
@@ -46,6 +46,16 @@ func TestMust(t *testing.T) {
 		}
 		if fakeT.FatalBody != "" {
 			t.Errorf("Must unexpectedly called Fatal: %q", fakeT.FatalBody)
+		}
+	})
+	t.Run("NoFailureTry", func(t *testing.T) {
+		fakeT := &FakeT{T: t}
+		exam.Try(fakeT, nil)
+		if fakeT.ErrorBody != "" {
+			t.Errorf("Try unexpectedly called Error: %q", fakeT.ErrorBody)
+		}
+		if fakeT.FatalBody != "" {
+			t.Errorf("Try unexpectedly called Fatal: %q", fakeT.FatalBody)
 		}
 	})
 
