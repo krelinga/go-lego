@@ -64,15 +64,16 @@ func TestTryMust(t *testing.T) {
 		MustGolden exam.Golden
 		TryGolden  exam.Golden
 		Failure    *exam.Failure
+		Args       []any
 		Fatal      bool
 	}{
 		{
 			Name: "SingleArgFailure",
 			MustGolden: exam.GoldenHere(`
-FATAL: exam.Must(fakeT, c.Failure)
+FATAL: exam.Must(fakeT, c.Failure, c.Args...)
 arg 0 Foo: "bar"`),
 			TryGolden: exam.GoldenHere(`
-exam.Try(fakeT, c.Failure)
+exam.Try(fakeT, c.Failure, c.Args...)
 arg 0 Foo: "bar"`),
 			Failure: exam.NewFailure1("Foo", "bar"),
 			Fatal:   false,
@@ -80,11 +81,11 @@ arg 0 Foo: "bar"`),
 		{
 			Name: "MultiArgFailure",
 			MustGolden: exam.GoldenHere(`
-FATAL: exam.Must(fakeT, c.Failure)
+FATAL: exam.Must(fakeT, c.Failure, c.Args...)
 arg 0 Foo: "bar"
 arg 1 Baz: 42`),
 			TryGolden: exam.GoldenHere(`
-exam.Try(fakeT, c.Failure)
+exam.Try(fakeT, c.Failure, c.Args...)
 arg 0 Foo: "bar"
 arg 1 Baz: 42`),
 			Failure: exam.NewFailure2("Foo", "bar", "Baz", 42),
@@ -93,11 +94,11 @@ arg 1 Baz: 42`),
 		{
 			Name: "WrappedFailure",
 			MustGolden: exam.GoldenHere(`
-FATAL: exam.Must(fakeT, c.Failure)
+FATAL: exam.Must(fakeT, c.Failure, c.Args...)
 STRUCTURAL ERROR: wrapped error
 arg 0 Foo: "bar"`),
 			TryGolden: exam.GoldenHere(`
-FATAL: exam.Try(fakeT, c.Failure)
+FATAL: exam.Try(fakeT, c.Failure, c.Args...)
 STRUCTURAL ERROR: wrapped error
 arg 0 Foo: "bar"`),
 			Failure: exam.NewFailure1("Foo", "bar").Wrap(fmt.Errorf("wrapped error")),
@@ -106,12 +107,12 @@ arg 0 Foo: "bar"`),
 		{
 			Name: "ArgWithStringIndentLinesFmt",
 			MustGolden: exam.GoldenHere(`
-FATAL: exam.Must(fakeT, c.Failure)
+FATAL: exam.Must(fakeT, c.Failure, c.Args...)
 arg 0 Foo: line1
 	line2
 	line3`),
 			TryGolden: exam.GoldenHere(`
-exam.Try(fakeT, c.Failure)
+exam.Try(fakeT, c.Failure, c.Args...)
 arg 0 Foo: line1
 	line2
 	line3`),
@@ -127,7 +128,7 @@ arg 0 Foo: line1
 		exam.Run(t, c.Name, c.MustGolden.GetLoc(), func(t *testing.T) {
 			func() {
 				fakeT := &FakeT{T: t}
-				exam.Must(fakeT, c.Failure)
+				exam.Must(fakeT, c.Failure, c.Args...)
 				if fakeT.ErrorBody != "" {
 					t.Fatalf("Must unexpectedly called Error: %q", fakeT.ErrorBody)
 				}
@@ -135,7 +136,7 @@ arg 0 Foo: line1
 			}()
 			func() {
 				fakeT := &FakeT{T: t}
-				exam.Try(fakeT, c.Failure)
+				exam.Try(fakeT, c.Failure, c.Args...)
 				var got string
 				if c.Fatal {
 					if fakeT.ErrorBody != "" {
