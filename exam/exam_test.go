@@ -61,50 +61,75 @@ func TestTryMust(t *testing.T) {
 
 	cases := []struct {
 		Name        string
-		FatalGolden exam.Golden
-		ErrorGolden exam.Golden
+		MustGolden exam.Golden
+		TryGolden exam.Golden
 		Failure     *exam.Failure
+		Fatal       bool
 	}{
 		{
 			Name: "SingleArgFailure",
-			FatalGolden: exam.GoldenHere(`
+			MustGolden: exam.GoldenHere(`
 FATAL: exam.Must(fakeT, c.Failure)
 arg 0 Foo: "bar"`),
-			ErrorGolden: exam.GoldenHere(`
+			TryGolden: exam.GoldenHere(`
 exam.Try(fakeT, c.Failure)
 arg 0 Foo: "bar"`),
 			Failure: exam.NewFailure1("Foo", "bar"),
+			Fatal: false,
 		},
 		{
 			Name: "MultiArgFailure",
-			FatalGolden: exam.GoldenHere(`
+			MustGolden: exam.GoldenHere(`
 FATAL: exam.Must(fakeT, c.Failure)
 arg 0 Foo: "bar"
 arg 1 Baz: 42`),
-			ErrorGolden: exam.GoldenHere(`
+			TryGolden: exam.GoldenHere(`
 exam.Try(fakeT, c.Failure)
 arg 0 Foo: "bar"
 arg 1 Baz: 42`),
 			Failure: exam.NewFailure2("Foo", "bar", "Baz", 42),
+			Fatal: false,
+		},
+		{
+			Name: "WrappedFailure",
+			MustGolden: exam.GoldenHere(`
+FATAL: exam.Must(fakeT, c.Failure)
+STRUCTURAL ERROR: wrapped error
+arg 0 Foo: "bar"`),
+			TryGolden: exam.GoldenHere(`
+FATAL: exam.Try(fakeT, c.Failure)
+STRUCTURAL ERROR: wrapped error
+arg 0 Foo: "bar"`),
+			Failure: exam.NewFailure1("Foo", "bar").Wrap(fmt.Errorf("wrapped error")),
+			Fatal: true,
 		},
 	}
 	for _, c := range cases {
-		exam.Run(t, c.Name, c.FatalGolden.GetLoc(), func(t *testing.T) {
+		exam.Run(t, c.Name, c.MustGolden.GetLoc(), func(t *testing.T) {
 			func() {
 				fakeT := &FakeT{T: t}
 				exam.Must(fakeT, c.Failure)
 				if fakeT.ErrorBody != "" {
-					t.Errorf("Must unexpectedly called Error: %q", fakeT.ErrorBody)
+					t.Fatalf("Must unexpectedly called Error: %q", fakeT.ErrorBody)
 				}
-				exam.Try(t, exam.GoldenEqual(fakeT.FatalBody, c.FatalGolden))
+				exam.Try(t, exam.GoldenEqual(fakeT.FatalBody, c.MustGolden))
 			}()
 			func() {
 				fakeT := &FakeT{T: t}
 				exam.Try(fakeT, c.Failure)
-				if fakeT.FatalBody != "" {
-					t.Errorf("Try unexpectedly called Fatal: %q", fakeT.FatalBody)
+				var got string
+				if c.Fatal {
+					if fakeT.ErrorBody != "" {
+						t.Fatalf("Try unexpectedly called Error: %q", fakeT.ErrorBody)
+					}
+					got = fakeT.FatalBody
+				} else if !c.Fatal {
+					if fakeT.FatalBody != "" {
+						t.Fatalf("Try unexpectedly called Fatal: %q", fakeT.FatalBody)
+					}
+					got = fakeT.ErrorBody
 				}
-				exam.Try(t, exam.GoldenEqual(fakeT.ErrorBody, c.ErrorGolden))
+				exam.Try(t, exam.GoldenEqual(got, c.TryGolden))
 			}()
 		})
 	}
