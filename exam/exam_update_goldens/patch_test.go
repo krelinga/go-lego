@@ -1,6 +1,7 @@
 package main
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/krelinga/go-lego/exam"
@@ -249,6 +250,67 @@ new 2
 			} else {
 				exam.Must(t, exam.Nil(err))
 				exam.Try(t, exam.Equal(got, c.Want))
+			}
+		})
+	}
+}
+
+func TestValidateEntryPath(t *testing.T) {
+	root := "/workspace/myproject"
+	cases := []struct {
+		Name    string
+		Loc     exam.Loc
+		Path    string
+		WantErr bool
+	}{
+		{
+			Name: "valid go file in workspace",
+			Loc:  exam.Here(),
+			Path: filepath.Join(root, "pkg", "foo_test.go"),
+		},
+		{
+			Name: "valid go file at workspace root",
+			Loc:  exam.Here(),
+			Path: filepath.Join(root, "main.go"),
+		},
+		{
+			Name:    "not a go file - txt extension",
+			Loc:     exam.Here(),
+			Path:    filepath.Join(root, "pkg", "data.txt"),
+			WantErr: true,
+		},
+		{
+			Name:    "not a go file - no extension",
+			Loc:     exam.Here(),
+			Path:    filepath.Join(root, "pkg", "somefile"),
+			WantErr: true,
+		},
+		{
+			Name:    "outside workspace - sibling directory",
+			Loc:     exam.Here(),
+			Path:    "/workspace/otherproject/foo.go",
+			WantErr: true,
+		},
+		{
+			Name:    "outside workspace - system go files",
+			Loc:     exam.Here(),
+			Path:    "/usr/local/go/src/fmt/print.go",
+			WantErr: true,
+		},
+		{
+			Name:    "path traversal attempt",
+			Loc:     exam.Here(),
+			Path:    filepath.Clean(filepath.Join(root, "..", "..", "etc", "passwd.go")),
+			WantErr: true,
+		},
+	}
+	for _, c := range cases {
+		exam.Run(t, c.Name, c.Loc, func(t *testing.T) {
+			err := validateEntryPath(c.Path, root)
+			if c.WantErr {
+				exam.Try(t, exam.NotNil(err))
+			} else {
+				exam.Try(t, exam.Nil(err))
 			}
 		})
 	}

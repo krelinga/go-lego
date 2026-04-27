@@ -57,6 +57,20 @@ func main() {
 		return
 	}
 
+	workspaceRoot, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: getting working directory: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Validate all paths before touching any file.
+	for _, e := range entries {
+		if err := validateEntryPath(e.Path, workspaceRoot); err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+	}
+
 	// Group entries by source file and sort each group by line number so that
 	// we can track how inserted/removed lines shift subsequent entries.
 	byFile := make(map[string][]internal.GoldenEntry)

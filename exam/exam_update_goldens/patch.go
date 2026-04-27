@@ -2,10 +2,30 @@ package main
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/krelinga/go-lego/exam/internal"
 )
+
+// validateEntryPath returns an error if path should not be edited.  Two
+// checks are applied:
+//  1. The file must have a ".go" extension.
+//  2. The file must be located within workspaceRoot (i.e. the resolved
+//     relative path must not start with "..").
+func validateEntryPath(path, workspaceRoot string) error {
+	if filepath.Ext(path) != ".go" {
+		return fmt.Errorf("refusing to edit %s: not a .go file", path)
+	}
+	rel, err := filepath.Rel(workspaceRoot, path)
+	if err != nil {
+		return fmt.Errorf("refusing to edit %s: cannot determine path relative to workspace: %w", path, err)
+	}
+	if strings.HasPrefix(rel, "..") {
+		return fmt.Errorf("refusing to edit %s: not within workspace root %s", path, workspaceRoot)
+	}
+	return nil
+}
 
 // applyDiffsToSrc applies a set of golden-entry patches to the Go source text
 // src and returns the updated text.  entries must be sorted by Line ascending
