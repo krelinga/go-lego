@@ -22,10 +22,20 @@ func (g Golden) GetLoc() Loc {
 	return g.loc
 }
 
+// TODO is a placeholder value for golden data that has not yet been generated.
+// Its value is "\n" — a single newline — which satisfies the requirement that
+// golden text must begin with a newline while being short enough that
+// GoldenEqual will always record a mismatch and prompt the tool to fill in the
+// real content.  Pass it to GoldenHere as a placeholder until the golden data
+// can be filled in, for example by running the exam_update_goldens tool.
+const TODO = "\n"
+
 // GoldenHere creates a Golden whose expected text is text and whose source
 // location is the line where GoldenHere is called. text must begin with a
 // newline; by convention the closing backtick of the raw string literal
-// appears on its own line so that the content is unambiguous.
+// appears on its own line so that the content is unambiguous. As a
+// convenience, exam.TODO may be passed as a placeholder until real golden
+// data is available.
 func GoldenHere(text string) Golden {
 	return Golden{
 		loc:  here(1),
