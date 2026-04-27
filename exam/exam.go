@@ -15,8 +15,9 @@ import (
 )
 
 // T is the subset of [testing.T] that exam assertion functions accept.
-// *testing.T satisfies T directly; FakeT satisfies it for unit-testing
-// exam-based assertions without a real test binary.
+// *testing.T satisfies T directly.  This interface allows for tests
+// that use exam assertions to be unit-tested with a fake implementation
+// of T.
 type T interface {
 	Helper()
 	Error(args ...any)
