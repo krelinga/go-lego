@@ -1,3 +1,26 @@
+// Package exam provides a lightweight test assertion library built on top of
+// the standard [testing] package.
+//
+// Assertions are expressed as functions that return a [Failure] value: nil
+// means the assertion passed, a non-nil value means it failed.  Failures are
+// reported by passing them to [Try] or [Must]:
+//
+//   - [Try] records a non-fatal error via t.Error and continues the test.
+//   - [Must] records a fatal error via t.Fatal and stops the test immediately.
+//
+// Assertion functions ([Equal], [Greater], [Nil], …) are generic where
+// possible.  Custom equality or ordering logic can be supplied via the
+// corresponding *Func variants ([EqualFunc], [NotEqualFunc], …).
+//
+// The package also supports table-driven tests through [Here] and [Run].
+// [Here] captures the source location of a test-case struct literal; [Run]
+// logs that source text at the start of each subtest so that failures can be
+// traced back to the originating data row.
+//
+// Golden-file testing is provided via [GoldenHere] and [GoldenEqual].  When
+// the -exam_goldens_diff_path flag is set (typically by the update_goldens
+// binary), mismatches are written to a diff file for bulk updating instead of
+// failing the test.
 package exam
 
 import (
