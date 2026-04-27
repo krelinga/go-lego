@@ -2,10 +2,15 @@ package exam
 
 import "testing"
 
+// FakeLog holds the variadic arguments from a single Error or Fatal call on FakeT.
 type FakeLog []any
 
+// FakeT is a test double for T. It captures Error and Fatal calls so that
+// exam-based assertions can be unit-tested without a real *testing.T.
 type FakeT struct {
+	// Errors accumulates the arguments from each Error call.
 	Errors []FakeLog
+	// Fatals accumulates the arguments from each Fatal call.
 	Fatals []FakeLog
 }
 

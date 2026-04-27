@@ -14,6 +14,9 @@ import (
 	"testing"
 )
 
+// T is the subset of [testing.T] that exam assertion functions accept.
+// *testing.T satisfies T directly; FakeT satisfies it for unit-testing
+// exam-based assertions without a real test binary.
 type T interface {
 	Helper()
 	Error(args ...any)
@@ -110,37 +113,40 @@ func handleResult(t T, must bool, failure *Failure, extras ...any) bool {
 	return false
 }
 
-// Try checks condition and, if false, records a non-fatal test failure using t.Error.
-// The failure message includes the source text of the call site and any optional args.
-// Returns true if the condition passed, false otherwise.
+// Try reports a non-fatal test error via t.Error when failure is non-nil.
+// The failure message includes the source text of the assertion call site;
+// any extras are appended to it. Returns true when failure is nil.
 func Try(t T, failure *Failure, extras ...any) bool {
 	t.Helper()
 	return handleResult(t, false, failure, extras...)
 }
 
-// Must checks condition and, if false, records a fatal test failure using t.Fatal,
-// stopping the test immediately. The failure message includes the source text of the
-// call site and any optional args. Returns true if the condition passed, false otherwise.
+// Must reports a fatal test error via t.Fatal when failure is non-nil, stopping
+// the test immediately. Failures that wrap an underlying error (see
+// Failure.IsCritical) are also fatal when passed to Try. The failure message
+// includes the source text of the assertion call site; any extras are appended
+// to it. Returns true when failure is nil.
 func Must(t T, failure *Failure, extras ...any) bool {
 	t.Helper()
 	return handleResult(t, true, failure, extras...)
 }
 
-// Loc identifies a specific location in a source file by file path and line number.
-// It is typically obtained by calling Here() at the point of interest.
+// Loc identifies a specific location in a source file.
+// Obtain a Loc at a particular call site using Here().
 type Loc struct {
+	// File is the absolute path to the source file.
 	File string
+	// Line is the 1-based line number within File.
 	Line int
 }
 
-// String returns a short human-readable representation of the location in the form
-// "filename.go:line".
+// String returns the location as "filename.go:line", using only the base name of File.
 func (l Loc) String() string {
 	basename := filepath.Base(l.File)
 	return fmt.Sprintf("%s:%d", basename, l.Line)
 }
 
-// Here returns a Loc representing the source location of the caller.
+// Here returns a Loc for the source line where Here is called.
 func Here() Loc {
 	return here(1)
 }
@@ -220,9 +226,10 @@ func loadAssertionContext(loc Loc) (string, error) {
 	return strings.TrimSpace(sb.String()), nil
 }
 
-// Run executes a named subtest using t.Run and logs the source text of the table-driven
-// test case identified by loc. loc should be obtained by calling Here() on the same line
-// as the struct literal that defines the test case data.
+// Run executes f as a named subtest via t.Run. loc must be obtained by calling
+// Here() on the same source line as the table-driven test case struct literal;
+// its source text is logged at the start of the subtest so that failures can
+// be traced back to the originating data row. Returns the bool result of t.Run.
 func Run(t T, name string, loc Loc, f func(*testing.T)) bool {
 	t.Helper()
 	return t.Run(name, func(t *testing.T) {
