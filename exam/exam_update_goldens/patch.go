@@ -31,9 +31,11 @@ func validateEntryPath(path, workspaceRoot string) error {
 // src and returns the updated text.  entries must be sorted by Line ascending
 // and must all refer to line numbers within src (1-indexed).
 //
-// Each entry locates the first backtick on the entry's source line and
-// replaces the raw-string literal content between that backtick and the next
-// one in the file with entry.Text.  A running lineOffset tracks how prior
+// Each entry locates the GoldenHere( call on the entry's source line, finds
+// the extent of its single argument (which may be a raw-string literal, an
+// interpreted string literal, the exam.TODO constant, or a concatenated
+// expression), and replaces that argument with a new Go string expression
+// produced by generateStringExpr.  A running lineOffset tracks how prior
 // patches shift the line numbers of later entries.
 func applyDiffsToSrc(src string, entries []internal.GoldenEntry) (string, error) {
 	// lineOffset accumulates the net change in line count from patches applied
@@ -49,30 +51,138 @@ func applyDiffsToSrc(src string, entries []internal.GoldenEntry) (string, error)
 			return "", fmt.Errorf("locating line %d: %w", targetLine, err)
 		}
 
-		// The opening backtick of the GoldenHere() raw-string argument must
-		// appear at or after the GoldenHere( token on this line.
-		relOpen := strings.Index(src[lineStart:], "`")
-		if relOpen < 0 {
-			return "", fmt.Errorf("no opening backtick found on line %d", targetLine)
+		// Find "GoldenHere(" on this line.
+		relGoldenHere := strings.Index(src[lineStart:], "GoldenHere(")
+		if relGoldenHere < 0 {
+			return "", fmt.Errorf("no GoldenHere( found on line %d", targetLine)
 		}
-		openContent := lineStart + relOpen + 1 // byte position just after the opening `
+		// argStart is the byte position of the first byte of the argument.
+		argStart := lineStart + relGoldenHere + len("GoldenHere(")
 
-		// Find the matching closing backtick.
-		relClose := strings.Index(src[openContent:], "`")
-		if relClose < 0 {
-			return "", fmt.Errorf("no closing backtick found for GoldenHere on line %d", targetLine)
+		// Find the matching closing ')' of GoldenHere(...).
+		argEnd, err := findArgEnd(src, argStart)
+		if err != nil {
+			return "", fmt.Errorf("finding argument end for GoldenHere on line %d: %w", targetLine, err)
 		}
-		closeBacktick := openContent + relClose // byte position of the closing `
+
+		oldArg := src[argStart:argEnd]
+		newArg := generateStringExpr(entry.Text)
 
 		// Update the running offset by the net line-count delta of this patch.
-		oldContent := src[openContent:closeBacktick]
-		lineOffset += strings.Count(entry.Text, "\n") - strings.Count(oldContent, "\n")
+		lineOffset += strings.Count(newArg, "\n") - strings.Count(oldArg, "\n")
 
-		// Splice in the new content, leaving both backticks in place.
-		src = src[:openContent] + entry.Text + src[closeBacktick:]
+		// Splice in the new argument, leaving the surrounding parentheses in place.
+		src = src[:argStart] + newArg + src[argEnd:]
 	}
 
 	return src, nil
+}
+
+// findArgEnd returns the byte position of the closing ')' that closes the
+// GoldenHere( call, given that argStart is the first byte after the opening
+// '('.  It properly handles nested parentheses, raw string literals (backtick-
+// delimited), interpreted string literals (double-quote-delimited), and rune
+// literals (single-quote-delimited).
+func findArgEnd(src string, argStart int) (int, error) {
+	depth := 0
+	i := argStart
+	for i < len(src) {
+		switch src[i] {
+		case '`':
+			// Raw string literal: scan forward until the closing backtick.
+			i++
+			for i < len(src) && src[i] != '`' {
+				i++
+			}
+			if i >= len(src) {
+				return 0, fmt.Errorf("unterminated raw string literal")
+			}
+			i++ // skip closing backtick
+		case '"':
+			// Interpreted string literal: scan until an unescaped '"'.
+			i++
+			closed := false
+			for i < len(src) {
+				if src[i] == '\\' {
+					if i+1 < len(src) {
+						i += 2
+					} else {
+						i++
+					}
+					continue
+				}
+				if src[i] == '"' {
+					i++
+					closed = true
+					break
+				}
+				i++
+			}
+			if !closed {
+				return 0, fmt.Errorf("unterminated interpreted string literal")
+			}
+		case '\'':
+			// Rune literal: scan until an unescaped '\''.
+			i++
+			closed := false
+			for i < len(src) {
+				if src[i] == '\\' {
+					if i+1 < len(src) {
+						i += 2
+					} else {
+						i++
+					}
+					continue
+				}
+				if src[i] == '\'' {
+					i++
+					closed = true
+					break
+				}
+				i++
+			}
+			if !closed {
+				return 0, fmt.Errorf("unterminated rune literal")
+			}
+		case '(':
+			depth++
+			i++
+		case ')':
+			if depth == 0 {
+				return i, nil
+			}
+			depth--
+			i++
+		default:
+			i++
+		}
+	}
+	return 0, fmt.Errorf("no matching closing parenthesis found")
+}
+
+// generateStringExpr returns a Go expression that evaluates to text.
+// When text contains no backtick characters a single raw string literal is
+// returned.  When text does contain backticks the result is a concatenation
+// of raw string literals (for the non-backtick segments) and double-quoted
+// string literals (for the backtick characters themselves), so that the
+// overall expression is valid Go regardless of the content.
+func generateStringExpr(text string) string {
+	if !strings.ContainsRune(text, '`') {
+		return "`" + text + "`"
+	}
+
+	parts := strings.Split(text, "`")
+	var exprs []string
+	for i, part := range parts {
+		if part != "" {
+			exprs = append(exprs, "`"+part+"`")
+		}
+		if i < len(parts)-1 {
+			// Represent the backtick character as a double-quoted string literal.
+			exprs = append(exprs, "\"`\"")
+		}
+	}
+	return strings.Join(exprs, " + ")
 }
 
 // findLineStart returns the byte offset of the first byte on the given

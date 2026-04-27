@@ -96,6 +96,14 @@ old content 2
 ` + "`" + `))
 }`
 
+// srcWithTODO is test source where the GoldenHere argument is the exam.TODO
+// constant rather than a raw string literal.  GoldenHere is on line 4.
+const srcWithTODO = `package test
+
+func TestFoo(t *testing.T) {
+	exam.GoldenEqual(s, exam.GoldenHere(exam.TODO))
+}`
+
 func TestApplyDiffsToSrc(t *testing.T) {
 	cases := []struct {
 		Name    string
@@ -228,18 +236,42 @@ new 2
 			WantErr: true,
 		},
 		{
-			Name:    "no opening backtick on target line",
+			Name:    "no GoldenHere on target line",
 			Loc:     exam.Here(),
-			Src:     "no backtick here\n",
+			Src:     "no GoldenHere here\n",
 			Entries: []internal.GoldenEntry{{Line: 1, Text: "\nnew\n"}},
 			WantErr: true,
 		},
 		{
-			Name:    "no closing backtick",
+			Name:    "unterminated raw string in GoldenHere",
 			Loc:     exam.Here(),
-			Src:     "f(`unclosed",
+			Src:     "GoldenHere(`unclosed",
 			Entries: []internal.GoldenEntry{{Line: 1, Text: "\nnew\n"}},
 			WantErr: true,
+		},
+		{
+			// Replace exam.TODO placeholder with real golden content.
+			Name:    "replace exam.TODO placeholder",
+			Loc:     exam.Here(),
+			Src:     srcWithTODO,
+			Entries: []internal.GoldenEntry{{Line: 4, Text: "\nnew content\n"}},
+			Want: `package test
+
+func TestFoo(t *testing.T) {
+	exam.GoldenEqual(s, exam.GoldenHere(` + "`" + `
+new content
+` + "`" + `))
+}`,
+		},
+		{
+			// When the new text contains backticks, the argument is replaced with
+			// a concatenated expression that avoids raw-string-literal backticks.
+			Name:    "new content contains backtick",
+			Loc:     exam.Here(),
+			Src:     srcSingleGolden,
+			Entries: []internal.GoldenEntry{{Line: 4, Text: "\nhello `world`\n"}},
+			Want: "package test\n\nfunc TestFoo(t *testing.T) {\n" +
+				"\texam.GoldenEqual(s, exam.GoldenHere(`\nhello ` + \"`\" + `world` + \"`\" + `\n`))\n}",
 		},
 	}
 	for _, c := range cases {
@@ -312,6 +344,58 @@ func TestValidateEntryPath(t *testing.T) {
 			} else {
 				exam.Try(t, exam.Nil(err))
 			}
+		})
+	}
+}
+
+func TestGenerateStringExpr(t *testing.T) {
+	cases := []struct {
+		Name string
+		Loc  exam.Loc
+		Text string
+		Want string
+	}{
+		{
+			Name: "no backticks produces raw string literal",
+			Loc:  exam.Here(),
+			Text: "\nhello\n",
+			Want: "`\nhello\n`",
+		},
+		{
+			Name: "single backtick in middle",
+			Loc:  exam.Here(),
+			Text: "\nhello `world`\n",
+			Want: "`\nhello ` + \"`\" + `world` + \"`\" + `\n`",
+		},
+		{
+			Name: "text is only a backtick",
+			Loc:  exam.Here(),
+			Text: "`",
+			Want: "\"`\"",
+		},
+		{
+			Name: "consecutive backticks",
+			Loc:  exam.Here(),
+			Text: "\n``\n",
+			Want: "`\n` + \"`\" + \"`\" + `\n`",
+		},
+		{
+			Name: "backtick at start",
+			Loc:  exam.Here(),
+			Text: "`hello\n",
+			Want: "\"`\" + `hello\n`",
+		},
+		{
+			Name: "backtick at end",
+			Loc:  exam.Here(),
+			Text: "\nhello`",
+			Want: "`\nhello` + \"`\"",
+		},
+	}
+	for _, c := range cases {
+		exam.Run(t, c.Name, c.Loc, func(t *testing.T) {
+			got := generateStringExpr(c.Text)
+			exam.Try(t, exam.Equal(got, c.Want))
 		})
 	}
 }
