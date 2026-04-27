@@ -11,7 +11,6 @@ import (
 	"os"
 	"os/exec"
 	"sort"
-	"strings"
 
 	"github.com/krelinga/go-lego/exam/internal"
 )
@@ -76,65 +75,16 @@ func main() {
 	}
 }
 
-// applyDiffs patches the raw-string literal arguments of GoldenHere() calls in
-// path according to entries.  Entries must already be sorted by Line ascending.
+// applyDiffs reads path, delegates the patch logic to applyDiffsToSrc, and
+// writes the result back.  entries must be sorted by Line ascending.
 func applyDiffs(path string, entries []internal.GoldenEntry) error {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return fmt.Errorf("reading file: %w", err)
 	}
-
-	src := string(data)
-	// lineOffset accumulates the net change in line count from all patches
-	// applied so far, so that later entries (whose Line fields refer to the
-	// original file) can be located correctly in the already-patched src.
-	lineOffset := 0
-
-	for _, entry := range entries {
-		targetLine := entry.Line + lineOffset // still 1-indexed
-
-		lineStart, err := findLineStart(src, targetLine)
-		if err != nil {
-			return fmt.Errorf("locating line %d: %w", targetLine, err)
-		}
-
-		// The opening backtick of the raw string literal that is the argument
-		// to GoldenHere() must appear at or after the GoldenHere( call on this
-		// line.  Find it.
-		relOpen := strings.Index(src[lineStart:], "`")
-		if relOpen < 0 {
-			return fmt.Errorf("no opening backtick found on line %d", targetLine)
-		}
-		openContent := lineStart + relOpen + 1 // byte position just after the opening `
-
-		// Find the closing backtick.
-		relClose := strings.Index(src[openContent:], "`")
-		if relClose < 0 {
-			return fmt.Errorf("no closing backtick found for GoldenHere on line %d", targetLine)
-		}
-		closeBacktick := openContent + relClose // byte position of the closing `
-
-		// Measure the line-count delta so we can adjust subsequent entries.
-		oldContent := src[openContent:closeBacktick]
-		lineOffset += strings.Count(entry.Text, "\n") - strings.Count(oldContent, "\n")
-
-		// Splice in the new text (leave the two backticks in place).
-		src = src[:openContent] + entry.Text + src[closeBacktick:]
+	result, err := applyDiffsToSrc(string(data), entries)
+	if err != nil {
+		return err
 	}
-
-	return os.WriteFile(path, []byte(src), 0644)
-}
-
-// findLineStart returns the byte offset of the first byte on the given
-// 1-indexed line within src.
-func findLineStart(src string, lineNum int) (int, error) {
-	pos := 0
-	for line := 1; line < lineNum; line++ {
-		idx := strings.Index(src[pos:], "\n")
-		if idx < 0 {
-			return 0, fmt.Errorf("file has fewer than %d lines", lineNum)
-		}
-		pos += idx + 1
-	}
-	return pos, nil
+	return os.WriteFile(path, []byte(result), 0644)
 }
