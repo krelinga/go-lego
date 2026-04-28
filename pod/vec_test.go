@@ -8,6 +8,10 @@ import (
 	"github.com/krelinga/go-lego/pod"
 )
 
+func TestVecImplements(t *testing.T) {
+	exam.Try(t, exam.Implements[*pod.Slice[int], pod.Vec[int]]())
+}
+
 func TestVecView(t *testing.T) {
 	cases := []struct {
 		Name     string
