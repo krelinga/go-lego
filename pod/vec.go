@@ -69,6 +69,20 @@ func (v vecView[V, T]) RevIdxVals() iter.Seq2[int, T] {
 
 type Slice[T any] []T
 
+func CloneValsIntoVec[T any](vals Vals[T], out Vec[T]) {
+	CloneValsIntoVecFunc(vals, out, func(x T) T { return x })
+}
+
+func CloneValsIntoVecFunc[T any, U any](vals Vals[T], out Vec[U], valueFunc func(T) U) {
+	out.Clear()
+	if canReserve, ok := out.(CanReserve); ok {
+		canReserve.Reserve(vals.Len())
+	}
+	for v := range vals.Vals() {
+		out.Push(valueFunc(v))
+	}
+}
+
 func CloneVecInto[T any](in VecView[T], out Vec[T]) {
 	CloneVecIntoFunc(in, out, func(x T) T { return x })
 }
