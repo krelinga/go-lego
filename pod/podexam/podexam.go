@@ -8,7 +8,7 @@ import (
 	"github.com/krelinga/go-lego/pod"
 )
 
-func MapEqualFunc[K comparable, V any](x, y pod.DictView[K, V], f any) *exam.Failure {
+func DictEqualFunc[K comparable, V any](x, y pod.DictView[K, V], f any) *exam.Failure {
 	failure := exam.NewFailure2("x", x, "y", y)
 	valueEqual, err := mirror.WrapFunc2In1Out[V, V, bool](f)
 	if err != nil {
