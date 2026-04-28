@@ -112,3 +112,24 @@ func (k *keyAsVal[K, V]) Len() int {
 func (k *keyAsVal[K, V]) Vals() iter.Seq[K] {
 	return k.keyVals.Keys()
 }
+
+type RevVals[T any] interface {
+	Len() int
+	RevVals() iter.Seq[T]
+}
+
+func ReverseVals[T any](revVals RevVals[T]) Vals[T] {
+	return &reverseVals[T]{revVals: revVals}
+}
+
+type reverseVals[T any] struct {
+	revVals RevVals[T]
+}
+
+func (r *reverseVals[T]) Len() int {
+	return r.revVals.Len()
+}
+
+func (r *reverseVals[T]) Vals() iter.Seq[T] {
+	return r.revVals.RevVals()
+}
