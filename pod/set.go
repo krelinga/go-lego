@@ -62,6 +62,20 @@ func (s setOfDictKeys[T, V]) Vals() iter.Seq[T] {
 
 type MapSet[T comparable] map[T]struct{}
 
+func CloneValsIntoSetFunc[T, U any](vals Vals[T], out Set[U], valueFunc func(T) U) {
+	out.Clear()
+	if canReserve, ok := out.(CanReserve); ok {
+		canReserve.Reserve(vals.Len())
+	}
+	for value := range vals.Vals() {
+		out.Add(valueFunc(value))
+	}
+}
+
+func CloneValsIntoSet[T any](vals Vals[T], out Set[T]) {
+	CloneValsIntoSetFunc(vals, out, func(x T) T { return x })
+}
+
 func CloneSetInto[T any](in SetView[T], out Set[T]) {
 	CloneSetIntoFunc(in, out, func(x T) T { return x })
 }
