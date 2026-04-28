@@ -69,17 +69,18 @@ func (v vecView[V, T]) RevIdxVals() iter.Seq2[int, T] {
 
 type Slice[T any] []T
 
-func CloneVecToSlice[T any](vec VecView[T]) *Slice[T] {
-	return CloneVecToSliceFunc(vec, func(x T) T { return x })
+func CloneVecInto[T any](in VecView[T], out Vec[T]) {
+	CloneVecIntoFunc(in, out, func(x T) T { return x })
 }
 
-func CloneVecToSliceFunc[T any, U any](vec VecView[T], valueFunc func(T) U) *Slice[U] {
-	v := &Slice[U]{}
-	v.Reserve(vec.Len())
-	for i := 0; i < vec.Len(); i++ {
-		v.Push(valueFunc(vec.At(i)))
+func CloneVecIntoFunc[T any, U any](vec VecView[T], out Vec[U], valueFunc func(T) U) {
+	out.Clear()
+	if canReserve, ok := out.(CanReserve); ok {
+		canReserve.Reserve(vec.Len())
 	}
-	return v
+	for i := 0; i < vec.Len(); i++ {
+		out.Push(valueFunc(vec.At(i)))
+	}
 }
 
 func (v *Slice[T]) Len() int {
@@ -222,10 +223,23 @@ func VecEqual[T comparable](a, b VecView[T]) bool {
 	})
 }
 
-func VecSort[T cmp.Ordered](vec *Slice[T]) {
+func VecSort[T cmp.Ordered](vec Vec[T]) {
 	VecSortFunc(vec, cmp.Compare[T])
 }
 
-func VecSortFunc[T any](vec *Slice[T], order func(T, T) int) {
-	slices.SortFunc(*vec, order)
+func VecSortFunc[T any](vec Vec[T], order func(T, T) int) {
+	if slice, ok := vec.(*Slice[T]); ok {
+		slices.SortFunc(*slice, order)
+		return
+	}
+
+	// TODO: make this more-efficient if/when we have non-Slice Vec implementations.
+	temp := make([]T, vec.Len())
+	for i := 0; i < vec.Len(); i++ {
+		temp[i] = vec.At(i)
+	}
+	slices.SortFunc(temp, order)
+	for i := 0; i < vec.Len(); i++ {
+		vec.Set(i, temp[i])
+	}
 }
