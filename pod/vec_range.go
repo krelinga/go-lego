@@ -2,7 +2,7 @@ package pod
 
 import "iter"
 
-func NewVecRange[T any](parent VecView[T], from, to int) VecView[T] {
+func VecRange[T any](parent VecView[T], from, to int) VecView[T] {
 	if from < 0 || to > parent.Len() || from > to {
 		panic("invalid range")
 	}
@@ -13,12 +13,12 @@ func NewVecRange[T any](parent VecView[T], from, to int) VecView[T] {
 	}
 }
 
-func NewVecRangeFrom[T any](parent VecView[T], from int) VecView[T] {
-	return NewVecRange(parent, from, parent.Len())
+func VecRangeFrom[T any](parent VecView[T], from int) VecView[T] {
+	return VecRange(parent, from, parent.Len())
 }
 
-func NewVecRangeTo[T any](parent VecView[T], to int) VecView[T] {
-	return NewVecRange(parent, 0, to)
+func VecRangeTo[T any](parent VecView[T], to int) VecView[T] {
+	return VecRange(parent, 0, to)
 }
 
 type vecRange[T any] struct {

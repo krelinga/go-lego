@@ -3,11 +3,10 @@ package pod
 import (
 	"fmt"
 	"iter"
-	"slices"
 )
 
 type SliceSet[T any] struct {
-	slice []T
+	slice *Slice[T]
 	equal func(a, b T) bool
 }
 
@@ -19,25 +18,24 @@ func NewSliceSetFunc[T any](equal func(a, b T) bool, vals ...T) *SliceSet[T] {
 			}
 		}
 	}
+	mySlice := &Slice[T]{}
+	CloneVecInto(AsVec(vals), mySlice)
 	return &SliceSet[T]{
-		slice: vals,
+		slice: mySlice,
 		equal: equal,
 	}
 }
 
 func NewSliceSet[T comparable](vals ...T) *SliceSet[T] {
-	return &SliceSet[T]{
-		slice: vals,
-		equal: func(a, b T) bool { return a == b },
-	}
+	return NewSliceSetFunc(func(a, b T) bool { return a == b }, vals...)
 }
 
 func (s *SliceSet[T]) Len() int {
-	return len(s.slice)
+	return s.slice.Len()
 }
 
 func (s *SliceSet[T]) Has(value T) bool {
-	for _, v := range s.slice {
+	for v := range s.slice.Vals() {
 		if s.equal(v, value) {
 			return true
 		}
@@ -46,33 +44,37 @@ func (s *SliceSet[T]) Has(value T) bool {
 }
 
 func (s *SliceSet[T]) Vals() iter.Seq[T] {
-	return slices.Values(s.slice)
+	return s.slice.Vals()
 }
 
 func (s *SliceSet[T]) Add(value T) {
 	if s.Has(value) {
 		return
 	}
-	s.slice = append(s.slice, value)
+	s.slice.Push(value)
 }
 
 func (s *SliceSet[T]) Clear() {
-	s.slice = nil
+	s.slice.Clear()
 }
 
 func (s *SliceSet[T]) Delete(value T) {
-	for i, v := range s.slice {
+	valueIdx := -1
+	for i, v := range s.slice.IdxVals() {
 		if s.equal(v, value) {
-			s.slice = append(s.slice[:i], s.slice[i+1:]...)
-			return
+			valueIdx = i
+			break
 		}
 	}
+	if valueIdx == -1 {
+		return
+	}
+	before := VecRangeTo(s.slice, valueIdx)
+	after := VecRangeFrom(s.slice, valueIdx+1)
+	vals := ConcatVals(before, after)
+	CloneValsIntoVec(vals, s.slice)
 }
 
 func (s *SliceSet[T]) Reserve(n int) {
-	if cap(s.slice) < n {
-		newSlice := make([]T, len(s.slice), n)
-		copy(newSlice, s.slice)
-		s.slice = newSlice
-	}
+	s.slice.Reserve(n)
 }
