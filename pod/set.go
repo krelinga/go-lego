@@ -39,11 +39,11 @@ func (s setView[S, T, V]) Vals() iter.Seq[T] {
 	return maps.Keys(s.s)
 }
 
-func SetOfDictKeys[T comparable, V any](m DictView[T, V]) SetView[T] {
+func SetOfDictKeys[T, V any](m DictView[T, V]) SetView[T] {
 	return setOfDictKeys[T, V]{m: m}
 }
 
-type setOfDictKeys[T comparable, V any] struct {
+type setOfDictKeys[T, V any] struct {
 	m DictView[T, V]
 }
 
