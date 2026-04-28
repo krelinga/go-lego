@@ -96,3 +96,19 @@ func (c *concatKeyVals[K, V]) Vals() iter.Seq[V] {
 		}
 	}
 }
+
+func KeysAsVals[K, V any](keyVals KeyVals[K, V]) Vals[K] {
+	return &keysAsVals[K, V]{keyVals: keyVals}
+}
+
+type keysAsVals[K, V any] struct {
+	keyVals KeyVals[K, V]
+}
+
+func (k *keysAsVals[K, V]) Len() int {
+	return k.keyVals.Len()
+}
+
+func (k *keysAsVals[K, V]) Vals() iter.Seq[K] {
+	return k.keyVals.Keys()
+}
