@@ -213,3 +213,16 @@ func NotNil[T any](x T) *Failure {
 	}
 	return failure
 }
+// Implements returns nil when Got implements IFace, or a Failure otherwise.
+func Implements[Got, IFace any]() *Failure {
+	failure := NewFailure2("Got", reflect.TypeFor[Got](), "IFace", reflect.TypeFor[IFace]())
+	if reflect.TypeFor[IFace]().Kind() != reflect.Interface {
+		return failure.Wrap(fmt.Errorf("type parameter IFace must be an interface"))
+	}
+	var gotZero Got
+	_, ok := any(gotZero).(IFace)
+	if ok {
+		return nil
+	}
+	return failure
+}
