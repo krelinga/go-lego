@@ -20,6 +20,22 @@ type Dict[K, V any] interface {
 	Delete(key K)
 }
 
+func CloneKeyValsIntoDict[K, V any](keyVals KeyVals[K, V], out Dict[K, V]) {
+	keyFunc := func(k K) K { return k }
+	valueFunc := func(v V) V { return v }
+	CloneKeyValsIntoDictFunc(keyVals, out, keyFunc, valueFunc)
+}
+
+func CloneKeyValsIntoDictFunc[K, V, KK, VV any](keyVals KeyVals[K, V], out Dict[KK, VV], keyFunc func(K) KK, valueFunc func(V) VV) {
+	out.Clear()
+	if canReserve, ok := out.(CanReserve); ok {
+		canReserve.Reserve(keyVals.Len())
+	}
+	for k, v := range keyVals.KeyVals() {
+		out.Set(keyFunc(k), valueFunc(v))
+	}
+}
+
 func CloneDictInto[K, V any](in DictView[K, V], out Dict[K, V]) {
 	keyClone := func(k K) K { return k }
 	valueClone := func(v V) V { return v }
