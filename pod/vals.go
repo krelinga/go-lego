@@ -133,3 +133,66 @@ func (r *reverseVals[T]) Len() int {
 func (r *reverseVals[T]) Vals() iter.Seq[T] {
 	return r.revVals.RevVals()
 }
+
+type IdxVals[T any] interface {
+	Vals[T]
+	IdxVals() iter.Seq2[int, T]
+}
+
+func IdxAsVal[T any](idxVals IdxVals[T]) Vals[int] {
+	return &idxAsVal[T]{idxVals: idxVals}
+}
+
+type idxAsVal[T any] struct {
+	idxVals IdxVals[T]
+}
+
+func (i *idxAsVal[T]) Len() int {
+	return i.idxVals.Len()
+}
+
+func (i *idxAsVal[T]) Vals() iter.Seq[int] {
+	return func(yield func(int) bool) {
+		for idx := range i.idxVals.Len() {
+			if !yield(idx) {
+				return
+			}
+		}
+	}
+}
+
+func IdxAsKey[T any](idxVals IdxVals[T]) KeyVals[int, T] {
+	return &idxAsKey[T]{idxVals: idxVals}
+}
+
+type idxAsKey[T any] struct {
+	idxVals IdxVals[T]
+}
+
+func (i *idxAsKey[T]) Len() int {
+	return i.idxVals.Len()
+}
+
+func (i *idxAsKey[T]) Keys() iter.Seq[int] {
+	return func(yield func(int) bool) {
+		for idx := range i.idxVals.Len() {
+			if !yield(idx) {
+				return
+			}
+		}
+	}
+}
+
+func (i *idxAsKey[T]) KeyVals() iter.Seq2[int, T] {
+	return i.idxVals.IdxVals()
+}
+
+func (i *idxAsKey[T]) Vals() iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for v := range i.idxVals.Vals() {
+			if !yield(v) {
+				return
+			}
+		}
+	}
+}
