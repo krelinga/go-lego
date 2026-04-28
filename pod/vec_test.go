@@ -10,40 +10,40 @@ import (
 
 func TestVecView(t *testing.T) {
 	cases := []struct {
-		Name        string
-		Loc         exam.Loc
-		VecView     pod.VecView[int]
-		WantVals    []int
+		Name     string
+		Loc      exam.Loc
+		VecView  pod.VecView[int]
+		WantVals []int
 	}{
 		{
-			Name:        "empty Vec",
-			Loc:         exam.Here(),
-			VecView:     &pod.Vec[int]{},
-			WantVals:    nil,
+			Name:     "empty Vec",
+			Loc:      exam.Here(),
+			VecView:  &pod.Slice[int]{},
+			WantVals: nil,
 		},
 		{
-			Name:        "non-empty Vec",
-			Loc:         exam.Here(),
-			VecView:     &pod.Vec[int]{1, 2, 3},
-			WantVals:    []int{1, 2, 3},
+			Name:     "non-empty Vec",
+			Loc:      exam.Here(),
+			VecView:  &pod.Slice[int]{1, 2, 3},
+			WantVals: []int{1, 2, 3},
 		},
 		{
-			Name:        "AsVec nil",
-			Loc:         exam.Here(),
-			VecView:     pod.AsVec([]int(nil)),
-			WantVals:    nil,
+			Name:     "AsVec nil",
+			Loc:      exam.Here(),
+			VecView:  pod.AsVec([]int(nil)),
+			WantVals: nil,
 		},
 		{
-			Name:        "AsVec empty",
-			Loc:         exam.Here(),
-			VecView:     pod.AsVec([]int{}),
-			WantVals:    nil,
+			Name:     "AsVec empty",
+			Loc:      exam.Here(),
+			VecView:  pod.AsVec([]int{}),
+			WantVals: nil,
 		},
 		{
-			Name:        "AsVec non-empty",
-			Loc:         exam.Here(),
-			VecView:     pod.AsVec([]int{1, 2, 3}),
-			WantVals:    []int{1, 2, 3},
+			Name:     "AsVec non-empty",
+			Loc:      exam.Here(),
+			VecView:  pod.AsVec([]int{1, 2, 3}),
+			WantVals: []int{1, 2, 3},
 		},
 		{
 			Name: "Wrapped Empty",
@@ -52,7 +52,7 @@ func TestVecView(t *testing.T) {
 				pod.AsVec([]float64(nil)),
 				func(x float64) int { return int(x) },
 			),
-			WantVals:    nil,
+			WantVals: nil,
 		},
 		{
 			Name: "Wrapped non-empty",
@@ -61,7 +61,7 @@ func TestVecView(t *testing.T) {
 				pod.AsVec([]float64{1.0, 2.0, 3.0}),
 				func(x float64) int { return int(x) },
 			),
-			WantVals:    []int{1, 2, 3},
+			WantVals: []int{1, 2, 3},
 		},
 	}
 	for _, c := range cases {

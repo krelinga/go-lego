@@ -32,43 +32,43 @@ func StructOrder(a, b Struct) int {
 func TestUsingGet(t *testing.T) {
 	cases := []struct {
 		Name string
-		Loc exam.Loc
+		Loc  exam.Loc
 		A, B Struct
 		Want func(int) bool
 	}{
 		{
 			Name: "a < b",
-			Loc: exam.Here(),
-			A: Struct{Foo: 1, Bar: "a"},
-			B: Struct{Foo: 2, Bar: "b"},
+			Loc:  exam.Here(),
+			A:    Struct{Foo: 1, Bar: "a"},
+			B:    Struct{Foo: 2, Bar: "b"},
 			Want: order.Less,
 		},
 		{
 			Name: "a > b",
-			Loc: exam.Here(),
-			A: Struct{Foo: 2, Bar: "b"},
-			B: Struct{Foo: 1, Bar: "a"},
+			Loc:  exam.Here(),
+			A:    Struct{Foo: 2, Bar: "b"},
+			B:    Struct{Foo: 1, Bar: "a"},
 			Want: order.Greater,
 		},
 		{
 			Name: "a == b",
-			Loc: exam.Here(),
-			A: Struct{Foo: 1, Bar: "a"},
-			B: Struct{Foo: 1, Bar: "a"},
+			Loc:  exam.Here(),
+			A:    Struct{Foo: 1, Bar: "a"},
+			B:    Struct{Foo: 1, Bar: "a"},
 			Want: order.Equal,
 		},
 		{
 			Name: "a < b by Bar",
-			Loc: exam.Here(),
-			A: Struct{Foo: 1, Bar: "a"},
-			B: Struct{Foo: 1, Bar: "b"},
+			Loc:  exam.Here(),
+			A:    Struct{Foo: 1, Bar: "a"},
+			B:    Struct{Foo: 1, Bar: "b"},
 			Want: order.Less,
 		},
 		{
 			Name: "a > b by Bar",
-			Loc: exam.Here(),
-			A: Struct{Foo: 1, Bar: "b"},
-			B: Struct{Foo: 1, Bar: "a"},
+			Loc:  exam.Here(),
+			A:    Struct{Foo: 1, Bar: "b"},
+			B:    Struct{Foo: 1, Bar: "a"},
 			Want: order.Greater,
 		},
 	}
@@ -81,7 +81,7 @@ func TestUsingGet(t *testing.T) {
 
 type Struct2 struct {
 	Foo int
-	Bar *pod.Vec[string]
+	Bar *pod.Slice[string]
 }
 
 func (s Struct2) GetFoo() int {
@@ -111,43 +111,43 @@ func Struct2Order(a, b Struct2) int {
 func TestUsingGetFunc(t *testing.T) {
 	cases := []struct {
 		Name string
-		Loc exam.Loc
+		Loc  exam.Loc
 		A, B Struct2
 		Want func(int) bool
 	}{
 		{
 			Name: "a < b",
-			Loc: exam.Here(),
-			A: Struct2{Foo: 1, Bar: &pod.Vec[string]{"a"}},
-			B: Struct2{Foo: 2, Bar: &pod.Vec[string]{"b"}},
+			Loc:  exam.Here(),
+			A:    Struct2{Foo: 1, Bar: &pod.Slice[string]{"a"}},
+			B:    Struct2{Foo: 2, Bar: &pod.Slice[string]{"b"}},
 			Want: order.Less,
 		},
 		{
 			Name: "a > b",
-			Loc: exam.Here(),
-			A: Struct2{Foo: 2, Bar: &pod.Vec[string]{"b"}},
-			B: Struct2{Foo: 1, Bar: &pod.Vec[string]{"a"}},
+			Loc:  exam.Here(),
+			A:    Struct2{Foo: 2, Bar: &pod.Slice[string]{"b"}},
+			B:    Struct2{Foo: 1, Bar: &pod.Slice[string]{"a"}},
 			Want: order.Greater,
 		},
 		{
 			Name: "a == b",
-			Loc: exam.Here(),
-			A: Struct2{Foo: 1, Bar: &pod.Vec[string]{"a"}},
-			B: Struct2{Foo: 1, Bar: &pod.Vec[string]{"a"}},
+			Loc:  exam.Here(),
+			A:    Struct2{Foo: 1, Bar: &pod.Slice[string]{"a"}},
+			B:    Struct2{Foo: 1, Bar: &pod.Slice[string]{"a"}},
 			Want: order.Equal,
 		},
 		{
 			Name: "a < b by Bar",
-			Loc: exam.Here(),
-			A: Struct2{Foo: 1, Bar: &pod.Vec[string]{"a"}},
-			B: Struct2{Foo: 1, Bar: &pod.Vec[string]{"b"}},
+			Loc:  exam.Here(),
+			A:    Struct2{Foo: 1, Bar: &pod.Slice[string]{"a"}},
+			B:    Struct2{Foo: 1, Bar: &pod.Slice[string]{"b"}},
 			Want: order.Less,
 		},
 		{
 			Name: "a > b by Bar",
-			Loc: exam.Here(),
-			A: Struct2{Foo: 1, Bar: &pod.Vec[string]{"b"}},
-			B: Struct2{Foo: 1, Bar: &pod.Vec[string]{"a"}},
+			Loc:  exam.Here(),
+			A:    Struct2{Foo: 1, Bar: &pod.Slice[string]{"b"}},
+			B:    Struct2{Foo: 1, Bar: &pod.Slice[string]{"a"}},
 			Want: order.Greater,
 		},
 	}
