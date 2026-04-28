@@ -213,6 +213,7 @@ func NotNil[T any](x T) *Failure {
 	}
 	return failure
 }
+
 // Implements returns nil when Got implements IFace, or a Failure otherwise.
 func Implements[Got, IFace any]() *Failure {
 	failure := NewFailure2("Got", reflect.TypeFor[Got](), "IFace", reflect.TypeFor[IFace]())
