@@ -63,6 +63,11 @@ func (s setOfDictKeys[T, V]) Vals() iter.Seq[T] {
 
 type MapSet[T comparable] map[T]struct{}
 
+func NewMapSetHint[T comparable](hint int) *MapSet[T] {
+	s := make(map[T]struct{}, hint)
+	return (*MapSet[T])(&s)
+}
+
 func CloneValsIntoSetFunc[T, U any](vals Vals[T], out Set[U], valueFunc func(T) U) {
 	out.Clear()
 	if canReserve, ok := out.(CanReserve); ok {
