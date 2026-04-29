@@ -18,6 +18,7 @@ type Dict[K, V any] interface {
 	Put(key K, value V)
 	Clear()
 	Del(key K)
+	PutKeyVals(keyVals KeyVals[K, V])
 }
 
 func CloneKeyValsIntoDict[K, V any](keyVals KeyVals[K, V], out Dict[K, V]) {
@@ -93,6 +94,13 @@ func (m *Map[K, V]) Put(key K, value V) {
 		*m = make(map[K]V)
 	}
 	(*m)[key] = value
+}
+
+func (m *Map[K, V]) PutKeyVals(keyVals KeyVals[K, V]) {
+	if *m == nil {
+		*m = make(map[K]V, keyVals.Len())
+	}
+	maps.Insert((*m), keyVals.KeyVals())
 }
 
 func (m *Map[K, V]) Clear() {

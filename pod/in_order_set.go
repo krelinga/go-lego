@@ -54,6 +54,12 @@ func (s *InOrderSet[T]) Put(value T) {
 	s.slice.Push(value)
 }
 
+func (s *InOrderSet[T]) PutVals(vals Vals[T]) {
+	for value := range vals.Vals() {
+		s.Put(value)
+	}
+}
+
 func (s *InOrderSet[T]) Clear() {
 	s.slice.Clear()
 }

@@ -16,6 +16,7 @@ type Set[T any] interface {
 	Put(value T)
 	Clear()
 	Del(value T)
+	PutVals(vals Vals[T])
 }
 
 func AsSet[S ~map[T]V, T comparable, V any](s S) SetView[T] {
@@ -94,6 +95,15 @@ func (s *MapSet[T]) Put(value T) {
 		*s = make(map[T]struct{})
 	}
 	(*s)[value] = struct{}{}
+}
+
+func (s *MapSet[T]) PutVals(vals Vals[T]) {
+	if *s == nil {
+		*s = make(map[T]struct{}, vals.Len())
+	}
+	for value := range vals.Vals() {
+		(*s)[value] = struct{}{}
+	}
 }
 
 func (s *MapSet[T]) Clear() {
