@@ -83,20 +83,6 @@ func CloneValsIntoVecFunc[T any, U any](vals Vals[T], out Vec[U], valueFunc func
 	}
 }
 
-func CloneVecInto[T any](in VecView[T], out Vec[T]) {
-	CloneVecIntoFunc(in, out, func(x T) T { return x })
-}
-
-func CloneVecIntoFunc[T any, U any](vec VecView[T], out Vec[U], valueFunc func(T) U) {
-	out.Clear()
-	if canReserve, ok := out.(CanReserve); ok {
-		canReserve.Reserve(vec.Len())
-	}
-	for i := 0; i < vec.Len(); i++ {
-		out.Push(valueFunc(vec.Get(i)))
-	}
-}
-
 func (v *Slice[T]) Len() int {
 	return len(*v)
 }

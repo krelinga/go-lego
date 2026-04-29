@@ -76,20 +76,6 @@ func CloneValsIntoSet[T any](vals Vals[T], out Set[T]) {
 	CloneValsIntoSetFunc(vals, out, func(x T) T { return x })
 }
 
-func CloneSetInto[T any](in SetView[T], out Set[T]) {
-	CloneSetIntoFunc(in, out, func(x T) T { return x })
-}
-
-func CloneSetIntoFunc[T, U any](in SetView[T], out Set[U], valueFunc func(T) U) {
-	out.Clear()
-	if canReserve, ok := out.(CanReserve); ok {
-		canReserve.Reserve(in.Len())
-	}
-	for value := range in.Vals() {
-		out.Put(valueFunc(value))
-	}
-}
-
 func (s *MapSet[T]) Len() int {
 	return len(*s)
 }

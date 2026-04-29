@@ -36,22 +36,6 @@ func CloneKeyValsIntoDictFunc[K, V, KK, VV any](keyVals KeyVals[K, V], out Dict[
 	}
 }
 
-func CloneDictInto[K, V any](in DictView[K, V], out Dict[K, V]) {
-	keyClone := func(k K) K { return k }
-	valueClone := func(v V) V { return v }
-	CloneDictIntoFunc(in, out, keyClone, valueClone)
-}
-
-func CloneDictIntoFunc[K, V, KK, VV any](in DictView[K, V], out Dict[KK, VV], keyFunc func(K) KK, valueFunc func(V) VV) {
-	out.Clear()
-	if canReserve, ok := out.(CanReserve); ok {
-		canReserve.Reserve(in.Len())
-	}
-	for k, v := range in.KeyVals() {
-		out.Put(keyFunc(k), valueFunc(v))
-	}
-}
-
 func AsDict[M ~map[K]V, K comparable, V any](m M) DictView[K, V] {
 	return dictView[M, K, V]{m: m}
 }

@@ -19,7 +19,7 @@ func NewSliceSetFunc[T any](equal func(a, b T) bool, vals ...T) *SliceSet[T] {
 		}
 	}
 	mySlice := &Slice[T]{}
-	CloneVecInto(AsVec(vals), mySlice)
+	CloneValsIntoVec(AsVec(vals), mySlice)
 	return &SliceSet[T]{
 		slice: mySlice,
 		equal: equal,
