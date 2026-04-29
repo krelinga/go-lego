@@ -1,7 +1,11 @@
 package exam_test
 
-import "testing"
-import "github.com/krelinga/go-lego/exam"
+import (
+	"strings"
+	"testing"
+
+	"github.com/krelinga/go-lego/exam"
+)
 
 type IFace interface {
 	IFaceMethod()
@@ -53,4 +57,24 @@ func TestImplements(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestImplementsArgFormat(t *testing.T) {
+	failure := exam.Implements[int, IFace]()
+	exam.Must(t, exam.NotNil(failure))
+	exam.Must(t, exam.Equal(len(failure.Args), 2))
+
+	gotStr, err := failure.Args[0].ToString()
+	exam.Must(t, exam.Nil(err))
+	if strings.Contains(gotStr, "reflect.rtype") {
+		t.Errorf("Args[0] should not contain reflect.rtype, got: %s", gotStr)
+	}
+	exam.Try(t, exam.Equal(gotStr, "Got: int"))
+
+	ifaceStr, err := failure.Args[1].ToString()
+	exam.Must(t, exam.Nil(err))
+	if strings.Contains(ifaceStr, "reflect.rtype") {
+		t.Errorf("Args[1] should not contain reflect.rtype, got: %s", ifaceStr)
+	}
+	exam.Try(t, exam.Equal(ifaceStr, "IFace: exam_test.IFace"))
 }

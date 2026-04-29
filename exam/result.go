@@ -216,7 +216,19 @@ func NotNil[T any](x T) *Failure {
 
 // Implements returns nil when Got implements IFace, or a Failure otherwise.
 func Implements[Got, IFace any]() *Failure {
-	failure := NewFailure2("Got", reflect.TypeFor[Got](), "IFace", reflect.TypeFor[IFace]())
+	typeFmt := func(v reflect.Value) (string, error) {
+		t, ok := v.Interface().(reflect.Type)
+		if !ok {
+			return "", fmt.Errorf("expected reflect.Type, got %T", v.Interface())
+		}
+		return t.String(), nil
+	}
+	failure := &Failure{
+		Args: Args{
+			{Name: "Got", Value: mirror.ValueFor(reflect.TypeFor[Got]()), Fmt: typeFmt},
+			{Name: "IFace", Value: mirror.ValueFor(reflect.TypeFor[IFace]()), Fmt: typeFmt},
+		},
+	}
 	if reflect.TypeFor[IFace]().Kind() != reflect.Interface {
 		return failure.Wrap(fmt.Errorf("type parameter IFace must be an interface"))
 	}
