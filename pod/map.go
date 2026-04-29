@@ -67,19 +67,6 @@ func (m dictView[M, K, V]) Vals() iter.Seq[V] {
 
 type Map[K comparable, V any] map[K]V
 
-func CloneMap[K comparable, V any](m DictView[K, V]) *Map[K, V] {
-	return CloneMapFunc(m, func(k K) K { return k }, func(v V) V { return v })
-}
-
-func CloneMapFunc[K any, KK comparable, V, VV any](m DictView[K, V], keyFunc func(K) KK, valueFunc func(V) VV) *Map[KK, VV] {
-	c := &Map[KK, VV]{}
-	c.Reserve(m.Len())
-	for k, v := range m.KeyVals() {
-		c.Put(keyFunc(k), valueFunc(v))
-	}
-	return c
-}
-
 func (m *Map[K, V]) Len() int {
 	return len(*m)
 }
