@@ -71,6 +71,16 @@ func (v vecView[V, T]) RevIdxVals() iter.Seq2[int, T] {
 
 type Slice[T any] []T
 
+func NewSlice[T any](len int) *Slice[T] {
+	slice := make([]T, len)
+	return (*Slice[T])(&slice)
+}
+
+func NewSliceCap[T any](len, cap int) *Slice[T] {
+	slice := make([]T, len, cap)
+	return (*Slice[T])(&slice)
+}
+
 func CloneValsIntoVec[T any](vals Vals[T], out Vec[T]) {
 	CloneValsIntoVecFunc(vals, out, func(x T) T { return x })
 }
