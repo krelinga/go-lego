@@ -1,7 +1,6 @@
 package pod
 
 import (
-	"fmt"
 	"iter"
 )
 
@@ -11,19 +10,14 @@ type InOrderSet[T any] struct {
 }
 
 func NewInOrderSetFunc[T any](equal func(a, b T) bool, vals ...T) *InOrderSet[T] {
-	for i := range vals {
-		for j := range i {
-			if equal(vals[i], vals[j]) {
-				panic(fmt.Sprintf("duplicate value at index %d and %d", i, j))
-			}
-		}
-	}
-	mySlice := &Slice[T]{}
-	CloneValsIntoVec(AsVec(vals), mySlice)
-	return &InOrderSet[T]{
-		slice: mySlice,
+	s := &InOrderSet[T]{
+		slice: &Slice[T]{},
 		equal: equal,
 	}
+	for _, v := range vals {
+		s.Put(v)
+	}
+	return s
 }
 
 func NewInOrderSet[T comparable](vals ...T) *InOrderSet[T] {
