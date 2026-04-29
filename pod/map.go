@@ -68,6 +68,16 @@ func (m dictView[M, K, V]) Vals() iter.Seq[V] {
 
 type Map[K comparable, V any] map[K]V
 
+func NewMap[K comparable, V any]() *Map[K, V] {
+	m := make(map[K]V)
+	return (*Map[K, V])(&m)
+}
+
+func NewMapHint[K comparable, V any](hint int) *Map[K, V] {
+	m := make(map[K]V, hint)
+	return (*Map[K, V])(&m)
+}
+
 func (m *Map[K, V]) Len() int {
 	return len(*m)
 }
