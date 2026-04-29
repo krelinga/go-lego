@@ -22,6 +22,7 @@ type Vec[T any] interface {
 	Push(value T)
 	Pop() T
 	PushVals(vals Vals[T])
+	Resize(newLen int)
 }
 
 func AsVec[V ~[]T, T any](v V) VecView[T] {
@@ -144,6 +145,18 @@ func (v *Slice[T]) PushVals(vals Vals[T]) {
 	v.Reserve(v.Len() + vals.Len())
 	for value := range vals.Vals() {
 		v.Push(value)
+	}
+}
+
+func (v *Slice[T]) Resize(newLen int) {
+	if newLen < len(*v) {
+		*v = (*v)[:newLen]
+	} else if newLen > len(*v) {
+		v.Reserve(newLen)
+		var zero T
+		for i := len(*v); i < newLen; i++ {
+			*v = append(*v, zero)
+		}
 	}
 }
 
