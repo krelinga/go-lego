@@ -63,6 +63,11 @@ func (s setOfDictKeys[T, V]) Vals() iter.Seq[T] {
 
 type MapSet[T comparable] map[T]struct{}
 
+func NewMapSet[T comparable]() *MapSet[T] {
+	s := make(map[T]struct{})
+	return (*MapSet[T])(&s)
+}
+
 func NewMapSetHint[T comparable](hint int) *MapSet[T] {
 	s := make(map[T]struct{}, hint)
 	return (*MapSet[T])(&s)
