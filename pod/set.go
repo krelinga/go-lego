@@ -13,9 +13,9 @@ type SetView[T any] interface {
 
 type Set[T any] interface {
 	SetView[T]
-	Add(value T)
+	Put(value T)
 	Clear()
-	Delete(value T)
+	Del(value T)
 }
 
 func AsSet[S ~map[T]V, T comparable, V any](s S) SetView[T] {
@@ -68,7 +68,7 @@ func CloneValsIntoSetFunc[T, U any](vals Vals[T], out Set[U], valueFunc func(T) 
 		canReserve.Reserve(vals.Len())
 	}
 	for value := range vals.Vals() {
-		out.Add(valueFunc(value))
+		out.Put(valueFunc(value))
 	}
 }
 
@@ -86,7 +86,7 @@ func CloneSetIntoFunc[T, U any](in SetView[T], out Set[U], valueFunc func(T) U) 
 		canReserve.Reserve(in.Len())
 	}
 	for value := range in.Vals() {
-		out.Add(valueFunc(value))
+		out.Put(valueFunc(value))
 	}
 }
 
@@ -103,7 +103,7 @@ func (s *MapSet[T]) Vals() iter.Seq[T] {
 	return maps.Keys(*s)
 }
 
-func (s *MapSet[T]) Add(value T) {
+func (s *MapSet[T]) Put(value T) {
 	if *s == nil {
 		*s = make(map[T]struct{})
 	}
@@ -120,7 +120,7 @@ func (s *MapSet[T]) Reserve(n int) {
 	}
 }
 
-func (s *MapSet[T]) Delete(value T) {
+func (s *MapSet[T]) Del(value T) {
 	delete(*s, value)
 }
 

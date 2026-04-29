@@ -38,19 +38,19 @@ func (r vecRange[T]) Len() int {
 	return r.to - r.from
 }
 
-func (r vecRange[T]) At(i int) T {
+func (r vecRange[T]) Get(i int) T {
 	r.checkParent()
 	if i < 0 || i >= r.Len() {
 		panic("index out of range")
 	}
-	return r.parent.At(r.from + i)
+	return r.parent.Get(r.from + i)
 }
 
 func (r vecRange[T]) Vals() iter.Seq[T] {
 	r.checkParent()
 	return func(yield func(T) bool) {
 		for i := r.from; i < r.to; i++ {
-			if !yield(r.parent.At(i)) {
+			if !yield(r.parent.Get(i)) {
 				return
 			}
 		}
@@ -61,7 +61,7 @@ func (r vecRange[T]) IdxVals() iter.Seq2[int, T] {
 	r.checkParent()
 	return func(yield func(int, T) bool) {
 		for i := r.from; i < r.to; i++ {
-			if !yield(i-r.from, r.parent.At(i)) {
+			if !yield(i-r.from, r.parent.Get(i)) {
 				return
 			}
 		}
@@ -72,7 +72,7 @@ func (r vecRange[T]) RevVals() iter.Seq[T] {
 	r.checkParent()
 	return func(yield func(T) bool) {
 		for i := r.to - 1; i >= r.from; i-- {
-			if !yield(r.parent.At(i)) {
+			if !yield(r.parent.Get(i)) {
 				return
 			}
 		}
@@ -83,7 +83,7 @@ func (r vecRange[T]) RevIdxVals() iter.Seq2[int, T] {
 	r.checkParent()
 	return func(yield func(int, T) bool) {
 		for i := r.to - 1; i >= r.from; i-- {
-			if !yield(i-r.from, r.parent.At(i)) {
+			if !yield(i-r.from, r.parent.Get(i)) {
 				return
 			}
 		}

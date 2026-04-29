@@ -8,7 +8,7 @@ import (
 
 type VecView[T any] interface {
 	Len() int
-	At(i int) T
+	Get(i int) T
 	Vals() iter.Seq[T]
 	IdxVals() iter.Seq2[int, T]
 	RevVals() iter.Seq[T]
@@ -35,7 +35,7 @@ func (v vecView[V, T]) Len() int {
 	return len(v.v)
 }
 
-func (v vecView[V, T]) At(i int) T {
+func (v vecView[V, T]) Get(i int) T {
 	return v.v[i]
 }
 
@@ -93,7 +93,7 @@ func CloneVecIntoFunc[T any, U any](vec VecView[T], out Vec[U], valueFunc func(T
 		canReserve.Reserve(vec.Len())
 	}
 	for i := 0; i < vec.Len(); i++ {
-		out.Push(valueFunc(vec.At(i)))
+		out.Push(valueFunc(vec.Get(i)))
 	}
 }
 
@@ -101,7 +101,7 @@ func (v *Slice[T]) Len() int {
 	return len(*v)
 }
 
-func (v *Slice[T]) At(i int) T {
+func (v *Slice[T]) Get(i int) T {
 	return (*v)[i]
 }
 
@@ -175,8 +175,8 @@ func (w wrappedVecVals[T, V]) Len() int {
 	return w.vec.Len()
 }
 
-func (w wrappedVecVals[T, V]) At(i int) V {
-	return w.wrap(w.vec.At(i))
+func (w wrappedVecVals[T, V]) Get(i int) V {
+	return w.wrap(w.vec.Get(i))
 }
 
 func (w wrappedVecVals[T, V]) Vals() iter.Seq[V] {
@@ -224,7 +224,7 @@ func VecEqualFunc[T any](a, b VecView[T], eq func(T, T) bool) bool {
 		return false
 	}
 	for i := 0; i < a.Len(); i++ {
-		if !eq(a.At(i), b.At(i)) {
+		if !eq(a.Get(i), b.Get(i)) {
 			return false
 		}
 	}
@@ -250,7 +250,7 @@ func VecSortFunc[T any](vec Vec[T], order func(T, T) int) {
 	// TODO: make this more-efficient if/when we have non-Slice Vec implementations.
 	temp := make([]T, vec.Len())
 	for i := 0; i < vec.Len(); i++ {
-		temp[i] = vec.At(i)
+		temp[i] = vec.Get(i)
 	}
 	slices.SortFunc(temp, order)
 	for i := 0; i < vec.Len(); i++ {

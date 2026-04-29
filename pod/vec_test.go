@@ -73,7 +73,7 @@ func TestVecView(t *testing.T) {
 			exam.Must(t, exam.Equal(c.VecView.Len(), len(c.WantVals)))
 
 			for i := range c.WantVals {
-				exam.Try(t, exam.Equal(c.VecView.At(i), c.WantVals[i]))
+				exam.Try(t, exam.Equal(c.VecView.Get(i), c.WantVals[i]))
 			}
 
 			gotVals := slices.Collect(c.VecView.Vals())

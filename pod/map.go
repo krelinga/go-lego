@@ -15,9 +15,9 @@ type DictView[K, V any] interface {
 
 type Dict[K, V any] interface {
 	DictView[K, V]
-	Set(key K, value V)
+	Put(key K, value V)
 	Clear()
-	Delete(key K)
+	Del(key K)
 }
 
 func CloneKeyValsIntoDict[K, V any](keyVals KeyVals[K, V], out Dict[K, V]) {
@@ -32,7 +32,7 @@ func CloneKeyValsIntoDictFunc[K, V, KK, VV any](keyVals KeyVals[K, V], out Dict[
 		canReserve.Reserve(keyVals.Len())
 	}
 	for k, v := range keyVals.KeyVals() {
-		out.Set(keyFunc(k), valueFunc(v))
+		out.Put(keyFunc(k), valueFunc(v))
 	}
 }
 
@@ -48,7 +48,7 @@ func CloneDictIntoFunc[K, V, KK, VV any](in DictView[K, V], out Dict[KK, VV], ke
 		canReserve.Reserve(in.Len())
 	}
 	for k, v := range in.KeyVals() {
-		out.Set(keyFunc(k), valueFunc(v))
+		out.Put(keyFunc(k), valueFunc(v))
 	}
 }
 
@@ -91,7 +91,7 @@ func CloneMapFunc[K any, KK comparable, V, VV any](m DictView[K, V], keyFunc fun
 	c := &Map[KK, VV]{}
 	c.Reserve(m.Len())
 	for k, v := range m.KeyVals() {
-		c.Set(keyFunc(k), valueFunc(v))
+		c.Put(keyFunc(k), valueFunc(v))
 	}
 	return c
 }
@@ -117,7 +117,7 @@ func (m *Map[K, V]) Vals() iter.Seq[V] {
 	return maps.Values(*m)
 }
 
-func (m *Map[K, V]) Set(key K, value V) {
+func (m *Map[K, V]) Put(key K, value V) {
 	if *m == nil {
 		*m = make(map[K]V)
 	}
@@ -134,7 +134,7 @@ func (m *Map[K, V]) Reserve(n int) {
 	}
 }
 
-func (m *Map[K, V]) Delete(key K) {
+func (m *Map[K, V]) Del(key K) {
 	delete(*m, key)
 }
 

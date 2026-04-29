@@ -47,7 +47,7 @@ func (s *SliceSet[T]) Vals() iter.Seq[T] {
 	return s.slice.Vals()
 }
 
-func (s *SliceSet[T]) Add(value T) {
+func (s *SliceSet[T]) Put(value T) {
 	if s.Has(value) {
 		return
 	}
@@ -58,7 +58,7 @@ func (s *SliceSet[T]) Clear() {
 	s.slice.Clear()
 }
 
-func (s *SliceSet[T]) Delete(value T) {
+func (s *SliceSet[T]) Del(value T) {
 	valueIdx := -1
 	for i, v := range s.slice.IdxVals() {
 		if s.equal(v, value) {
