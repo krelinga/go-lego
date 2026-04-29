@@ -5,12 +5,12 @@ import (
 	"iter"
 )
 
-type SliceSet[T any] struct {
+type InOrderSet[T any] struct {
 	slice *Slice[T]
 	equal func(a, b T) bool
 }
 
-func NewSliceSetFunc[T any](equal func(a, b T) bool, vals ...T) *SliceSet[T] {
+func NewInOrderSetFunc[T any](equal func(a, b T) bool, vals ...T) *InOrderSet[T] {
 	for i := range vals {
 		for j := range i {
 			if equal(vals[i], vals[j]) {
@@ -20,21 +20,21 @@ func NewSliceSetFunc[T any](equal func(a, b T) bool, vals ...T) *SliceSet[T] {
 	}
 	mySlice := &Slice[T]{}
 	CloneValsIntoVec(AsVec(vals), mySlice)
-	return &SliceSet[T]{
+	return &InOrderSet[T]{
 		slice: mySlice,
 		equal: equal,
 	}
 }
 
-func NewSliceSet[T comparable](vals ...T) *SliceSet[T] {
-	return NewSliceSetFunc(func(a, b T) bool { return a == b }, vals...)
+func NewInOrderSet[T comparable](vals ...T) *InOrderSet[T] {
+	return NewInOrderSetFunc(func(a, b T) bool { return a == b }, vals...)
 }
 
-func (s *SliceSet[T]) Len() int {
+func (s *InOrderSet[T]) Len() int {
 	return s.slice.Len()
 }
 
-func (s *SliceSet[T]) Has(value T) bool {
+func (s *InOrderSet[T]) Has(value T) bool {
 	for v := range s.slice.Vals() {
 		if s.equal(v, value) {
 			return true
@@ -43,22 +43,22 @@ func (s *SliceSet[T]) Has(value T) bool {
 	return false
 }
 
-func (s *SliceSet[T]) Vals() iter.Seq[T] {
+func (s *InOrderSet[T]) Vals() iter.Seq[T] {
 	return s.slice.Vals()
 }
 
-func (s *SliceSet[T]) Put(value T) {
+func (s *InOrderSet[T]) Put(value T) {
 	if s.Has(value) {
 		return
 	}
 	s.slice.Push(value)
 }
 
-func (s *SliceSet[T]) Clear() {
+func (s *InOrderSet[T]) Clear() {
 	s.slice.Clear()
 }
 
-func (s *SliceSet[T]) Del(value T) {
+func (s *InOrderSet[T]) Del(value T) {
 	valueIdx := -1
 	for i, v := range s.slice.IdxVals() {
 		if s.equal(v, value) {
@@ -75,6 +75,6 @@ func (s *SliceSet[T]) Del(value T) {
 	CloneValsIntoVec(vals, s.slice)
 }
 
-func (s *SliceSet[T]) Reserve(n int) {
+func (s *InOrderSet[T]) Reserve(n int) {
 	s.slice.Reserve(n)
 }
