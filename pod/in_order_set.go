@@ -48,31 +48,12 @@ func (s *InOrderSet[T]) Put(value T) {
 	s.slice.Push(value)
 }
 
-func (s *InOrderSet[T]) PutVals(vals Vals[T]) {
-	for value := range vals.Vals() {
-		s.Put(value)
-	}
-}
-
 func (s *InOrderSet[T]) Clear() {
 	s.slice.Clear()
 }
 
 func (s *InOrderSet[T]) Del(value T) {
-	valueIdx := -1
-	for i, v := range s.slice.IdxVals() {
-		if s.equal(v, value) {
-			valueIdx = i
-			break
-		}
-	}
-	if valueIdx == -1 {
-		return
-	}
-	before := VecRangeTo(s.slice, valueIdx)
-	after := VecRangeFrom(s.slice, valueIdx+1)
-	vals := ConcatVals(before, after)
-	CloneValsIntoVec(vals, s.slice)
+	// TODO: implement
 }
 
 func (s *InOrderSet[T]) Reserve(n int) {
