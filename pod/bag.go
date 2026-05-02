@@ -59,6 +59,11 @@ type Vals[T any] interface {
 	Vals() iter.Seq[T]
 }
 
+type RevVals[T any] interface {
+	Len() int
+	RevVals() iter.Seq[T]
+}
+
 type Keys[K any] interface {
 	Len() int
 	Keys() iter.Seq[K]
@@ -67,6 +72,73 @@ type Keys[K any] interface {
 type KeyVals[K, V any] interface {
 	Len() int
 	KeyVals() iter.Seq2[K, V]
+}
+
+type IdxVals[T any] interface {
+	Len() int
+	IdxVals() iter.Seq2[int, T]
+}
+
+func IdxValsOf[T any](v IdxVals[T]) Bag2[int, T] {
+	return newBag2(v.Len, v.IdxVals)
+}
+
+func IdxValsOfFunc[T1, T2 any](v IdxVals[T1], f func(int, T1) (int, T2)) Bag2[int, T2] {
+	return newBag2(
+		v.Len,
+		func() iter.Seq2[int, T2] {
+			return func(yield func(int, T2) bool) {
+				for i, t1 := range v.IdxVals() {
+					if !yield(f(i, t1)) {
+						return
+					}
+				}
+			}
+		},
+	)
+}
+
+type RevIdxVals[T any] interface {
+	Len() int
+	RevIdxVals() iter.Seq2[int, T]
+}
+
+func RevIdxValsOf[T any](v RevIdxVals[T]) Bag2[int, T] {
+	return newBag2(v.Len, v.RevIdxVals)
+}
+
+func RevIdxValsOfFunc[T1, T2 any](v RevIdxVals[T1], f func(int, T1) (int, T2)) Bag2[int, T2] {
+	return newBag2(
+		v.Len,
+		func() iter.Seq2[int, T2] {
+			return func(yield func(int, T2) bool) {
+				for i, t1 := range v.RevIdxVals() {
+					if !yield(f(i, t1)) {
+						return
+					}
+				}
+			}
+		},
+	)
+}
+
+func RevValsOf[T any](v RevVals[T]) Bag[T] {
+	return newBag(v.Len, v.RevVals)
+}
+
+func RevValsOfFunc[T1, T2 any](v RevVals[T1], f func(T1) T2) Bag[T2] {
+	return newBag(
+		v.Len,
+		func() iter.Seq[T2] {
+			return func(yield func(T2) bool) {
+				for t1 := range v.RevVals() {
+					if !yield(f(t1)) {
+						return
+					}
+				}
+			}
+		},
+	)
 }
 
 func ValsOf[T any](v Vals[T]) Bag[T] {
