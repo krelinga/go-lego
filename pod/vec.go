@@ -8,11 +8,21 @@ import (
 
 type VecView[T any] interface {
 	Len() int
-	At(i int) T
+	Get(i int) T
 	Vals() iter.Seq[T]
 	IdxVals() iter.Seq2[int, T]
 	RevVals() iter.Seq[T]
 	RevIdxVals() iter.Seq2[int, T]
+}
+
+type Vec[T any] interface {
+	VecView[T]
+	Set(i int, value T)
+	Clear()
+	Push(value T)
+	Pop() T
+	PushVals(vals Vals[T])
+	Resize(newLen int)
 }
 
 func AsVec[V ~[]T, T any](v V) VecView[T] {
@@ -27,7 +37,7 @@ func (v vecView[V, T]) Len() int {
 	return len(v.v)
 }
 
-func (v vecView[V, T]) At(i int) T {
+func (v vecView[V, T]) Get(i int) T {
 	return v.v[i]
 }
 
@@ -59,38 +69,49 @@ func (v vecView[V, T]) RevIdxVals() iter.Seq2[int, T] {
 	}
 }
 
-type Vec[T any] []T
+type Slice[T any] []T
 
-func CloneVec[T any](vec VecView[T]) *Vec[T] {
-	return CloneVecFunc(vec, func(x T) T { return x })
+func NewSlice[T any](len int) *Slice[T] {
+	slice := make([]T, len)
+	return (*Slice[T])(&slice)
 }
 
-func CloneVecFunc[T any, U any](vec VecView[T], valueFunc func(T) U) *Vec[U] {
-	v := &Vec[U]{}
-	v.Reserve(vec.Len())
-	for i := 0; i < vec.Len(); i++ {
-		v.Push(valueFunc(vec.At(i)))
+func NewSliceCap[T any](len, cap int) *Slice[T] {
+	slice := make([]T, len, cap)
+	return (*Slice[T])(&slice)
+}
+
+func CloneValsIntoVec[T any](vals Vals[T], out Vec[T]) {
+	CloneValsIntoVecFunc(vals, out, func(x T) T { return x })
+}
+
+func CloneValsIntoVecFunc[T any, U any](vals Vals[T], out Vec[U], valueFunc func(T) U) {
+	out.Clear()
+	if canReserve, ok := out.(CanReserve); ok {
+		canReserve.Reserve(vals.Len())
 	}
-	return v
+	for v := range vals.Vals() {
+		out.Push(valueFunc(v))
+	}
 }
 
-func (v *Vec[T]) Len() int {
+func (v *Slice[T]) Len() int {
 	return len(*v)
 }
 
-func (v *Vec[T]) At(i int) T {
+func (v *Slice[T]) Get(i int) T {
 	return (*v)[i]
 }
 
-func (v *Vec[T]) Vals() iter.Seq[T] {
+func (v *Slice[T]) Vals() iter.Seq[T] {
 	return slices.Values(*v)
 }
 
-func (v *Vec[T]) IdxVals() iter.Seq2[int, T] {
+func (v *Slice[T]) IdxVals() iter.Seq2[int, T] {
 	return slices.All(*v)
 }
 
-func (v *Vec[T]) RevVals() iter.Seq[T] {
+func (v *Slice[T]) RevVals() iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for i := len(*v) - 1; i >= 0; i-- {
 			if !yield((*v)[i]) {
@@ -100,7 +121,7 @@ func (v *Vec[T]) RevVals() iter.Seq[T] {
 	}
 }
 
-func (v *Vec[T]) RevIdxVals() iter.Seq2[int, T] {
+func (v *Slice[T]) RevIdxVals() iter.Seq2[int, T] {
 	return func(yield func(int, T) bool) {
 		for i := len(*v) - 1; i >= 0; i-- {
 			if !yield(i, (*v)[i]) {
@@ -110,15 +131,15 @@ func (v *Vec[T]) RevIdxVals() iter.Seq2[int, T] {
 	}
 }
 
-func (v *Vec[T]) Set(i int, value T) {
+func (v *Slice[T]) Set(i int, value T) {
 	(*v)[i] = value
 }
 
-func (v *Vec[T]) Clear() {
+func (v *Slice[T]) Clear() {
 	*v = nil
 }
 
-func (v *Vec[T]) Reserve(n int) {
+func (v *Slice[T]) Reserve(n int) {
 	if cap(*v) < n {
 		newData := make([]T, len(*v), n)
 		copy(newData, *v)
@@ -126,11 +147,30 @@ func (v *Vec[T]) Reserve(n int) {
 	}
 }
 
-func (v *Vec[T]) Push(value T) {
+func (v *Slice[T]) Push(value T) {
 	*v = append(*v, value)
 }
 
-func (v *Vec[T]) Pop() T {
+func (v *Slice[T]) PushVals(vals Vals[T]) {
+	v.Reserve(v.Len() + vals.Len())
+	for value := range vals.Vals() {
+		v.Push(value)
+	}
+}
+
+func (v *Slice[T]) Resize(newLen int) {
+	if newLen < len(*v) {
+		*v = (*v)[:newLen]
+	} else if newLen > len(*v) {
+		v.Reserve(newLen)
+		var zero T
+		for i := len(*v); i < newLen; i++ {
+			*v = append(*v, zero)
+		}
+	}
+}
+
+func (v *Slice[T]) Pop() T {
 	value := (*v)[len(*v)-1]
 	*v = (*v)[:len(*v)-1]
 	return value
@@ -152,8 +192,8 @@ func (w wrappedVecVals[T, V]) Len() int {
 	return w.vec.Len()
 }
 
-func (w wrappedVecVals[T, V]) At(i int) V {
-	return w.wrap(w.vec.At(i))
+func (w wrappedVecVals[T, V]) Get(i int) V {
+	return w.wrap(w.vec.Get(i))
 }
 
 func (w wrappedVecVals[T, V]) Vals() iter.Seq[V] {
@@ -201,7 +241,7 @@ func VecEqualFunc[T any](a, b VecView[T], eq func(T, T) bool) bool {
 		return false
 	}
 	for i := 0; i < a.Len(); i++ {
-		if !eq(a.At(i), b.At(i)) {
+		if !eq(a.Get(i), b.Get(i)) {
 			return false
 		}
 	}
@@ -214,10 +254,23 @@ func VecEqual[T comparable](a, b VecView[T]) bool {
 	})
 }
 
-func VecSort[T cmp.Ordered](vec *Vec[T]) {
+func VecSort[T cmp.Ordered](vec Vec[T]) {
 	VecSortFunc(vec, cmp.Compare[T])
 }
 
-func VecSortFunc[T any](vec *Vec[T], order func(T, T) int) {
-	slices.SortFunc(*vec, order)
+func VecSortFunc[T any](vec Vec[T], order func(T, T) int) {
+	if slice, ok := vec.(*Slice[T]); ok {
+		slices.SortFunc(*slice, order)
+		return
+	}
+
+	// TODO: make this more-efficient if/when we have non-Slice Vec implementations.
+	temp := make([]T, vec.Len())
+	for i := 0; i < vec.Len(); i++ {
+		temp[i] = vec.Get(i)
+	}
+	slices.SortFunc(temp, order)
+	for i := 0; i < vec.Len(); i++ {
+		vec.Set(i, temp[i])
+	}
 }

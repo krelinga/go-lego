@@ -11,6 +11,14 @@ type SetView[T any] interface {
 	Vals() iter.Seq[T]
 }
 
+type Set[T any] interface {
+	SetView[T]
+	Put(value T)
+	Clear()
+	Del(value T)
+	PutVals(vals Vals[T])
+}
+
 func AsSet[S ~map[T]V, T comparable, V any](s S) SetView[T] {
 	return setView[S, T, V]{s: s}
 }
@@ -32,73 +40,93 @@ func (s setView[S, T, V]) Vals() iter.Seq[T] {
 	return maps.Keys(s.s)
 }
 
-func SetOfMapKeys[T comparable, V any](m MapView[T, V]) SetView[T] {
-	return setOfMapKeys[T, V]{m: m}
+func SetOfDictKeys[T, V any](m DictView[T, V]) SetView[T] {
+	return setOfDictKeys[T, V]{m: m}
 }
 
-type setOfMapKeys[T comparable, V any] struct {
-	m MapView[T, V]
+type setOfDictKeys[T, V any] struct {
+	m DictView[T, V]
 }
 
-func (s setOfMapKeys[T, V]) Len() int {
+func (s setOfDictKeys[T, V]) Len() int {
 	return s.m.Len()
 }
 
-func (s setOfMapKeys[T, V]) Has(value T) bool {
+func (s setOfDictKeys[T, V]) Has(value T) bool {
 	_, ok := s.m.Get(value)
 	return ok
 }
 
-func (s setOfMapKeys[T, V]) Vals() iter.Seq[T] {
+func (s setOfDictKeys[T, V]) Vals() iter.Seq[T] {
 	return s.m.Keys()
 }
 
-type Set[T comparable] map[T]struct{}
+type MapSet[T comparable] map[T]struct{}
 
-func CloneSet[T comparable](set SetView[T]) *Set[T] {
-	return CloneSetFunc(set, func(x T) T { return x })
+func NewMapSet[T comparable]() *MapSet[T] {
+	s := make(map[T]struct{})
+	return (*MapSet[T])(&s)
 }
 
-func CloneSetFunc[T any, U comparable](set SetView[T], valueFunc func(T) U) *Set[U] {
-	s := &Set[U]{}
-	s.Reserve(set.Len())
-	for value := range set.Vals() {
-		s.Add(valueFunc(value))
+func NewMapSetHint[T comparable](hint int) *MapSet[T] {
+	s := make(map[T]struct{}, hint)
+	return (*MapSet[T])(&s)
+}
+
+func CloneValsIntoSetFunc[T, U any](vals Vals[T], out Set[U], valueFunc func(T) U) {
+	out.Clear()
+	if canReserve, ok := out.(CanReserve); ok {
+		canReserve.Reserve(vals.Len())
 	}
-	return s
+	for value := range vals.Vals() {
+		out.Put(valueFunc(value))
+	}
 }
 
-func (s *Set[T]) Len() int {
+func CloneValsIntoSet[T any](vals Vals[T], out Set[T]) {
+	CloneValsIntoSetFunc(vals, out, func(x T) T { return x })
+}
+
+func (s *MapSet[T]) Len() int {
 	return len(*s)
 }
 
-func (s *Set[T]) Has(value T) bool {
+func (s *MapSet[T]) Has(value T) bool {
 	_, ok := (*s)[value]
 	return ok
 }
 
-func (s *Set[T]) Vals() iter.Seq[T] {
+func (s *MapSet[T]) Vals() iter.Seq[T] {
 	return maps.Keys(*s)
 }
 
-func (s *Set[T]) Add(value T) {
+func (s *MapSet[T]) Put(value T) {
 	if *s == nil {
 		*s = make(map[T]struct{})
 	}
 	(*s)[value] = struct{}{}
 }
 
-func (s *Set[T]) Clear() {
+func (s *MapSet[T]) PutVals(vals Vals[T]) {
+	if *s == nil {
+		*s = make(map[T]struct{}, vals.Len())
+	}
+	for value := range vals.Vals() {
+		(*s)[value] = struct{}{}
+	}
+}
+
+func (s *MapSet[T]) Clear() {
 	*s = nil
 }
 
-func (s *Set[T]) Reserve(n int) {
+func (s *MapSet[T]) Reserve(n int) {
 	if *s == nil {
 		*s = make(map[T]struct{}, n)
 	}
 }
 
-func (s *Set[T]) Delete(value T) {
+func (s *MapSet[T]) Del(value T) {
 	delete(*s, value)
 }
 
