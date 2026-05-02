@@ -6,7 +6,14 @@ import (
 
 // InOrderSet is a Set implementation that preserves the order of insertion.
 // Iteration over the set will yield elements in the order they were added.
-// Set equality is determined by a user-provided equality function, allowing for custom comparison logic.
+// Set equality is determined by a user-provided equality function, allowing
+// for custom comparison logic.
+//
+// Many of the operations on InOrderSet require iterating through all elements
+// to check for equality, resulting in O(n) time complexity for operations like
+// Has, Put, and Del. This makes InOrderSet less efficient than a hash-based set
+// for large collections, but it provides the benefit of maintaining insertion
+// order and allowing for custom equality logic.
 type InOrderSet[T any] struct {
 	slice *Slice[T]
 	equal func(a, b T) bool
@@ -92,9 +99,17 @@ func (s *InOrderSet[T]) Clear() {
 
 // Del removes a value from the InOrderSet if it is present.
 // If the value is not in the set, this operation has no effect.
-// This operation has a time complexity of O(n) in the worst case, as it may need to iterate through all elements to find the value to remove.
+// This operation has a time complexity of O(n) in all cases.
 func (s *InOrderSet[T]) Del(value T) {
-	// TODO: implement.
+	for i := range s.slice.Len() {
+		if s.equal(s.slice.Get(i), value) {
+			for j := i + 1; j < s.slice.Len(); j++ {
+				s.slice.Set(j-1, s.slice.Get(j))
+			}
+			s.slice.Pop()
+			return
+		}
+	}
 }
 
 // Reserve pre-allocates space for at least n elements in the InOrderSet.
