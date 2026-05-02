@@ -61,6 +61,11 @@ func NewMapHint[K comparable, V any](hint int) *Map[K, V] {
 	return (*Map[K, V])(&m)
 }
 
+func NewMapOf[K comparable, V any](b Bag2[K, V]) *Map[K, V] {
+	m := maps.Collect(b.Elems())
+	return (*Map[K, V])(&m)
+}
+
 func (m *Map[K, V]) Len() int {
 	return len(*m)
 }

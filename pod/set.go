@@ -72,6 +72,14 @@ func NewMapSetHint[T comparable](hint int) *MapSet[T] {
 	return (*MapSet[T])(&s)
 }
 
+func NewMapSetOf[T comparable](b Bag[T]) *MapSet[T] {
+	s := NewMapSetHint[T](b.Len())
+	for v := range b.Elems() {
+		s.Put(v)
+	}
+	return s
+}
+
 func (s *MapSet[T]) Len() int {
 	return len(*s)
 }

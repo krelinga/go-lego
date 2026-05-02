@@ -14,6 +14,7 @@ func NewInOrderSetFunc[T any](equal func(a, b T) bool, vals ...T) *InOrderSet[T]
 		slice: &Slice[T]{},
 		equal: equal,
 	}
+	s.Reserve(len(vals))
 	for _, v := range vals {
 		s.Put(v)
 	}
@@ -22,6 +23,19 @@ func NewInOrderSetFunc[T any](equal func(a, b T) bool, vals ...T) *InOrderSet[T]
 
 func NewInOrderSet[T comparable](vals ...T) *InOrderSet[T] {
 	return NewInOrderSetFunc(func(a, b T) bool { return a == b }, vals...)
+}
+
+func NewInOrderSetOfFunc[T any](equal func(a, b T) bool, b Bag[T]) *InOrderSet[T] {
+	s := NewInOrderSetFunc(equal)
+	s.Reserve(b.Len())
+	for v := range b.Elems() {
+		s.Put(v)
+	}
+	return s
+}
+
+func NewInOrderSetOf[T comparable](b Bag[T]) *InOrderSet[T] {
+	return NewInOrderSetOfFunc(func(a, b T) bool { return a == b }, b)
 }
 
 func (s *InOrderSet[T]) Len() int {

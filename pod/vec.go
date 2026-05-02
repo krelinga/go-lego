@@ -80,6 +80,26 @@ func NewSliceCap[T any](len, cap int) *Slice[T] {
 	return (*Slice[T])(&slice)
 }
 
+func NewSliceOf[T any](b Bag[T]) *Slice[T] {
+	slice := make([]T, b.Len())
+	i := 0
+	for v := range b.Elems() {
+		slice[i] = v
+		i++
+	}
+	return (*Slice[T])(&slice)
+}
+
+func NewSliceOfCap[T any](b Bag[T], cap int) *Slice[T] {
+	slice := make([]T, b.Len(), cap)
+	i := 0
+	for v := range b.Elems() {
+		slice[i] = v
+		i++
+	}
+	return (*Slice[T])(&slice)
+}
+
 func (v *Slice[T]) Len() int {
 	return len(*v)
 }
