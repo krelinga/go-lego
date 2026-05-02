@@ -16,7 +16,6 @@ type Set[T any] interface {
 	Put(value T)
 	Clear()
 	Del(value T)
-	PutVals(vals Vals[T])
 }
 
 func AsSet[S ~map[T]V, T comparable, V any](s S) SetView[T] {
@@ -73,18 +72,12 @@ func NewMapSetHint[T comparable](hint int) *MapSet[T] {
 	return (*MapSet[T])(&s)
 }
 
-func CloneValsIntoSetFunc[T, U any](vals Vals[T], out Set[U], valueFunc func(T) U) {
-	out.Clear()
-	if canReserve, ok := out.(CanReserve); ok {
-		canReserve.Reserve(vals.Len())
+func NewMapSetOf[T comparable](b Bag[T]) *MapSet[T] {
+	s := NewMapSetHint[T](b.Len())
+	for v := range b.Elems() {
+		s.Put(v)
 	}
-	for value := range vals.Vals() {
-		out.Put(valueFunc(value))
-	}
-}
-
-func CloneValsIntoSet[T any](vals Vals[T], out Set[T]) {
-	CloneValsIntoSetFunc(vals, out, func(x T) T { return x })
+	return s
 }
 
 func (s *MapSet[T]) Len() int {
@@ -105,15 +98,6 @@ func (s *MapSet[T]) Put(value T) {
 		*s = make(map[T]struct{})
 	}
 	(*s)[value] = struct{}{}
-}
-
-func (s *MapSet[T]) PutVals(vals Vals[T]) {
-	if *s == nil {
-		*s = make(map[T]struct{}, vals.Len())
-	}
-	for value := range vals.Vals() {
-		(*s)[value] = struct{}{}
-	}
 }
 
 func (s *MapSet[T]) Clear() {

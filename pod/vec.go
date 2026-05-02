@@ -21,7 +21,6 @@ type Vec[T any] interface {
 	Clear()
 	Push(value T)
 	Pop() T
-	PushVals(vals Vals[T])
 	Resize(newLen int)
 }
 
@@ -81,18 +80,24 @@ func NewSliceCap[T any](len, cap int) *Slice[T] {
 	return (*Slice[T])(&slice)
 }
 
-func CloneValsIntoVec[T any](vals Vals[T], out Vec[T]) {
-	CloneValsIntoVecFunc(vals, out, func(x T) T { return x })
+func NewSliceOf[T any](b Bag[T]) *Slice[T] {
+	slice := make([]T, b.Len())
+	i := 0
+	for v := range b.Elems() {
+		slice[i] = v
+		i++
+	}
+	return (*Slice[T])(&slice)
 }
 
-func CloneValsIntoVecFunc[T any, U any](vals Vals[T], out Vec[U], valueFunc func(T) U) {
-	out.Clear()
-	if canReserve, ok := out.(CanReserve); ok {
-		canReserve.Reserve(vals.Len())
+func NewSliceOfCap[T any](b Bag[T], cap int) *Slice[T] {
+	slice := make([]T, b.Len(), cap)
+	i := 0
+	for v := range b.Elems() {
+		slice[i] = v
+		i++
 	}
-	for v := range vals.Vals() {
-		out.Push(valueFunc(v))
-	}
+	return (*Slice[T])(&slice)
 }
 
 func (v *Slice[T]) Len() int {
@@ -149,13 +154,6 @@ func (v *Slice[T]) Reserve(n int) {
 
 func (v *Slice[T]) Push(value T) {
 	*v = append(*v, value)
-}
-
-func (v *Slice[T]) PushVals(vals Vals[T]) {
-	v.Reserve(v.Len() + vals.Len())
-	for value := range vals.Vals() {
-		v.Push(value)
-	}
 }
 
 func (v *Slice[T]) Resize(newLen int) {

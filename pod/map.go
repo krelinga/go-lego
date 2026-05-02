@@ -18,23 +18,6 @@ type Dict[K, V any] interface {
 	Put(key K, value V)
 	Clear()
 	Del(key K)
-	PutKeyVals(keyVals KeyVals[K, V])
-}
-
-func CloneKeyValsIntoDict[K, V any](keyVals KeyVals[K, V], out Dict[K, V]) {
-	keyFunc := func(k K) K { return k }
-	valueFunc := func(v V) V { return v }
-	CloneKeyValsIntoDictFunc(keyVals, out, keyFunc, valueFunc)
-}
-
-func CloneKeyValsIntoDictFunc[K, V, KK, VV any](keyVals KeyVals[K, V], out Dict[KK, VV], keyFunc func(K) KK, valueFunc func(V) VV) {
-	out.Clear()
-	if canReserve, ok := out.(CanReserve); ok {
-		canReserve.Reserve(keyVals.Len())
-	}
-	for k, v := range keyVals.KeyVals() {
-		out.Put(keyFunc(k), valueFunc(v))
-	}
 }
 
 func AsDict[M ~map[K]V, K comparable, V any](m M) DictView[K, V] {
@@ -78,6 +61,11 @@ func NewMapHint[K comparable, V any](hint int) *Map[K, V] {
 	return (*Map[K, V])(&m)
 }
 
+func NewMapOf[K comparable, V any](b Bag2[K, V]) *Map[K, V] {
+	m := maps.Collect(b.Elems())
+	return (*Map[K, V])(&m)
+}
+
 func (m *Map[K, V]) Len() int {
 	return len(*m)
 }
@@ -104,13 +92,6 @@ func (m *Map[K, V]) Put(key K, value V) {
 		*m = make(map[K]V)
 	}
 	(*m)[key] = value
-}
-
-func (m *Map[K, V]) PutKeyVals(keyVals KeyVals[K, V]) {
-	if *m == nil {
-		*m = make(map[K]V, keyVals.Len())
-	}
-	maps.Insert((*m), keyVals.KeyVals())
 }
 
 func (m *Map[K, V]) Clear() {
