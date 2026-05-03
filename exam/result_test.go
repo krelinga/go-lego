@@ -78,3 +78,65 @@ func TestImplementsArgFormat(t *testing.T) {
 	}
 	exam.Try(t, exam.Equal(ifaceStr, "IFace: exam_test.IFace"))
 }
+
+func TestPanicsWith(t *testing.T) {
+	cases := []struct {
+		Name string
+		Loc exam.Loc
+		Run func()
+		Check func(any) *exam.Failure
+		WantFailure bool
+	}{
+		{
+			Name: "Panics With Matching Failure",
+			Loc: exam.Here(),
+			Run: func() {
+				panic(int(10))
+			},
+			Check: func(p any) *exam.Failure {
+				v, ok := p.(int)
+				if !ok {
+					return exam.NewFailure1("panic value type", p)
+				}
+				return exam.Equal(v, 10)
+			},
+			WantFailure: false,
+		},
+		{
+			Name: "Panics With Non-Matching Failure",
+			Loc: exam.Here(),
+			Run: func() {
+				panic(int(20))
+			},
+			Check: func(p any) *exam.Failure {
+				v, ok := p.(int)
+				if !ok {
+					return exam.NewFailure1("panic value type", p)
+				}
+				return exam.Equal(v, 10)
+			},
+			WantFailure: true,
+		},
+		{
+			Name: "Does Not Panic",
+			Loc: exam.Here(),
+			Run: func() {
+				// do nothing
+			},
+			Check: func(p any) *exam.Failure {
+				return nil
+			},
+			WantFailure: true,
+		},
+	}
+	for _, c := range cases {
+		exam.Run(t, c.Name, c.Loc, func(t *testing.T) {
+			f := exam.PanicsWith(c.Run, c.Check)
+			if c.WantFailure {
+				exam.Try(t, exam.NotNil(f))
+			} else {
+				exam.Try(t, exam.Nil(f))
+			}
+		})
+	}
+}

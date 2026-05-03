@@ -239,3 +239,15 @@ func Implements[Got, IFace any]() *Failure {
 	}
 	return failure
 }
+
+func PanicsWith(runThis func(), check func(any) *Failure) (failure *Failure) {
+	defer func() {
+		if r := recover(); r != nil {
+			failure = check(r)
+		} else {
+			failure = NewFailure1("panicked", false)
+		}
+	}()
+	runThis()
+	return
+}
