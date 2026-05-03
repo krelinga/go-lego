@@ -68,33 +68,33 @@ func TestVecView(t *testing.T) {
 			WantVals: []int{1, 2, 3},
 		},
 		{
-			Name: "VecRange Full",
-			Loc:  exam.Here(),
-			VecView: pod.VecRange(pod.AsVec([]int{1, 2, 3}), 0, 3),
+			Name:     "VecRange Full",
+			Loc:      exam.Here(),
+			VecView:  pod.VecRange(pod.AsVec([]int{1, 2, 3}), 0, 3),
 			WantVals: []int{1, 2, 3},
 		},
 		{
-			Name: "VecRange Partial",
-			Loc:  exam.Here(),
-			VecView: pod.VecRange(pod.AsVec([]int{1, 2, 3}), 1, 3),
+			Name:     "VecRange Partial",
+			Loc:      exam.Here(),
+			VecView:  pod.VecRange(pod.AsVec([]int{1, 2, 3}), 1, 3),
 			WantVals: []int{2, 3},
 		},
 		{
-			Name: "VecRange Empty",
-			Loc:  exam.Here(),
-			VecView: pod.VecRange(pod.AsVec([]int{1, 2, 3}), 1, 1),
+			Name:     "VecRange Empty",
+			Loc:      exam.Here(),
+			VecView:  pod.VecRange(pod.AsVec([]int{1, 2, 3}), 1, 1),
 			WantVals: nil,
 		},
 		{
-			Name: "VecRangeFrom to end",
-			Loc:  exam.Here(),
-			VecView: pod.VecRangeFrom(pod.AsVec([]int{1, 2, 3}), 1),
+			Name:     "VecRangeFrom to end",
+			Loc:      exam.Here(),
+			VecView:  pod.VecRangeFrom(pod.AsVec([]int{1, 2, 3}), 1),
 			WantVals: []int{2, 3},
 		},
 		{
-			Name: "VecRangeTo from start",
-			Loc:  exam.Here(),
-			VecView: pod.VecRangeTo(pod.AsVec([]int{1, 2, 3}), 2),
+			Name:     "VecRangeTo from start",
+			Loc:      exam.Here(),
+			VecView:  pod.VecRangeTo(pod.AsVec([]int{1, 2, 3}), 2),
 			WantVals: []int{1, 2},
 		},
 	}
@@ -107,9 +107,7 @@ func TestVecView(t *testing.T) {
 			}
 
 			gotVals := slices.Collect(c.VecView.Vals())
-			for i := range gotVals {
-				exam.Try(t, exam.Equal(gotVals[i], c.WantVals[i]))
-			}
+			exam.Try(t, exam.SliceEqual(gotVals, c.WantVals))
 			wantIdx := 0
 			for idx, val := range c.VecView.IdxVals() {
 				exam.Try(t, exam.Equal(idx, wantIdx))
@@ -121,9 +119,7 @@ func TestVecView(t *testing.T) {
 			gotRevVals := slices.Collect(c.VecView.RevVals())
 			wantRevVals := slices.Clone(c.WantVals)
 			slices.Reverse(wantRevVals)
-			for i := range gotRevVals {
-				exam.Must(t, exam.Equal(gotRevVals[i], wantRevVals[i]))
-			}
+			exam.Try(t, exam.SliceEqual(gotRevVals, wantRevVals))
 			wantIdx = len(c.WantVals) - 1
 			for idx, val := range c.VecView.RevIdxVals() {
 				exam.Try(t, exam.Equal(idx, wantIdx))

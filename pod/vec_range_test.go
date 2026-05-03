@@ -340,10 +340,7 @@ func TestVecRangeVals(t *testing.T) {
 	for _, c := range cases {
 		exam.Run(t, c.Name, c.Loc, func(t *testing.T) {
 			got := slices.Collect(c.Range.Vals())
-			exam.Must(t, exam.Equal(len(got), len(c.WantVals)))
-			for i := range c.WantVals {
-				exam.Try(t, exam.Equal(got[i], c.WantVals[i]))
-			}
+			exam.Try(t, exam.SliceEqual(got, c.WantVals))
 		})
 	}
 	t.Run("parent too short", func(t *testing.T) {
@@ -436,10 +433,7 @@ func TestVecRangeRevVals(t *testing.T) {
 	for _, c := range cases {
 		exam.Run(t, c.Name, c.Loc, func(t *testing.T) {
 			got := slices.Collect(c.Range.RevVals())
-			exam.Must(t, exam.Equal(len(got), len(c.WantVals)))
-			for i := range c.WantVals {
-				exam.Try(t, exam.Equal(got[i], c.WantVals[i]))
-			}
+			exam.Try(t, exam.SliceEqual(got, c.WantVals))
 		})
 	}
 	t.Run("parent too short", func(t *testing.T) {

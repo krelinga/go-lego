@@ -111,12 +111,7 @@ func TestNewMapOf(t *testing.T) {
 	for _, c := range cases {
 		exam.Run(t, c.Name, c.Loc, func(t *testing.T) {
 			m := pod.NewMapOf(pod.KeyValsOf(c.Source))
-			exam.Try(t, exam.Equal(m.Len(), len(c.WantData)))
-			for k, wantV := range c.WantData {
-				gotV, ok := m.Get(k)
-				exam.Try(t, exam.True(ok))
-				exam.Try(t, exam.Equal(gotV, wantV))
-			}
+			exam.Try(t, exam.MapEqual(map[string]int(*m), c.WantData))
 		})
 	}
 }
@@ -220,12 +215,7 @@ func TestMapKeyVals(t *testing.T) {
 	for _, c := range cases {
 		exam.Run(t, c.Name, c.Loc, func(t *testing.T) {
 			got := maps.Collect(c.Map.KeyVals())
-			exam.Try(t, exam.Equal(len(got), len(c.WantData)))
-			for k, wantV := range c.WantData {
-				gotV, ok := got[k]
-				exam.Try(t, exam.True(ok))
-				exam.Try(t, exam.Equal(gotV, wantV))
-			}
+			exam.Try(t, exam.MapEqual(got, c.WantData))
 		})
 	}
 }
@@ -254,10 +244,7 @@ func TestMapKeys(t *testing.T) {
 		exam.Run(t, c.Name, c.Loc, func(t *testing.T) {
 			got := slices.Collect(c.Map.Keys())
 			slices.Sort(got)
-			exam.Must(t, exam.Equal(len(got), len(c.WantKeys)))
-			for i := range c.WantKeys {
-				exam.Try(t, exam.Equal(got[i], c.WantKeys[i]))
-			}
+			exam.Try(t, exam.SliceEqual(got, c.WantKeys))
 		})
 	}
 }
@@ -286,10 +273,7 @@ func TestMapVals(t *testing.T) {
 		exam.Run(t, c.Name, c.Loc, func(t *testing.T) {
 			got := slices.Collect(c.Map.Vals())
 			slices.Sort(got)
-			exam.Must(t, exam.Equal(len(got), len(c.WantVals)))
-			for i := range c.WantVals {
-				exam.Try(t, exam.Equal(got[i], c.WantVals[i]))
-			}
+			exam.Try(t, exam.SliceEqual(got, c.WantVals))
 		})
 	}
 }
@@ -396,11 +380,7 @@ func TestMapDel(t *testing.T) {
 		exam.Run(t, c.Name, c.Loc, func(t *testing.T) {
 			c.Map.Del(c.DelKey)
 			exam.Try(t, exam.Equal(c.Map.Len(), c.WantLen))
-			for k, wantV := range c.WantData {
-				gotV, ok := c.Map.Get(k)
-				exam.Try(t, exam.True(ok))
-				exam.Try(t, exam.Equal(gotV, wantV))
-			}
+			exam.Try(t, exam.MapEqual(map[string]int(*c.Map), c.WantData))
 		})
 	}
 }
@@ -439,30 +419,19 @@ func TestWrapDictVals(t *testing.T) {
 			exam.Try(t, exam.Equal(ok, false))
 
 			gotKV := maps.Collect(wrapped.KeyVals())
-			exam.Try(t, exam.Equal(len(gotKV), len(c.WantData)))
-			for k, wantV := range c.WantData {
-				gotV, ok := gotKV[k]
-				exam.Try(t, exam.True(ok))
-				exam.Try(t, exam.Equal(gotV, wantV))
-			}
+			exam.Try(t, exam.MapEqual(gotKV, c.WantData))
 
 			gotKeys := slices.Collect(wrapped.Keys())
 			slices.Sort(gotKeys)
 			wantKeys := slices.Collect(maps.Keys(c.WantData))
 			slices.Sort(wantKeys)
-			exam.Must(t, exam.Equal(len(gotKeys), len(wantKeys)))
-			for i := range wantKeys {
-				exam.Try(t, exam.Equal(gotKeys[i], wantKeys[i]))
-			}
+			exam.Try(t, exam.SliceEqual(gotKeys, wantKeys))
 
 			gotVals := slices.Collect(wrapped.Vals())
 			slices.Sort(gotVals)
 			wantVals := slices.Collect(maps.Values(c.WantData))
 			slices.Sort(wantVals)
-			exam.Must(t, exam.Equal(len(gotVals), len(wantVals)))
-			for i := range wantVals {
-				exam.Try(t, exam.Equal(gotVals[i], wantVals[i]))
-			}
+			exam.Try(t, exam.SliceEqual(gotVals, wantVals))
 		})
 	}
 }
@@ -507,30 +476,19 @@ func TestWrapDictKeys(t *testing.T) {
 			exam.Try(t, exam.Equal(ok, false))
 
 			gotKV := maps.Collect(wrapped.KeyVals())
-			exam.Try(t, exam.Equal(len(gotKV), len(c.WantData)))
-			for k, wantV := range c.WantData {
-				gotV, ok := gotKV[k]
-				exam.Try(t, exam.True(ok))
-				exam.Try(t, exam.Equal(gotV, wantV))
-			}
+			exam.Try(t, exam.MapEqual(gotKV, c.WantData))
 
 			gotKeys := slices.Collect(wrapped.Keys())
 			slices.Sort(gotKeys)
 			wantKeys := slices.Collect(maps.Keys(c.WantData))
 			slices.Sort(wantKeys)
-			exam.Must(t, exam.Equal(len(gotKeys), len(wantKeys)))
-			for i := range wantKeys {
-				exam.Try(t, exam.Equal(gotKeys[i], wantKeys[i]))
-			}
+			exam.Try(t, exam.SliceEqual(gotKeys, wantKeys))
 
 			gotVals := slices.Collect(wrapped.Vals())
 			slices.Sort(gotVals)
 			wantVals := slices.Collect(maps.Values(c.WantData))
 			slices.Sort(wantVals)
-			exam.Must(t, exam.Equal(len(gotVals), len(wantVals)))
-			for i := range wantVals {
-				exam.Try(t, exam.Equal(gotVals[i], wantVals[i]))
-			}
+			exam.Try(t, exam.SliceEqual(gotVals, wantVals))
 		})
 	}
 }
