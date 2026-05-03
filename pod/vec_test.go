@@ -20,13 +20,13 @@ func TestVecView(t *testing.T) {
 		WantVals []int
 	}{
 		{
-			Name:     "empty Vec",
+			Name:     "empty Slice",
 			Loc:      exam.Here(),
 			VecView:  &pod.Slice[int]{},
 			WantVals: nil,
 		},
 		{
-			Name:     "non-empty Vec",
+			Name:     "non-empty Slice",
 			Loc:      exam.Here(),
 			VecView:  &pod.Slice[int]{1, 2, 3},
 			WantVals: []int{1, 2, 3},
