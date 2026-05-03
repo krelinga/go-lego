@@ -8,18 +8,6 @@ import (
 	"github.com/krelinga/go-lego/pod"
 )
 
-// checkStringPanic returns a PanicsWith check function that asserts the panic
-// value is a string equal to msg.
-func checkStringPanic(msg string) func(any) *exam.Failure {
-	return func(p any) *exam.Failure {
-		s, ok := p.(string)
-		if !ok {
-			return exam.NewFailure1("panic value", p)
-		}
-		return exam.Equal(s, msg)
-	}
-}
-
 func TestVecRange(t *testing.T) {
 	cases := []struct {
 		Name      string
@@ -84,7 +72,9 @@ func TestVecRange(t *testing.T) {
 			if c.WantPanic {
 				exam.Try(t, exam.PanicsWith(func() {
 					pod.VecRange(c.Parent, c.FromIdx, c.ToIdx)
-				}, checkStringPanic("invalid range")))
+				}, func(p any) *exam.Failure {
+					return exam.Equal(exam.MustCast[string](t, p), "invalid range")
+				}))
 			} else {
 				r := pod.VecRange(c.Parent, c.FromIdx, c.ToIdx)
 				exam.Try(t, exam.Equal(r.Len(), c.WantLen))
@@ -143,7 +133,9 @@ func TestVecRangeFrom(t *testing.T) {
 			if c.WantPanic {
 				exam.Try(t, exam.PanicsWith(func() {
 					pod.VecRangeFrom(c.Parent, c.FromIdx)
-				}, checkStringPanic("invalid range")))
+				}, func(p any) *exam.Failure {
+					return exam.Equal(exam.MustCast[string](t, p), "invalid range")
+				}))
 			} else {
 				r := pod.VecRangeFrom(c.Parent, c.FromIdx)
 				exam.Try(t, exam.Equal(r.Len(), c.WantLen))
@@ -202,7 +194,9 @@ func TestVecRangeTo(t *testing.T) {
 			if c.WantPanic {
 				exam.Try(t, exam.PanicsWith(func() {
 					pod.VecRangeTo(c.Parent, c.ToIdx)
-				}, checkStringPanic("invalid range")))
+				}, func(p any) *exam.Failure {
+					return exam.Equal(exam.MustCast[string](t, p), "invalid range")
+				}))
 			} else {
 				r := pod.VecRangeTo(c.Parent, c.ToIdx)
 				exam.Try(t, exam.Equal(r.Len(), c.WantLen))
@@ -248,7 +242,9 @@ func TestVecRangeLen(t *testing.T) {
 		parent.Resize(1)
 		exam.Try(t, exam.PanicsWith(func() {
 			r.Len()
-		}, checkStringPanic("parent vector is too short for range")))
+		}, func(p any) *exam.Failure {
+			return exam.Equal(exam.MustCast[string](t, p), "parent vector is too short for range")
+		}))
 	})
 }
 
@@ -295,7 +291,9 @@ func TestVecRangeGet(t *testing.T) {
 			if c.WantPanic != "" {
 				exam.Try(t, exam.PanicsWith(func() {
 					c.Range.Get(c.Idx)
-				}, checkStringPanic(c.WantPanic)))
+				}, func(p any) *exam.Failure {
+					return exam.Equal(exam.MustCast[string](t, p), c.WantPanic)
+				}))
 			} else {
 				exam.Try(t, exam.Equal(c.Range.Get(c.Idx), c.WantVal))
 			}
@@ -307,7 +305,9 @@ func TestVecRangeGet(t *testing.T) {
 		parent.Resize(1)
 		exam.Try(t, exam.PanicsWith(func() {
 			r.Get(0)
-		}, checkStringPanic("parent vector is too short for range")))
+		}, func(p any) *exam.Failure {
+			return exam.Equal(exam.MustCast[string](t, p), "parent vector is too short for range")
+		}))
 	})
 }
 
@@ -352,7 +352,9 @@ func TestVecRangeVals(t *testing.T) {
 		parent.Resize(1)
 		exam.Try(t, exam.PanicsWith(func() {
 			r.Vals()
-		}, checkStringPanic("parent vector is too short for range")))
+		}, func(p any) *exam.Failure {
+			return exam.Equal(exam.MustCast[string](t, p), "parent vector is too short for range")
+		}))
 	})
 }
 
@@ -399,7 +401,9 @@ func TestVecRangeIdxVals(t *testing.T) {
 		parent.Resize(1)
 		exam.Try(t, exam.PanicsWith(func() {
 			r.IdxVals()
-		}, checkStringPanic("parent vector is too short for range")))
+		}, func(p any) *exam.Failure {
+			return exam.Equal(exam.MustCast[string](t, p), "parent vector is too short for range")
+		}))
 	})
 }
 
@@ -444,7 +448,9 @@ func TestVecRangeRevVals(t *testing.T) {
 		parent.Resize(1)
 		exam.Try(t, exam.PanicsWith(func() {
 			r.RevVals()
-		}, checkStringPanic("parent vector is too short for range")))
+		}, func(p any) *exam.Failure {
+			return exam.Equal(exam.MustCast[string](t, p), "parent vector is too short for range")
+		}))
 	})
 }
 
@@ -491,6 +497,8 @@ func TestVecRangeRevIdxVals(t *testing.T) {
 		parent.Resize(1)
 		exam.Try(t, exam.PanicsWith(func() {
 			r.RevIdxVals()
-		}, checkStringPanic("parent vector is too short for range")))
+		}, func(p any) *exam.Failure {
+			return exam.Equal(exam.MustCast[string](t, p), "parent vector is too short for range")
+		}))
 	})
 }
