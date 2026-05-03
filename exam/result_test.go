@@ -17,31 +17,31 @@ func (i ImplementsIFace) IFaceMethod() {}
 
 func TestImplements(t *testing.T) {
 	cases := []struct {
-		Name string
-		Loc exam.Loc
-		Failure *exam.Failure
-		WantNilFailure bool
+		Name             string
+		Loc              exam.Loc
+		Failure          *exam.Failure
+		WantNilFailure   bool
 		WantWrappedError bool
 	}{
 		{
-			Name: "Implements",
-			Loc: exam.Here(),
-			Failure: exam.Implements[ImplementsIFace, IFace](),
-			WantNilFailure: true,
+			Name:             "Implements",
+			Loc:              exam.Here(),
+			Failure:          exam.Implements[ImplementsIFace, IFace](),
+			WantNilFailure:   true,
 			WantWrappedError: false,
 		},
 		{
-			Name: "DoesNotImplement",
-			Loc: exam.Here(),
-			Failure: exam.Implements[int, IFace](),
-			WantNilFailure: false,
+			Name:             "DoesNotImplement",
+			Loc:              exam.Here(),
+			Failure:          exam.Implements[int, IFace](),
+			WantNilFailure:   false,
 			WantWrappedError: false,
 		},
 		{
-			Name: "NonInterface",
-			Loc: exam.Here(),
-			Failure: exam.Implements[int, int](),
-			WantNilFailure: false,
+			Name:             "NonInterface",
+			Loc:              exam.Here(),
+			Failure:          exam.Implements[int, int](),
+			WantNilFailure:   false,
 			WantWrappedError: true,
 		},
 	}
@@ -81,15 +81,15 @@ func TestImplementsArgFormat(t *testing.T) {
 
 func TestPanicsWith(t *testing.T) {
 	cases := []struct {
-		Name string
-		Loc exam.Loc
-		Run func()
-		Check func(any) *exam.Failure
+		Name        string
+		Loc         exam.Loc
+		Run         func()
+		Check       func(any) *exam.Failure
 		WantFailure bool
 	}{
 		{
 			Name: "Panics With Matching Failure",
-			Loc: exam.Here(),
+			Loc:  exam.Here(),
 			Run: func() {
 				panic(int(10))
 			},
@@ -104,7 +104,7 @@ func TestPanicsWith(t *testing.T) {
 		},
 		{
 			Name: "Panics With Non-Matching Failure",
-			Loc: exam.Here(),
+			Loc:  exam.Here(),
 			Run: func() {
 				panic(int(20))
 			},
@@ -119,7 +119,7 @@ func TestPanicsWith(t *testing.T) {
 		},
 		{
 			Name: "Does Not Panic",
-			Loc: exam.Here(),
+			Loc:  exam.Here(),
 			Run: func() {
 				// do nothing
 			},
@@ -127,6 +127,15 @@ func TestPanicsWith(t *testing.T) {
 				return nil
 			},
 			WantFailure: true,
+		},
+		{
+			Name: "Panics With nil Check",
+			Loc:  exam.Here(),
+			Run: func() {
+				panic("panic with nil check")
+			},
+			Check:       nil,
+			WantFailure: false,
 		},
 	}
 	for _, c := range cases {
