@@ -144,10 +144,10 @@ func TestMapEqualFunc(t *testing.T) {
 
 func TestSliceEqual(t *testing.T) {
 	cases := []struct {
-		Name          string
-		Loc           exam.Loc
+		Name           string
+		Loc            exam.Loc
 		Slice1, Slice2 []int
-		WantEqual     bool
+		WantEqual      bool
 	}{
 		{
 			Name:      "Equal",
