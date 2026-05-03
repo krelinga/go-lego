@@ -67,6 +67,36 @@ func TestVecView(t *testing.T) {
 			),
 			WantVals: []int{1, 2, 3},
 		},
+		{
+			Name: "VecRange Full",
+			Loc:  exam.Here(),
+			VecView: pod.VecRange(pod.AsVec([]int{1, 2, 3}), 0, 3),
+			WantVals: []int{1, 2, 3},
+		},
+		{
+			Name: "VecRange Partial",
+			Loc:  exam.Here(),
+			VecView: pod.VecRange(pod.AsVec([]int{1, 2, 3}), 1, 3),
+			WantVals: []int{2, 3},
+		},
+		{
+			Name: "VecRange Empty",
+			Loc:  exam.Here(),
+			VecView: pod.VecRange(pod.AsVec([]int{1, 2, 3}), 1, 1),
+			WantVals: nil,
+		},
+		{
+			Name: "VecRangeFrom to end",
+			Loc:  exam.Here(),
+			VecView: pod.VecRangeFrom(pod.AsVec([]int{1, 2, 3}), 1),
+			WantVals: []int{2, 3},
+		},
+		{
+			Name: "VecRangeTo from start",
+			Loc:  exam.Here(),
+			VecView: pod.VecRangeTo(pod.AsVec([]int{1, 2, 3}), 2),
+			WantVals: []int{1, 2},
+		},
 	}
 	for _, c := range cases {
 		exam.Run(t, c.Name, c.Loc, func(t *testing.T) {
