@@ -240,6 +240,9 @@ func Implements[Got, IFace any]() *Failure {
 	return failure
 }
 
+// PanicsWith returns a Failure if runThis does not panic, or if it panics with a
+// value that check reports as a failure. If check is nil, any panic is considered
+// a success.
 func PanicsWith(runThis func(), check func(any) *Failure) (failure *Failure) {
 	defer func() {
 		if r := recover(); r != nil {
