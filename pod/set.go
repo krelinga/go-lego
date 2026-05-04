@@ -7,16 +7,27 @@ import (
 
 // SetView is a read-only view of a set. It provides methods to access the values, but does not allow mutation.
 type SetView[T any] interface {
+	// Len returns the number of elements in the set.
 	Len() int
+
+	// Has checks if the given value is present in the set. It returns true if the value is found, and false otherwise.
 	Has(value T) bool
+
+	// Vals returns a sequence of values in the set.
 	Vals() iter.Seq[T]
 }
 
 // Set is a mutable set that implements the SetView interface. It allows adding, removing, and clearing values.
 type Set[T any] interface {
 	SetView[T]
+
+	// Put adds a value to the set. If the value is already present, it does nothing.
 	Put(value T)
+
+	// Clear removes all values from the set, leaving it empty.
 	Clear()
+
+	// Del removes a value from the set. If the value is not present, it does nothing.
 	Del(value T)
 }
 
