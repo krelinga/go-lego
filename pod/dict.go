@@ -3,6 +3,8 @@ package pod
 import (
 	"iter"
 	"maps"
+
+	"github.com/krelinga/go-lego/zero"
 )
 
 // DictView is a read-only view of a dictionary. It provides methods to access the keys and values, but does not allow mutation.
@@ -147,8 +149,7 @@ func (w wrappedDictVals[K, V, W]) Len() int {
 func (w wrappedDictVals[K, V, W]) Get(key K) (W, bool) {
 	value, ok := w.d.Get(key)
 	if !ok {
-		var zero W
-		return zero, false
+		return zero.For[W](), false
 	}
 	return w.wrap(value), true
 }
