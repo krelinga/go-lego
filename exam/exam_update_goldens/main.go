@@ -12,7 +12,7 @@ import (
 	"os/exec"
 	"sort"
 
-	"github.com/krelinga/go-lego/exam/internal"
+	"github.com/krelinga/go-libs/exam/internal"
 )
 
 func main() {

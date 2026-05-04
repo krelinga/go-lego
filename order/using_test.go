@@ -4,9 +4,9 @@ import (
 	"cmp"
 	"testing"
 
-	"github.com/krelinga/go-lego/exam"
-	"github.com/krelinga/go-lego/order"
-	"github.com/krelinga/go-lego/pod"
+	"github.com/krelinga/go-libs/exam"
+	"github.com/krelinga/go-libs/order"
+	"github.com/krelinga/go-libs/pod"
 )
 
 type Struct struct {

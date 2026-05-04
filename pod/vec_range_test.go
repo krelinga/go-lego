@@ -4,8 +4,8 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/krelinga/go-lego/exam"
-	"github.com/krelinga/go-lego/pod"
+	"github.com/krelinga/go-libs/exam"
+	"github.com/krelinga/go-libs/pod"
 )
 
 func TestVecRange(t *testing.T) {

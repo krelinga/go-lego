@@ -3,7 +3,7 @@ package mirror_test
 import (
 	"testing"
 
-	"github.com/krelinga/go-lego/mirror"
+	"github.com/krelinga/go-libs/mirror"
 )
 
 func TestNil(t *testing.T) {

@@ -3,8 +3,8 @@ package pod_test
 import (
 	"testing"
 
-	"github.com/krelinga/go-lego/exam"
-	"github.com/krelinga/go-lego/pod"
+	"github.com/krelinga/go-libs/exam"
+	"github.com/krelinga/go-libs/pod"
 )
 
 func TestSetImplements(t *testing.T) {

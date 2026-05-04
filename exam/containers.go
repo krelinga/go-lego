@@ -1,6 +1,6 @@
 package exam
 
-import "github.com/krelinga/go-lego/mirror"
+import "github.com/krelinga/go-libs/mirror"
 
 // MapEqual checks if two maps are equal by comparing their keys and values using the == operator.
 func MapEqual[K, V comparable](a, b map[K]V) *Failure {
