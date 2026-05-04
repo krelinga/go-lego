@@ -5,7 +5,7 @@ import (
 	"iter"
 	"slices"
 
-	"github.com/krelinga/go-lego/zero"
+	"github.com/krelinga/go-libs/zero"
 )
 
 // VecView is a read-only view of a vector. It provides methods to access the elements, but does not allow mutation.

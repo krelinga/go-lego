@@ -4,7 +4,7 @@ import (
 	"iter"
 	"maps"
 
-	"github.com/krelinga/go-lego/zero"
+	"github.com/krelinga/go-libs/zero"
 )
 
 // DictView is a read-only view of a dictionary. It provides methods to access the keys and values, but does not allow mutation.
