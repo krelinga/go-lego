@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/krelinga/go-lego/exam"
-	"github.com/krelinga/go-lego/pod"
-	"github.com/krelinga/go-lego/tuple"
+	"github.com/krelinga/go-libs/exam"
+	"github.com/krelinga/go-libs/pod"
+	"github.com/krelinga/go-libs/tuple"
 )
 
 func TestSliceDictImplements(t *testing.T) {

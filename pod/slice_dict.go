@@ -3,7 +3,7 @@ package pod
 import (
 	"iter"
 
-	"github.com/krelinga/go-lego/tuple"
+	"github.com/krelinga/go-libs/tuple"
 )
 
 // SliceDict is a Dict implementation that preserves the order of insertion.
