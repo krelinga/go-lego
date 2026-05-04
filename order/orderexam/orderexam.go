@@ -3,9 +3,9 @@ package orderexam
 import (
 	"fmt"
 
-	"github.com/krelinga/go-lego/exam"
-	"github.com/krelinga/go-lego/mirror"
-	"github.com/krelinga/go-lego/order"
+	"github.com/krelinga/go-libs/exam"
+	"github.com/krelinga/go-libs/mirror"
+	"github.com/krelinga/go-libs/order"
 )
 
 func callOrderFunc[T any](x, y T, order any, want func(int) bool) *exam.Failure {

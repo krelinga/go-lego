@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/krelinga/go-lego/mirror"
+	"github.com/krelinga/go-libs/mirror"
 )
 
 // FmtFunc is the signature of a custom formatting function used by Arg.

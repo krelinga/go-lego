@@ -1,5 +1,5 @@
-module github.com/krelinga/go-lego
+module github.com/krelinga/go-libs
 
 go 1.26.1
 
-tool github.com/krelinga/go-lego/exam/exam_update_goldens
+tool github.com/krelinga/go-libs/exam/exam_update_goldens

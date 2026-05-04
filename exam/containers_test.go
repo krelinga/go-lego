@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/krelinga/go-lego/exam"
+	"github.com/krelinga/go-libs/exam"
 )
 
 func TestMapEqual(t *testing.T) {

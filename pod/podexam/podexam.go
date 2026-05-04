@@ -3,9 +3,9 @@ package podexam
 import (
 	"fmt"
 
-	"github.com/krelinga/go-lego/exam"
-	"github.com/krelinga/go-lego/mirror"
-	"github.com/krelinga/go-lego/pod"
+	"github.com/krelinga/go-libs/exam"
+	"github.com/krelinga/go-libs/mirror"
+	"github.com/krelinga/go-libs/pod"
 )
 
 func DictEqualFunc[K comparable, V any](x, y pod.DictView[K, V], f any) *exam.Failure {
