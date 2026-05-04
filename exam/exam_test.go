@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/krelinga/go-lego/exam"
+	"github.com/krelinga/go-libs/exam"
 )
 
 type FakeT struct {
@@ -136,7 +136,7 @@ arg 0 Foo: "bar"
 baz
 biff`),
 			Failure: exam.NewFailure1("Foo", "bar"),
-			Args: []any{"baz", "biff"},
+			Args:    []any{"baz", "biff"},
 		},
 	}
 	for _, c := range cases {

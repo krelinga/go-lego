@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/krelinga/go-lego/exam/internal"
+	"github.com/krelinga/go-libs/exam/internal"
 )
 
 // Golden holds an expected string and the source location of the GoldenHere

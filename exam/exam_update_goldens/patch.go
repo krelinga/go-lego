@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/krelinga/go-lego/exam/internal"
+	"github.com/krelinga/go-libs/exam/internal"
 )
 
 // validateEntryPath returns an error if path should not be edited.  Two

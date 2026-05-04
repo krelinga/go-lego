@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/krelinga/go-lego/exam"
-	"github.com/krelinga/go-lego/exam/internal"
+	"github.com/krelinga/go-libs/exam"
+	"github.com/krelinga/go-libs/exam/internal"
 )
 
 // writeTempFile writes b to a new temp file and returns the path.

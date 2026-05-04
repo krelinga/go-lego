@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/krelinga/go-lego/exam"
+	"github.com/krelinga/go-libs/exam"
 )
 
 func TestGoldenHere(t *testing.T) {

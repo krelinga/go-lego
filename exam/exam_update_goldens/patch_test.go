@@ -4,8 +4,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/krelinga/go-lego/exam"
-	"github.com/krelinga/go-lego/exam/internal"
+	"github.com/krelinga/go-libs/exam"
+	"github.com/krelinga/go-libs/exam/internal"
 )
 
 func TestFindLineStart(t *testing.T) {
