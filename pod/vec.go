@@ -10,21 +10,42 @@ import (
 
 // VecView is a read-only view of a vector. It provides methods to access the elements, but does not allow mutation.
 type VecView[T any] interface {
+	// Len returns the number of elements in the VecView.
 	Len() int
+
+	// Get returns the element at the specified index in the VecView. If the index is out of bounds, it will panic.
 	Get(i int) T
+
+	// Vals returns an in-order sequence of values in the VecView.
 	Vals() iter.Seq[T]
+
+	// IdxVals returns an in-order sequence of indexed values in the VecView. Each element is a pair of the form (index, value), where index is the position of the value in the VecView and value is the corresponding element from the VecView.
 	IdxVals() iter.Seq2[int, T]
+
+	// RevVals returns a reverse-order sequence of values in the VecView.
 	RevVals() iter.Seq[T]
+
+	// RevIdxVals returns a reverse-order sequence of indexed values in the VecView. Each element is a pair of the form (index, value), where index is the position of the value in the VecView and value is the corresponding element from the VecView.
 	RevIdxVals() iter.Seq2[int, T]
 }
 
 // Vec is a mutable vector that implements the VecView interface. It allows setting, clearing, pushing, popping, and resizing elements.
 type Vec[T any] interface {
 	VecView[T]
+
+	// Set sets the element at the specified index in the Vec to the given value. If the index is out of bounds, it will panic.
 	Set(i int, value T)
+
+	// Clear removes all elements from the Vec, leaving it empty.
 	Clear()
+
+	// Push adds an element to the end of the Vec.
 	Push(value T)
+
+	// Pop removes and returns the last element of the Vec. If the Vec is empty, it will panic.
 	Pop() T
+
+	// Resize changes the length of the Vec to the specified new length. If the new length is greater than the current length, the new elements will be initialized to the zero value of the element type. If the new length is less than the current length, the Vec will be truncated.
 	Resize(newLen int)
 }
 

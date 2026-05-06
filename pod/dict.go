@@ -9,18 +9,33 @@ import (
 
 // DictView is a read-only view of a dictionary. It provides methods to access the keys and values, but does not allow mutation.
 type DictView[K, V any] interface {
+	// Len returns the number of key-value pairs in the dictionary.
 	Len() int
+
+	// Get retrieves the value associated with the given key. It returns the value and a boolean indicating whether the key was found in the dictionary.
 	Get(key K) (V, bool)
+
+	// KeyVals returns a sequence of key-value pairs in the dictionary.
 	KeyVals() iter.Seq2[K, V]
+
+	// Keys returns a sequence of keys in the dictionary.
 	Keys() iter.Seq[K]
+
+	// Vals returns a sequence of values in the dictionary.
 	Vals() iter.Seq[V]
 }
 
 // Dict is a mutable dictionary that implements the DictView interface. It allows adding, removing, and clearing key-value pairs.
 type Dict[K, V any] interface {
 	DictView[K, V]
+
+	// Put adds a key-value pair to the dictionary. If the key already exists, it replaces the value.
 	Put(key K, value V)
+
+	// Clear removes all key-value pairs from the dictionary, leaving it empty.
 	Clear()
+
+	// Del removes the key-value pair associated with the given key from the dictionary. If the key does not exist, it does nothing.
 	Del(key K)
 }
 
