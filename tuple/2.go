@@ -1,5 +1,7 @@
 package tuple
 
+import "github.com/krelinga/go-libs/view"
+
 // Fixed2 is a view of a two-tuple (pair) of values of types A and B.
 type Fixed2[A, B any] interface {
 	GetA() A
@@ -23,4 +25,12 @@ func (t T2[A, B]) GetB() B {
 // New2 creates a new T2 with the given values.
 func New2[A, B any](a A, b B) T2[A, B] {
 	return T2[A, B]{A: a, B: b}
+}
+
+func View2[A view.Can[AA], B view.Can[BB], AA, BB any](t2 Fixed2[A, B]) Fixed2[AA, BB] {
+	return View2Using(t2.GetA(), t2.GetB())
+}
+
+func View2Using[A view.Can[AA], B view.Can[BB], AA, BB any](a A, b B) Fixed2[AA, BB] {
+	return New2(a.View(), b.View())
 }
