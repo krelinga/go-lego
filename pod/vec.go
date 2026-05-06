@@ -4,6 +4,8 @@ import (
 	"cmp"
 	"iter"
 	"slices"
+
+	"github.com/krelinga/go-libs/zero"
 )
 
 // VecView is a read-only view of a vector. It provides methods to access the elements, but does not allow mutation.
@@ -205,9 +207,8 @@ func (v *Slice[T]) Resize(newLen int) {
 		*v = (*v)[:newLen]
 	} else if newLen > len(*v) {
 		v.Reserve(newLen)
-		var zero T
 		for i := len(*v); i < newLen; i++ {
-			*v = append(*v, zero)
+			*v = append(*v, zero.For[T]())
 		}
 	}
 }
