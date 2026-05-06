@@ -88,11 +88,11 @@ func (s Struct2) GetFoo() int {
 	return s.Foo
 }
 
-func (s Struct2) GetBar() pod.VecView[string] {
+func (s Struct2) GetBar() pod.FixedVec[string] {
 	return s.Bar
 }
 
-func VecOrder(a, b pod.VecView[string]) int {
+func VecOrder(a, b pod.FixedVec[string]) int {
 	for i := 0; i < a.Len() && i < b.Len(); i++ {
 		if idxRes := cmp.Compare(a.Get(i), b.Get(i)); idxRes != 0 {
 			return idxRes

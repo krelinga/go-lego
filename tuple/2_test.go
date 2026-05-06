@@ -7,8 +7,8 @@ import (
 	"github.com/krelinga/go-libs/tuple"
 )
 
-func TestT2ImplementsView2(t *testing.T) {
-	exam.Try(t, exam.Implements[tuple.T2[int, string], tuple.View2[int, string]]())
+func TestT2ImplementsFixed2(t *testing.T) {
+	exam.Try(t, exam.Implements[tuple.T2[int, string], tuple.Fixed2[int, string]]())
 }
 
 func TestT2Fields(t *testing.T) {

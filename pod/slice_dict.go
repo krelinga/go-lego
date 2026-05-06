@@ -23,7 +23,7 @@ type SliceDict[K, V any] struct {
 
 // NewSliceDictFunc creates a new SliceDict with a custom key equality function and initial entries.
 // If any of the initial entries have keys that are considered equal, only the last occurrence will be kept.
-func NewSliceDictFunc[K, V any](equalKey func(a, b K) bool, entries ...tuple.View2[K, V]) *SliceDict[K, V] {
+func NewSliceDictFunc[K, V any](equalKey func(a, b K) bool, entries ...tuple.Fixed2[K, V]) *SliceDict[K, V] {
 	d := &SliceDict[K, V]{
 		slice:    &Slice[tuple.T2[K, V]]{},
 		equalKey: equalKey,
@@ -37,7 +37,7 @@ func NewSliceDictFunc[K, V any](equalKey func(a, b K) bool, entries ...tuple.Vie
 
 // NewSliceDict creates a new SliceDict using Go's built-in equality for keys and the given initial entries.
 // If any of the initial entries have equal keys, only the last occurrence will be kept.
-func NewSliceDict[K comparable, V any](entries ...tuple.View2[K, V]) *SliceDict[K, V] {
+func NewSliceDict[K comparable, V any](entries ...tuple.Fixed2[K, V]) *SliceDict[K, V] {
 	return NewSliceDictFunc(func(a, b K) bool { return a == b }, entries...)
 }
 

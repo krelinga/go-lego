@@ -12,7 +12,7 @@ func TestVecRange(t *testing.T) {
 	cases := []struct {
 		Name      string
 		Loc       exam.Loc
-		Parent    pod.VecView[int]
+		Parent    pod.FixedVec[int]
 		FromIdx   int
 		ToIdx     int
 		WantLen   int
@@ -87,7 +87,7 @@ func TestVecRangeFrom(t *testing.T) {
 	cases := []struct {
 		Name      string
 		Loc       exam.Loc
-		Parent    pod.VecView[int]
+		Parent    pod.FixedVec[int]
 		FromIdx   int
 		WantLen   int
 		WantPanic bool
@@ -148,7 +148,7 @@ func TestVecRangeTo(t *testing.T) {
 	cases := []struct {
 		Name      string
 		Loc       exam.Loc
-		Parent    pod.VecView[int]
+		Parent    pod.FixedVec[int]
 		ToIdx     int
 		WantLen   int
 		WantPanic bool
@@ -209,7 +209,7 @@ func TestVecRangeLen(t *testing.T) {
 	cases := []struct {
 		Name    string
 		Loc     exam.Loc
-		Range   pod.VecView[int]
+		Range   pod.FixedVec[int]
 		WantLen int
 	}{
 		{
@@ -252,7 +252,7 @@ func TestVecRangeGet(t *testing.T) {
 	cases := []struct {
 		Name      string
 		Loc       exam.Loc
-		Range     pod.VecView[int]
+		Range     pod.FixedVec[int]
 		Idx       int
 		WantVal   int
 		WantPanic string
@@ -315,7 +315,7 @@ func TestVecRangeVals(t *testing.T) {
 	cases := []struct {
 		Name     string
 		Loc      exam.Loc
-		Range    pod.VecView[int]
+		Range    pod.FixedVec[int]
 		WantVals []int
 	}{
 		{
@@ -359,7 +359,7 @@ func TestVecRangeIdxVals(t *testing.T) {
 	cases := []struct {
 		Name     string
 		Loc      exam.Loc
-		Range    pod.VecView[int]
+		Range    pod.FixedVec[int]
 		WantVals []int
 	}{
 		{
@@ -408,7 +408,7 @@ func TestVecRangeRevVals(t *testing.T) {
 	cases := []struct {
 		Name     string
 		Loc      exam.Loc
-		Range    pod.VecView[int]
+		Range    pod.FixedVec[int]
 		WantVals []int
 	}{
 		{
@@ -452,7 +452,7 @@ func TestVecRangeRevIdxVals(t *testing.T) {
 	cases := []struct {
 		Name     string
 		Loc      exam.Loc
-		Range    pod.VecView[int]
+		Range    pod.FixedVec[int]
 		WantVals []int // forward-ordered; indices emitted by RevIdxVals correspond to positions in this slice
 	}{
 		{

@@ -18,7 +18,7 @@ func TestNewSliceDict(t *testing.T) {
 	cases := []struct {
 		Name     string
 		Loc      exam.Loc
-		Entries  []tuple.View2[string, int]
+		Entries  []tuple.Fixed2[string, int]
 		WantLen  int
 		WantData map[string]int
 	}{
@@ -32,14 +32,14 @@ func TestNewSliceDict(t *testing.T) {
 		{
 			Name:     "distinct entries",
 			Loc:      exam.Here(),
-			Entries:  []tuple.View2[string, int]{tuple.New2("a", 1), tuple.New2("b", 2)},
+			Entries:  []tuple.Fixed2[string, int]{tuple.New2("a", 1), tuple.New2("b", 2)},
 			WantLen:  2,
 			WantData: map[string]int{"a": 1, "b": 2},
 		},
 		{
 			Name:     "duplicate key keeps last",
 			Loc:      exam.Here(),
-			Entries:  []tuple.View2[string, int]{tuple.New2("a", 1), tuple.New2("a", 99)},
+			Entries:  []tuple.Fixed2[string, int]{tuple.New2("a", 1), tuple.New2("a", 99)},
 			WantLen:  1,
 			WantData: map[string]int{"a": 99},
 		},

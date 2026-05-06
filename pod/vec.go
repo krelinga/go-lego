@@ -8,30 +8,30 @@ import (
 	"github.com/krelinga/go-libs/zero"
 )
 
-// VecView is a read-only view of a vector. It provides methods to access the elements, but does not allow mutation.
-type VecView[T any] interface {
-	// Len returns the number of elements in the VecView.
+// FixedVec is a read-only view of a vector. It provides methods to access the elements, but does not allow mutation.
+type FixedVec[T any] interface {
+	// Len returns the number of elements in the FixedVec.
 	Len() int
 
-	// Get returns the element at the specified index in the VecView. If the index is out of bounds, it will panic.
+	// Get returns the element at the specified index in the FixedVec. If the index is out of bounds, it will panic.
 	Get(i int) T
 
-	// Vals returns an in-order sequence of values in the VecView.
+	// Vals returns an in-order sequence of values in the FixedVec.
 	Vals() iter.Seq[T]
 
-	// IdxVals returns an in-order sequence of indexed values in the VecView. Each element is a pair of the form (index, value), where index is the position of the value in the VecView and value is the corresponding element from the VecView.
+	// IdxVals returns an in-order sequence of indexed values in the FixedVec. Each element is a pair of the form (index, value), where index is the position of the value in the FixedVec and value is the corresponding element from the FixedVec.
 	IdxVals() iter.Seq2[int, T]
 
-	// RevVals returns a reverse-order sequence of values in the VecView.
+	// RevVals returns a reverse-order sequence of values in the FixedVec.
 	RevVals() iter.Seq[T]
 
-	// RevIdxVals returns a reverse-order sequence of indexed values in the VecView. Each element is a pair of the form (index, value), where index is the position of the value in the VecView and value is the corresponding element from the VecView.
+	// RevIdxVals returns a reverse-order sequence of indexed values in the FixedVec. Each element is a pair of the form (index, value), where index is the position of the value in the FixedVec and value is the corresponding element from the FixedVec.
 	RevIdxVals() iter.Seq2[int, T]
 }
 
-// Vec is a mutable vector that implements the VecView interface. It allows setting, clearing, pushing, popping, and resizing elements.
+// Vec is a mutable vector that implements the FixedVec interface. It allows setting, clearing, pushing, popping, and resizing elements.
 type Vec[T any] interface {
-	VecView[T]
+	FixedVec[T]
 
 	// Set sets the element at the specified index in the Vec to the given value. If the index is out of bounds, it will panic.
 	Set(i int, value T)
@@ -49,32 +49,32 @@ type Vec[T any] interface {
 	Resize(newLen int)
 }
 
-// AsVec creates a VecView from a slice. It provides a read-only view of the slice, and any changes to the slice will be reflected in the VecView.
-func AsVec[V ~[]T, T any](v V) VecView[T] {
-	return vecView[V, T]{v: v}
+// AsVec creates a FixedVec from a slice. It provides a read-only view of the slice, and any changes to the slice will be reflected in the FixedVec.
+func AsVec[V ~[]T, T any](v V) FixedVec[T] {
+	return asVec[V, T]{v: v}
 }
 
-type vecView[V ~[]T, T any] struct {
+type asVec[V ~[]T, T any] struct {
 	v V
 }
 
-func (v vecView[V, T]) Len() int {
+func (v asVec[V, T]) Len() int {
 	return len(v.v)
 }
 
-func (v vecView[V, T]) Get(i int) T {
+func (v asVec[V, T]) Get(i int) T {
 	return v.v[i]
 }
 
-func (v vecView[V, T]) Vals() iter.Seq[T] {
+func (v asVec[V, T]) Vals() iter.Seq[T] {
 	return slices.Values(v.v)
 }
 
-func (v vecView[V, T]) IdxVals() iter.Seq2[int, T] {
+func (v asVec[V, T]) IdxVals() iter.Seq2[int, T] {
 	return slices.All(v.v)
 }
 
-func (v vecView[V, T]) RevVals() iter.Seq[T] {
+func (v asVec[V, T]) RevVals() iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for i := len(v.v) - 1; i >= 0; i-- {
 			if !yield(v.v[i]) {
@@ -84,7 +84,7 @@ func (v vecView[V, T]) RevVals() iter.Seq[T] {
 	}
 }
 
-func (v vecView[V, T]) RevIdxVals() iter.Seq2[int, T] {
+func (v asVec[V, T]) RevIdxVals() iter.Seq2[int, T] {
 	return func(yield func(int, T) bool) {
 		for i := len(v.v) - 1; i >= 0; i-- {
 			if !yield(i, v.v[i]) {
@@ -220,8 +220,8 @@ func (v *Slice[T]) Pop() T {
 	return value
 }
 
-// WrapVecVals creates a new VecView that wraps the values of the given VecView with the provided wrap function. The resulting VecView will reflect any changes to the underlying VecView, and the wrap function will be applied to each value when accessed through the new VecView. The indices of the elements remain unchanged.
-func WrapVecVals[T, V any](vec VecView[T], wrap func(T) V) VecView[V] {
+// WrapVecVals creates a new FixedVec that wraps the values of the given FixedVec with the provided wrap function. The resulting FixedVec will reflect any changes to the underlying FixedVec, and the wrap function will be applied to each value when accessed through the new FixedVec. The indices of the elements remain unchanged.
+func WrapVecVals[T, V any](vec FixedVec[T], wrap func(T) V) FixedVec[V] {
 	return wrappedVecVals[T, V]{
 		vec:  vec,
 		wrap: wrap,
@@ -229,7 +229,7 @@ func WrapVecVals[T, V any](vec VecView[T], wrap func(T) V) VecView[V] {
 }
 
 type wrappedVecVals[T, V any] struct {
-	vec  VecView[T]
+	vec  FixedVec[T]
 	wrap func(T) V
 }
 
@@ -281,8 +281,8 @@ func (w wrappedVecVals[T, V]) RevIdxVals() iter.Seq2[int, V] {
 	}
 }
 
-// VecEqualFunc checks if two VecViews are equal by comparing their lengths and corresponding elements using the provided equality function. It returns true if the VecViews are of the same length and all corresponding elements are equal according to the equality function, and false otherwise.
-func VecEqualFunc[T any](a, b VecView[T], eq func(T, T) bool) bool {
+// VecEqualFunc checks if two FixedVecs are equal by comparing their lengths and corresponding elements using the provided equality function. It returns true if the FixedVecs are of the same length and all corresponding elements are equal according to the equality function, and false otherwise.
+func VecEqualFunc[T any](a, b FixedVec[T], eq func(T, T) bool) bool {
 	if a.Len() != b.Len() {
 		return false
 	}
@@ -294,8 +294,8 @@ func VecEqualFunc[T any](a, b VecView[T], eq func(T, T) bool) bool {
 	return true
 }
 
-// VecEqual checks if two VecViews are equal by comparing their lengths and corresponding elements using the equality operator (==). It returns true if the VecViews are of the same length and all corresponding elements are equal, and false otherwise. The element type must be comparable for this function to work.
-func VecEqual[T comparable](a, b VecView[T]) bool {
+// VecEqual checks if two FixedVecs are equal by comparing their lengths and corresponding elements using the equality operator (==). It returns true if the FixedVecs are of the same length and all corresponding elements are equal, and false otherwise. The element type must be comparable for this function to work.
+func VecEqual[T comparable](a, b FixedVec[T]) bool {
 	return VecEqualFunc(a, b, func(x, y T) bool {
 		return x == y
 	})

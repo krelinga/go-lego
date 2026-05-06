@@ -7,8 +7,8 @@ import (
 	"github.com/krelinga/go-libs/zero"
 )
 
-// DictView is a read-only view of a dictionary. It provides methods to access the keys and values, but does not allow mutation.
-type DictView[K, V any] interface {
+// FixedDict is a read-only view of a dictionary. It provides methods to access the keys and values, but does not allow mutation.
+type FixedDict[K, V any] interface {
 	// Len returns the number of key-value pairs in the dictionary.
 	Len() int
 
@@ -25,9 +25,9 @@ type DictView[K, V any] interface {
 	Vals() iter.Seq[V]
 }
 
-// Dict is a mutable dictionary that implements the DictView interface. It allows adding, removing, and clearing key-value pairs.
+// Dict is a mutable dictionary that implements the FixedDict interface. It allows adding, removing, and clearing key-value pairs.
 type Dict[K, V any] interface {
-	DictView[K, V]
+	FixedDict[K, V]
 
 	// Put adds a key-value pair to the dictionary. If the key already exists, it replaces the value.
 	Put(key K, value V)
@@ -39,33 +39,33 @@ type Dict[K, V any] interface {
 	Del(key K)
 }
 
-// AsDict creates a DictView from a map. It provides a read-only view of the map, and any changes to the map will be reflected in the DictView.
-func AsDict[M ~map[K]V, K comparable, V any](m M) DictView[K, V] {
-	return dictView[M, K, V]{m: m}
+// AsDict creates a FixedDict from a map. It provides a read-only view of the map, and any changes to the map will be reflected in the FixedDict.
+func AsDict[M ~map[K]V, K comparable, V any](m M) FixedDict[K, V] {
+	return asDict[M, K, V]{m: m}
 }
 
-type dictView[M ~map[K]V, K comparable, V any] struct {
+type asDict[M ~map[K]V, K comparable, V any] struct {
 	m M
 }
 
-func (m dictView[M, K, V]) Len() int {
+func (m asDict[M, K, V]) Len() int {
 	return len(m.m)
 }
 
-func (m dictView[M, K, V]) Get(key K) (V, bool) {
+func (m asDict[M, K, V]) Get(key K) (V, bool) {
 	value, ok := m.m[key]
 	return value, ok
 }
 
-func (m dictView[M, K, V]) KeyVals() iter.Seq2[K, V] {
+func (m asDict[M, K, V]) KeyVals() iter.Seq2[K, V] {
 	return maps.All(m.m)
 }
 
-func (m dictView[M, K, V]) Keys() iter.Seq[K] {
+func (m asDict[M, K, V]) Keys() iter.Seq[K] {
 	return maps.Keys(m.m)
 }
 
-func (m dictView[M, K, V]) Vals() iter.Seq[V] {
+func (m asDict[M, K, V]) Vals() iter.Seq[V] {
 	return maps.Values(m.m)
 }
 
@@ -144,8 +144,8 @@ func (m *Map[K, V]) Del(key K) {
 	delete(*m, key)
 }
 
-// WrapDictVals creates a new DictView that wraps the values of the given DictView with the provided wrap function. The keys remain unchanged.
-func WrapDictVals[K, V, W any](d DictView[K, V], wrap func(V) W) DictView[K, W] {
+// WrapDictVals creates a new FixedDict that wraps the values of the given FixedDict with the provided wrap function. The keys remain unchanged.
+func WrapDictVals[K, V, W any](d FixedDict[K, V], wrap func(V) W) FixedDict[K, W] {
 	return wrappedDictVals[K, V, W]{
 		d:    d,
 		wrap: wrap,
@@ -153,7 +153,7 @@ func WrapDictVals[K, V, W any](d DictView[K, V], wrap func(V) W) DictView[K, W] 
 }
 
 type wrappedDictVals[K, V, W any] struct {
-	d    DictView[K, V]
+	d    FixedDict[K, V]
 	wrap func(V) W
 }
 
@@ -193,14 +193,14 @@ func (w wrappedDictVals[K, V, W]) Vals() iter.Seq[W] {
 	}
 }
 
-// WrapDictKeys creates a new DictView that wraps the keys of the given DictView with the provided wrap function.
+// WrapDictKeys creates a new FixedDict that wraps the keys of the given FixedDict with the provided wrap function.
 // The values remain unchanged. The unwrap function is used to convert wrapped keys back to their original form
-// when accessing the underlying DictView in cases like Get.
+// when accessing the underlying FixedDict in cases like Get.
 //
-// For example, if you have a DictView with string keys and you want to wrap the keys as integers (e.g., by parsing the strings), you could use WrapDictKeys with a wrap function that converts strings to integers and an unwrap function that converts integers back to strings.
+// For example, if you have a FixedDict with string keys and you want to wrap the keys as integers (e.g., by parsing the strings), you could use WrapDictKeys with a wrap function that converts strings to integers and an unwrap function that converts integers back to strings.
 //
-// The wrap function must be one-to-one (i.e., it should not map two different keys to the same wrapped key) to ensure that the resulting DictView behaves correctly. The unwrap function must be the inverse of the wrap function for the keys to ensure that Get and other methods work as expected.
-func WrapDictKeys[K, V, W any](d DictView[K, V], wrap func(K) W, unwrap func(W) K) DictView[W, V] {
+// The wrap function must be one-to-one (i.e., it should not map two different keys to the same wrapped key) to ensure that the resulting FixedDict behaves correctly. The unwrap function must be the inverse of the wrap function for the keys to ensure that Get and other methods work as expected.
+func WrapDictKeys[K, V, W any](d FixedDict[K, V], wrap func(K) W, unwrap func(W) K) FixedDict[W, V] {
 	return wrappedDictKeys[K, V, W]{
 		d:      d,
 		wrap:   wrap,
@@ -209,7 +209,7 @@ func WrapDictKeys[K, V, W any](d DictView[K, V], wrap func(K) W, unwrap func(W) 
 }
 
 type wrappedDictKeys[K, V, W any] struct {
-	d      DictView[K, V]
+	d      FixedDict[K, V]
 	wrap   func(K) W
 	unwrap func(W) K
 }
@@ -246,15 +246,15 @@ func (w wrappedDictKeys[K, V, W]) Vals() iter.Seq[V] {
 	return w.d.Vals()
 }
 
-// DictEqual checks if two DictViews are equal by comparing their key-value pairs. It returns true if both DictViews have the same keys and corresponding values, and false otherwise. The values are compared using the equality operator (==), so the value type must be comparable.
-func DictEqual[K, V comparable](a, b DictView[K, V]) bool {
+// DictEqual checks if two FixedDicts are equal by comparing their key-value pairs. It returns true if both FixedDicts have the same keys and corresponding values, and false otherwise. The values are compared using the equality operator (==), so the value type must be comparable.
+func DictEqual[K, V comparable](a, b FixedDict[K, V]) bool {
 	return DictEqualFunc(a, b, func(vA, vB V) bool {
 		return vA == vB
 	})
 }
 
-// DictEqualFunc checks if two DictViews are equal by comparing their key-value pairs using a custom equality function for the values. It returns true if both DictViews have the same keys and corresponding values that are considered equal by the provided function, and false otherwise.
-func DictEqualFunc[K, V any](a, b DictView[K, V], eq func(V, V) bool) bool {
+// DictEqualFunc checks if two FixedDicts are equal by comparing their key-value pairs using a custom equality function for the values. It returns true if both FixedDicts have the same keys and corresponding values that are considered equal by the provided function, and false otherwise.
+func DictEqualFunc[K, V any](a, b FixedDict[K, V], eq func(V, V) bool) bool {
 	if a.Len() != b.Len() {
 		return false
 	}

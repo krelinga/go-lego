@@ -497,8 +497,8 @@ func TestDictEqual(t *testing.T) {
 	cases := []struct {
 		Name      string
 		Loc       exam.Loc
-		A         pod.DictView[string, int]
-		B         pod.DictView[string, int]
+		A         pod.FixedDict[string, int]
+		B         pod.FixedDict[string, int]
 		WantEqual bool
 	}{
 		{
@@ -552,8 +552,8 @@ func TestDictEqualFunc(t *testing.T) {
 	cases := []struct {
 		Name      string
 		Loc       exam.Loc
-		A         pod.DictView[int, string]
-		B         pod.DictView[int, string]
+		A         pod.FixedDict[int, string]
+		B         pod.FixedDict[int, string]
 		WantEqual bool
 	}{
 		{

@@ -1,7 +1,7 @@
 package tuple
 
-// View2 is a view of a two-tuple (pair) of values of types A and B.
-type View2[A, B any] interface {
+// Fixed2 is a view of a two-tuple (pair) of values of types A and B.
+type Fixed2[A, B any] interface {
 	GetA() A
 	GetB() B
 }

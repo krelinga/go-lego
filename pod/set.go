@@ -5,8 +5,8 @@ import (
 	"maps"
 )
 
-// SetView is a read-only view of a set. It provides methods to access the values, but does not allow mutation.
-type SetView[T any] interface {
+// FixedSet is a read-only view of a set. It provides methods to access the values, but does not allow mutation.
+type FixedSet[T any] interface {
 	// Len returns the number of elements in the set.
 	Len() int
 
@@ -17,9 +17,9 @@ type SetView[T any] interface {
 	Vals() iter.Seq[T]
 }
 
-// Set is a mutable set that implements the SetView interface. It allows adding, removing, and clearing values.
+// Set is a mutable set that implements the FixedSet interface. It allows adding, removing, and clearing values.
 type Set[T any] interface {
-	SetView[T]
+	FixedSet[T]
 
 	// Put adds a value to the set. If the value is already present, it does nothing.
 	Put(value T)
@@ -31,35 +31,35 @@ type Set[T any] interface {
 	Del(value T)
 }
 
-// AsSet creates a SetView from the keys of a map. It provides a read-only view of the keys of the map as a set, and any changes to the map will be reflected in the SetView.
-func AsSet[S ~map[T]V, T comparable, V any](s S) SetView[T] {
-	return setView[S, T, V]{s: s}
+// AsSet creates a FixedSet from the keys of a map. It provides a read-only view of the keys of the map as a set, and any changes to the map will be reflected in the FixedSet.
+func AsSet[S ~map[T]V, T comparable, V any](s S) FixedSet[T] {
+	return asSet[S, T, V]{s: s}
 }
 
-type setView[S ~map[T]V, T comparable, V any] struct {
+type asSet[S ~map[T]V, T comparable, V any] struct {
 	s S
 }
 
-func (s setView[S, T, V]) Len() int {
+func (s asSet[S, T, V]) Len() int {
 	return len(s.s)
 }
 
-func (s setView[S, T, V]) Has(value T) bool {
+func (s asSet[S, T, V]) Has(value T) bool {
 	_, ok := s.s[value]
 	return ok
 }
 
-func (s setView[S, T, V]) Vals() iter.Seq[T] {
+func (s asSet[S, T, V]) Vals() iter.Seq[T] {
 	return maps.Keys(s.s)
 }
 
-// SetOfDictKeys creates a SetView of the keys of a DictView. It provides a read-only view of the keys of the DictView as a set, and any changes to the DictView will be reflected in the SetView.
-func SetOfDictKeys[T, V any](m DictView[T, V]) SetView[T] {
+// SetOfDictKeys creates a FixedSet of the keys of a FixedDict. It provides a read-only view of the keys of the FixedDict as a set, and any changes to the FixedDict will be reflected in the FixedSet.
+func SetOfDictKeys[T, V any](m FixedDict[T, V]) FixedSet[T] {
 	return setOfDictKeys[T, V]{m: m}
 }
 
 type setOfDictKeys[T, V any] struct {
-	m DictView[T, V]
+	m FixedDict[T, V]
 }
 
 func (s setOfDictKeys[T, V]) Len() int {
@@ -75,7 +75,7 @@ func (s setOfDictKeys[T, V]) Vals() iter.Seq[T] {
 	return s.m.Keys()
 }
 
-// MapSet is a mutable set that uses a map for storage. It is a wrapper around a map with empty struct values, so it is possible to create literals of MapSet as follows:
+// MapSet is a mutable set that implements the FixedSet interface. It uses a map for storage, so it is possible to create literals of MapSet as follows:
 //
 //	s := &MapSet[string]{"a": {}, "b": {}}
 type MapSet[T comparable] map[T]struct{}
@@ -144,12 +144,12 @@ func (s *MapSet[T]) Del(value T) {
 	delete(*s, value)
 }
 
-// WrapSetVals creates a new SetView that wraps the values of the given SetView with the provided wrap and unwrap functions. The wrap function is used to convert values from the original type to the wrapped type when yielding values, and the unwrap function is used to convert values from the wrapped type back to the original type when checking for membership with Has.
+// WrapSetVals creates a new FixedSet that wraps the values of the given FixedSet with the provided wrap and unwrap functions. The wrap function is used to convert values from the original type to the wrapped type when yielding values, and the unwrap function is used to convert values from the wrapped type back to the original type when checking for membership with Has.
 //
-// For example, if you have a SetView of integers and you want to wrap the values as strings (e.g., by converting the integers to their string representations), you could use WrapSetVals with a wrap function that converts integers to strings and an unwrap function that converts strings back to integers.
+// For example, if you have a FixedSet of integers and you want to wrap the values as strings (e.g., by converting the integers to their string representations), you could use WrapSetVals with a wrap function that converts integers to strings and an unwrap function that converts strings back to integers.
 //
-// The wrap function must be one-to-one (i.e., it should not map two different values to the same wrapped value) to ensure that the resulting SetView behaves correctly. The unwrap function must be the inverse of the wrap function for the values to ensure that Has and other methods work as expected.
-func WrapSetVals[T, V any](set SetView[T], wrap func(T) V, unwrap func(V) T) SetView[V] {
+// The wrap function must be one-to-one (i.e., it should not map two different values to the same wrapped value) to ensure that the resulting FixedSet behaves correctly. The unwrap function must be the inverse of the wrap function for the values to ensure that Has and other methods work as expected.
+func WrapSetVals[T, V any](set FixedSet[T], wrap func(T) V, unwrap func(V) T) FixedSet[V] {
 	return wrappedSetVals[T, V]{
 		set:    set,
 		wrap:   wrap,
@@ -158,7 +158,7 @@ func WrapSetVals[T, V any](set SetView[T], wrap func(T) V, unwrap func(V) T) Set
 }
 
 type wrappedSetVals[T, V any] struct {
-	set    SetView[T]
+	set    FixedSet[T]
 	wrap   func(T) V
 	unwrap func(V) T
 }
@@ -181,8 +181,8 @@ func (w wrappedSetVals[T, V]) Vals() iter.Seq[V] {
 	}
 }
 
-// SetEqual checks if two SetViews are equal by comparing their elements. It returns true if both SetViews contain the same elements, and false otherwise. The elements are compared using the Set's Has method.
-func SetEqual[T any](a, b SetView[T]) bool {
+// SetEqual checks if two FixedSets are equal by comparing their elements. It returns true if both FixedSets contain the same elements, and false otherwise. The elements are compared using the Set's Has method.
+func SetEqual[T any](a, b FixedSet[T]) bool {
 	if a.Len() != b.Len() {
 		return false
 	}
