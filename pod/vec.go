@@ -281,6 +281,8 @@ func (w wrappedVecVals[T, V]) RevIdxVals() iter.Seq2[int, V] {
 	}
 }
 
+// ViewVecVals takes a FixedVec who's values implement the Viewer interface and returns a new FixedVec with the values transformed using the View method of the Viewer interface, and the original indices.
+// The resulting FixedVec will keep a reference to the original FixedVec, so if the original value is modified the changes will be reflected in the wrapped FixedVec.
 func ViewVecVals[V Viewer[VV], VV any](vec FixedVec[V]) FixedVec[VV] {
 	return WrapVecVals(vec, V.View)
 }

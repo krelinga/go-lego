@@ -181,6 +181,9 @@ func (w wrappedSetVals[T, V]) Vals() iter.Seq[V] {
 	}
 }
 
+// ViewSetVals takes a FixedSet who's values implement the Viewer interface and returns a new FixedSet with the values transformed using the View method of the Viewer interface, and the original keys.
+// The resulting FixedSet will keep a reference to the original FixedSet, so if the original value is modified the changes will be reflected in the wrapped FixedSet.
+// The unwrap function is used to convert wrapped values back to their original form when accessing the underlying FixedSet in cases like Has.  See [WrapSetVals] for more details.
 func ViewSetVals[V Viewer[VV], VV any](set FixedSet[V], unwrap func(VV) V) FixedSet[VV] {
 	return WrapSetVals(set, V.View, unwrap)
 }
