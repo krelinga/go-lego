@@ -3,8 +3,6 @@ package pod
 import (
 	"iter"
 	"maps"
-
-	"github.com/krelinga/go-libs/view"
 )
 
 // FixedSet is a read-only view of a set. It provides methods to access the values, but does not allow mutation.
@@ -183,7 +181,7 @@ func (w wrappedSetVals[T, V]) Vals() iter.Seq[V] {
 	}
 }
 
-func ViewSetVals[V view.Viewer[VV], VV any](set FixedSet[V], unwrap func(VV) V) FixedSet[VV] {
+func ViewSetVals[V Viewer[VV], VV any](set FixedSet[V], unwrap func(VV) V) FixedSet[VV] {
 	return WrapSetVals(set, V.View, unwrap)
 }
 

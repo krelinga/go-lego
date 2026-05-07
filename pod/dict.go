@@ -4,7 +4,6 @@ import (
 	"iter"
 	"maps"
 
-	"github.com/krelinga/go-libs/view"
 	"github.com/krelinga/go-libs/zero"
 )
 
@@ -194,7 +193,7 @@ func (w wrappedDictVals[K, V, W]) Vals() iter.Seq[W] {
 	}
 }
 
-func ViewDictVals[K any, V view.Viewer[VV], VV any](d FixedDict[K, V]) FixedDict[K, VV] {
+func ViewDictVals[K any, V Viewer[VV], VV any](d FixedDict[K, V]) FixedDict[K, VV] {
 	return WrapDictVals(d, V.View)
 }
 
@@ -251,7 +250,7 @@ func (w wrappedDictKeys[K, V, W]) Vals() iter.Seq[V] {
 	return w.d.Vals()
 }
 
-func ViewDictKeys[K view.Viewer[KK], V any, KK any](d FixedDict[K, V], unwrap func(KK) K) FixedDict[KK, V] {
+func ViewDictKeys[K Viewer[KK], V any, KK any](d FixedDict[K, V], unwrap func(KK) K) FixedDict[KK, V] {
 	return WrapDictKeys(d, K.View, unwrap)
 }
 

@@ -1,7 +1,5 @@
 package pod
 
-import "github.com/krelinga/go-libs/view"
-
 // FixedTup2 is a view of a two-tuple (pair) of values of types A and B.
 type FixedTup2[A, B any] interface {
 	GetA() A
@@ -61,10 +59,10 @@ func (w wrapTup2B[A, B, BB]) GetB() BB {
 	return w.w(w.f.GetB())
 }
 
-func ViewTup2A[A view.Viewer[AA], B, AA any](f FixedTup2[A, B]) FixedTup2[AA, B] {
+func ViewTup2A[A Viewer[AA], B, AA any](f FixedTup2[A, B]) FixedTup2[AA, B] {
 	return WrapTup2A(f, A.View)
 }
 
-func ViewTup2B[A, B view.Viewer[BB], BB any](f FixedTup2[A, B]) FixedTup2[A, BB] {
+func ViewTup2B[A, B Viewer[BB], BB any](f FixedTup2[A, B]) FixedTup2[A, BB] {
 	return WrapTup2B(f, B.View)
 }
