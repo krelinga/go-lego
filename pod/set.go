@@ -181,6 +181,10 @@ func (w wrappedSetVals[T, V]) Vals() iter.Seq[V] {
 	}
 }
 
+func ViewSetVals[V Viewer[VV], VV any](set FixedSet[V], unwrap func(VV) V) FixedSet[VV] {
+	return WrapSetVals(set, V.View, unwrap)
+}
+
 // SetEqual checks if two FixedSets are equal by comparing their elements. It returns true if both FixedSets contain the same elements, and false otherwise. The elements are compared using the Set's Has method.
 func SetEqual[T any](a, b FixedSet[T]) bool {
 	if a.Len() != b.Len() {
