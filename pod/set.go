@@ -183,7 +183,7 @@ func (w wrappedSetVals[T, V]) Vals() iter.Seq[V] {
 	}
 }
 
-func ViewSetVals[V view.Can[VV], VV any](set FixedSet[V], unwrap func(VV) V) FixedSet[VV] {
+func ViewSetVals[V view.Viewer[VV], VV any](set FixedSet[V], unwrap func(VV) V) FixedSet[VV] {
 	return WrapSetVals(set, V.View, unwrap)
 }
 

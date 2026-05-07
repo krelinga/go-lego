@@ -61,10 +61,10 @@ func (w wrap2B[A, B, BB]) GetB() BB {
 	return w.w(w.f.GetB())
 }
 
-func View2A[A view.Can[AA], B, AA any](f Fixed2[A, B]) Fixed2[AA, B] {
+func View2A[A view.Viewer[AA], B, AA any](f Fixed2[A, B]) Fixed2[AA, B] {
 	return Wrap2A(f, A.View)
 }
 
-func View2B[A, B view.Can[BB], BB any](f Fixed2[A, B]) Fixed2[A, BB] {
+func View2B[A, B view.Viewer[BB], BB any](f Fixed2[A, B]) Fixed2[A, BB] {
 	return Wrap2B(f, B.View)
 }

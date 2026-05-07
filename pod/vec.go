@@ -282,7 +282,7 @@ func (w wrappedVecVals[T, V]) RevIdxVals() iter.Seq2[int, V] {
 	}
 }
 
-func ViewVecVals[V view.Can[VV], VV any](vec FixedVec[V]) FixedVec[VV] {
+func ViewVecVals[V view.Viewer[VV], VV any](vec FixedVec[V]) FixedVec[VV] {
 	return WrapVecVals(vec, V.View)
 }
 

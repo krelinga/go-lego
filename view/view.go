@@ -1,10 +1,10 @@
 package view
 
-type Can[T any] interface {
+type Viewer[T any] interface {
 	View() T
 }
 
-func Direct[T any](v T) Can[T] {
+func Direct[T any](v T) Viewer[T] {
 	return direct[T]{v: v}
 }
 
