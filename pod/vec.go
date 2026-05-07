@@ -5,6 +5,7 @@ import (
 	"iter"
 	"slices"
 
+	"github.com/krelinga/go-libs/view"
 	"github.com/krelinga/go-libs/zero"
 )
 
@@ -279,6 +280,10 @@ func (w wrappedVecVals[T, V]) RevIdxVals() iter.Seq2[int, V] {
 			}
 		}
 	}
+}
+
+func ViewVecVals[V view.Can[VV], VV any](vec FixedVec[V]) FixedVec[VV] {
+	return WrapVecVals(vec, V.View)
 }
 
 // VecEqualFunc checks if two FixedVecs are equal by comparing their lengths and corresponding elements using the provided equality function. It returns true if the FixedVecs are of the same length and all corresponding elements are equal according to the equality function, and false otherwise.

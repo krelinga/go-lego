@@ -3,6 +3,8 @@ package pod
 import (
 	"iter"
 	"maps"
+
+	"github.com/krelinga/go-libs/view"
 )
 
 // FixedSet is a read-only view of a set. It provides methods to access the values, but does not allow mutation.
@@ -179,6 +181,10 @@ func (w wrappedSetVals[T, V]) Vals() iter.Seq[V] {
 			}
 		}
 	}
+}
+
+func ViewSetVals[V view.Can[VV], VV any](set FixedSet[V], unwrap func(VV) V) FixedSet[VV] {
+	return WrapSetVals(set, V.View, unwrap)
 }
 
 // SetEqual checks if two FixedSets are equal by comparing their elements. It returns true if both FixedSets contain the same elements, and false otherwise. The elements are compared using the Set's Has method.

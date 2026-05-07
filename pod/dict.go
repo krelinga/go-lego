@@ -4,6 +4,7 @@ import (
 	"iter"
 	"maps"
 
+	"github.com/krelinga/go-libs/view"
 	"github.com/krelinga/go-libs/zero"
 )
 
@@ -193,6 +194,10 @@ func (w wrappedDictVals[K, V, W]) Vals() iter.Seq[W] {
 	}
 }
 
+func ViewDictVals[K any, V view.Can[VV], VV any](d FixedDict[K, V]) FixedDict[K, VV] {
+	return WrapDictVals(d, V.View)
+}
+
 // WrapDictKeys creates a new FixedDict that wraps the keys of the given FixedDict with the provided wrap function.
 // The values remain unchanged. The unwrap function is used to convert wrapped keys back to their original form
 // when accessing the underlying FixedDict in cases like Get.
@@ -244,6 +249,10 @@ func (w wrappedDictKeys[K, V, W]) Keys() iter.Seq[W] {
 
 func (w wrappedDictKeys[K, V, W]) Vals() iter.Seq[V] {
 	return w.d.Vals()
+}
+
+func ViewDictKeys[K view.Can[KK], V any, KK any](d FixedDict[K, V], unwrap func(KK) K) FixedDict[KK, V] {
+	return WrapDictKeys(d, K.View, unwrap)
 }
 
 // DictEqual checks if two FixedDicts are equal by comparing their key-value pairs. It returns true if both FixedDicts have the same keys and corresponding values, and false otherwise. The values are compared using the equality operator (==), so the value type must be comparable.
