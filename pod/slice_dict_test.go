@@ -7,7 +7,6 @@ import (
 
 	"github.com/krelinga/go-libs/exam"
 	"github.com/krelinga/go-libs/pod"
-	"github.com/krelinga/go-libs/tuple"
 )
 
 func TestSliceDictImplements(t *testing.T) {
@@ -18,7 +17,7 @@ func TestNewSliceDict(t *testing.T) {
 	cases := []struct {
 		Name     string
 		Loc      exam.Loc
-		Entries  []tuple.Fixed2[string, int]
+		Entries  []pod.FixedTup2[string, int]
 		WantLen  int
 		WantData map[string]int
 	}{
@@ -32,14 +31,14 @@ func TestNewSliceDict(t *testing.T) {
 		{
 			Name:     "distinct entries",
 			Loc:      exam.Here(),
-			Entries:  []tuple.Fixed2[string, int]{tuple.New2("a", 1), tuple.New2("b", 2)},
+			Entries:  []pod.FixedTup2[string, int]{pod.NewTup2("a", 1), pod.NewTup2("b", 2)},
 			WantLen:  2,
 			WantData: map[string]int{"a": 1, "b": 2},
 		},
 		{
 			Name:     "duplicate key keeps last",
 			Loc:      exam.Here(),
-			Entries:  []tuple.Fixed2[string, int]{tuple.New2("a", 1), tuple.New2("a", 99)},
+			Entries:  []pod.FixedTup2[string, int]{pod.NewTup2("a", 1), pod.NewTup2("a", 99)},
 			WantLen:  1,
 			WantData: map[string]int{"a": 99},
 		},
@@ -63,8 +62,8 @@ func TestNewSliceDictFunc(t *testing.T) {
 	}
 	t.Run("distinct keys", func(t *testing.T) {
 		d := pod.NewSliceDictFunc(caseInsensitive,
-			tuple.New2("a", 1),
-			tuple.New2("b", 2),
+			pod.NewTup2("a", 1),
+			pod.NewTup2("b", 2),
 		)
 		exam.Try(t, exam.Equal(d.Len(), 2))
 		v, ok := d.Get("A")
@@ -73,8 +72,8 @@ func TestNewSliceDictFunc(t *testing.T) {
 	})
 	t.Run("duplicate key by custom equality keeps last", func(t *testing.T) {
 		d := pod.NewSliceDictFunc(caseInsensitive,
-			tuple.New2("a", 1),
-			tuple.New2("A", 99),
+			pod.NewTup2("a", 1),
+			pod.NewTup2("A", 99),
 		)
 		exam.Try(t, exam.Equal(d.Len(), 1))
 		v, ok := d.Get("a")
@@ -147,13 +146,13 @@ func TestSliceDictLen(t *testing.T) {
 		{
 			Name:    "one entry",
 			Loc:     exam.Here(),
-			Dict:    pod.NewSliceDict(tuple.New2("a", 1)),
+			Dict:    pod.NewSliceDict(pod.NewTup2("a", 1)),
 			WantLen: 1,
 		},
 		{
 			Name:    "three entries",
 			Loc:     exam.Here(),
-			Dict:    pod.NewSliceDict(tuple.New2("a", 1), tuple.New2("b", 2), tuple.New2("c", 3)),
+			Dict:    pod.NewSliceDict(pod.NewTup2("a", 1), pod.NewTup2("b", 2), pod.NewTup2("c", 3)),
 			WantLen: 3,
 		},
 	}
@@ -176,7 +175,7 @@ func TestSliceDictGet(t *testing.T) {
 		{
 			Name:      "existing key",
 			Loc:       exam.Here(),
-			Dict:      pod.NewSliceDict(tuple.New2("a", 1), tuple.New2("b", 2)),
+			Dict:      pod.NewSliceDict(pod.NewTup2("a", 1), pod.NewTup2("b", 2)),
 			Key:       "a",
 			WantVal:   1,
 			WantFound: true,
@@ -184,7 +183,7 @@ func TestSliceDictGet(t *testing.T) {
 		{
 			Name:      "missing key",
 			Loc:       exam.Here(),
-			Dict:      pod.NewSliceDict(tuple.New2("a", 1)),
+			Dict:      pod.NewSliceDict(pod.NewTup2("a", 1)),
 			Key:       "z",
 			WantVal:   0,
 			WantFound: false,
@@ -212,7 +211,7 @@ func TestSliceDictKeyVals(t *testing.T) {
 		Name      string
 		Loc       exam.Loc
 		Dict      *pod.SliceDict[string, int]
-		WantPairs []tuple.T2[string, int]
+		WantPairs []pod.Tup2[string, int]
 	}{
 		{
 			Name:      "empty dict",
@@ -224,24 +223,24 @@ func TestSliceDictKeyVals(t *testing.T) {
 			Name: "preserves insertion order",
 			Loc:  exam.Here(),
 			Dict: pod.NewSliceDict(
-				tuple.New2("a", 1),
-				tuple.New2("b", 2),
-				tuple.New2("c", 3),
+				pod.NewTup2("a", 1),
+				pod.NewTup2("b", 2),
+				pod.NewTup2("c", 3),
 			),
-			WantPairs: []tuple.T2[string, int]{
-				tuple.New2("a", 1),
-				tuple.New2("b", 2),
-				tuple.New2("c", 3),
+			WantPairs: []pod.Tup2[string, int]{
+				pod.NewTup2("a", 1),
+				pod.NewTup2("b", 2),
+				pod.NewTup2("c", 3),
 			},
 		},
 	}
 	for _, c := range cases {
 		exam.Run(t, c.Name, c.Loc, func(t *testing.T) {
-			var got []tuple.T2[string, int]
+			var got []pod.Tup2[string, int]
 			for k, v := range c.Dict.KeyVals() {
-				got = append(got, tuple.New2(k, v))
+				got = append(got, pod.NewTup2(k, v))
 			}
-			exam.Try(t, exam.SliceEqualFunc(got, c.WantPairs, func(a, b tuple.T2[string, int]) bool {
+			exam.Try(t, exam.SliceEqualFunc(got, c.WantPairs, func(a, b pod.Tup2[string, int]) bool {
 				return a.A == b.A && a.B == b.B
 			}))
 		})
@@ -265,9 +264,9 @@ func TestSliceDictKeys(t *testing.T) {
 			Name: "preserves insertion order",
 			Loc:  exam.Here(),
 			Dict: pod.NewSliceDict(
-				tuple.New2("a", 1),
-				tuple.New2("b", 2),
-				tuple.New2("c", 3),
+				pod.NewTup2("a", 1),
+				pod.NewTup2("b", 2),
+				pod.NewTup2("c", 3),
 			),
 			WantKeys: []string{"a", "b", "c"},
 		},
@@ -297,9 +296,9 @@ func TestSliceDictVals(t *testing.T) {
 			Name: "preserves insertion order",
 			Loc:  exam.Here(),
 			Dict: pod.NewSliceDict(
-				tuple.New2("a", 1),
-				tuple.New2("b", 2),
-				tuple.New2("c", 3),
+				pod.NewTup2("a", 1),
+				pod.NewTup2("b", 2),
+				pod.NewTup2("c", 3),
 			),
 			WantVals: []int{1, 2, 3},
 		},
@@ -322,14 +321,14 @@ func TestSliceDictPut(t *testing.T) {
 		exam.Try(t, exam.Equal(v, 1))
 	})
 	t.Run("add new key preserves order", func(t *testing.T) {
-		d := pod.NewSliceDict(tuple.New2("a", 1))
+		d := pod.NewSliceDict(pod.NewTup2("a", 1))
 		d.Put("b", 2)
 		exam.Try(t, exam.Equal(d.Len(), 2))
 		got := slices.Collect(d.Keys())
 		exam.Try(t, exam.SliceEqual(got, []string{"a", "b"}))
 	})
 	t.Run("update existing key moves to end", func(t *testing.T) {
-		d := pod.NewSliceDict(tuple.New2("a", 1), tuple.New2("b", 2), tuple.New2("c", 3))
+		d := pod.NewSliceDict(pod.NewTup2("a", 1), pod.NewTup2("b", 2), pod.NewTup2("c", 3))
 		d.Put("b", 99)
 		exam.Try(t, exam.Equal(d.Len(), 3))
 		got := slices.Collect(d.Keys())
@@ -349,7 +348,7 @@ func TestSliceDictClear(t *testing.T) {
 		{
 			Name: "clear non-empty dict",
 			Loc:  exam.Here(),
-			Dict: pod.NewSliceDict(tuple.New2("a", 1), tuple.New2("b", 2)),
+			Dict: pod.NewSliceDict(pod.NewTup2("a", 1), pod.NewTup2("b", 2)),
 		},
 		{
 			Name: "clear already empty dict",
@@ -380,7 +379,7 @@ func TestSliceDictDel(t *testing.T) {
 		{
 			Name:     "delete first entry",
 			Loc:      exam.Here(),
-			Dict:     pod.NewSliceDict(tuple.New2("a", 1), tuple.New2("b", 2), tuple.New2("c", 3)),
+			Dict:     pod.NewSliceDict(pod.NewTup2("a", 1), pod.NewTup2("b", 2), pod.NewTup2("c", 3)),
 			DelKey:   "a",
 			WantLen:  2,
 			WantKeys: []string{"b", "c"},
@@ -389,7 +388,7 @@ func TestSliceDictDel(t *testing.T) {
 		{
 			Name:     "delete middle entry",
 			Loc:      exam.Here(),
-			Dict:     pod.NewSliceDict(tuple.New2("a", 1), tuple.New2("b", 2), tuple.New2("c", 3)),
+			Dict:     pod.NewSliceDict(pod.NewTup2("a", 1), pod.NewTup2("b", 2), pod.NewTup2("c", 3)),
 			DelKey:   "b",
 			WantLen:  2,
 			WantKeys: []string{"a", "c"},
@@ -398,7 +397,7 @@ func TestSliceDictDel(t *testing.T) {
 		{
 			Name:     "delete last entry",
 			Loc:      exam.Here(),
-			Dict:     pod.NewSliceDict(tuple.New2("a", 1), tuple.New2("b", 2), tuple.New2("c", 3)),
+			Dict:     pod.NewSliceDict(pod.NewTup2("a", 1), pod.NewTup2("b", 2), pod.NewTup2("c", 3)),
 			DelKey:   "c",
 			WantLen:  2,
 			WantKeys: []string{"a", "b"},
@@ -407,7 +406,7 @@ func TestSliceDictDel(t *testing.T) {
 		{
 			Name:     "delete missing key is a no-op",
 			Loc:      exam.Here(),
-			Dict:     pod.NewSliceDict(tuple.New2("a", 1)),
+			Dict:     pod.NewSliceDict(pod.NewTup2("a", 1)),
 			DelKey:   "z",
 			WantLen:  1,
 			WantKeys: []string{"a"},

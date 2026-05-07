@@ -1,35 +1,35 @@
-package tuple_test
+package pod_test
 
 import (
 	"testing"
 
 	"github.com/krelinga/go-libs/exam"
-	"github.com/krelinga/go-libs/tuple"
+	"github.com/krelinga/go-libs/pod"
 )
 
-func TestT2ImplementsFixed2(t *testing.T) {
-	exam.Try(t, exam.Implements[tuple.T2[int, string], tuple.Fixed2[int, string]]())
+func TestTup2ImplementsFixedTup2(t *testing.T) {
+	exam.Try(t, exam.Implements[pod.Tup2[int, string], pod.FixedTup2[int, string]]())
 }
 
-func TestT2Fields(t *testing.T) {
+func TestTup2Fields(t *testing.T) {
 	cases := []struct {
 		Name  string
 		Loc   exam.Loc
-		Input tuple.T2[int, string]
+		Input pod.Tup2[int, string]
 		WantA int
 		WantB string
 	}{
 		{
 			Name:  "zero values",
 			Loc:   exam.Here(),
-			Input: tuple.T2[int, string]{},
+			Input: pod.Tup2[int, string]{},
 			WantA: 0,
 			WantB: "",
 		},
 		{
 			Name:  "non-zero values",
 			Loc:   exam.Here(),
-			Input: tuple.T2[int, string]{A: 42, B: "hello"},
+			Input: pod.Tup2[int, string]{A: 42, B: "hello"},
 			WantA: 42,
 			WantB: "hello",
 		},
@@ -42,23 +42,23 @@ func TestT2Fields(t *testing.T) {
 	}
 }
 
-func TestT2GetA(t *testing.T) {
+func TestTup2GetA(t *testing.T) {
 	cases := []struct {
 		Name  string
 		Loc   exam.Loc
-		Input tuple.T2[int, string]
+		Input pod.Tup2[int, string]
 		Want  int
 	}{
 		{
 			Name:  "zero value",
 			Loc:   exam.Here(),
-			Input: tuple.T2[int, string]{},
+			Input: pod.Tup2[int, string]{},
 			Want:  0,
 		},
 		{
 			Name:  "non-zero value",
 			Loc:   exam.Here(),
-			Input: tuple.T2[int, string]{A: 7, B: "x"},
+			Input: pod.Tup2[int, string]{A: 7, B: "x"},
 			Want:  7,
 		},
 	}
@@ -69,23 +69,23 @@ func TestT2GetA(t *testing.T) {
 	}
 }
 
-func TestT2GetB(t *testing.T) {
+func TestTup2GetB(t *testing.T) {
 	cases := []struct {
 		Name  string
 		Loc   exam.Loc
-		Input tuple.T2[int, string]
+		Input pod.Tup2[int, string]
 		Want  string
 	}{
 		{
 			Name:  "zero value",
 			Loc:   exam.Here(),
-			Input: tuple.T2[int, string]{},
+			Input: pod.Tup2[int, string]{},
 			Want:  "",
 		},
 		{
 			Name:  "non-zero value",
 			Loc:   exam.Here(),
-			Input: tuple.T2[int, string]{A: 7, B: "world"},
+			Input: pod.Tup2[int, string]{A: 7, B: "world"},
 			Want:  "world",
 		},
 	}
@@ -96,7 +96,7 @@ func TestT2GetB(t *testing.T) {
 	}
 }
 
-func TestNew2(t *testing.T) {
+func TestNewTup2(t *testing.T) {
 	cases := []struct {
 		Name  string
 		Loc   exam.Loc
@@ -124,7 +124,7 @@ func TestNew2(t *testing.T) {
 	}
 	for _, c := range cases {
 		exam.Run(t, c.Name, c.Loc, func(t *testing.T) {
-			got := tuple.New2(c.A, c.B)
+			got := pod.NewTup2(c.A, c.B)
 			exam.Try(t, exam.Equal(got.A, c.WantA))
 			exam.Try(t, exam.Equal(got.B, c.WantB))
 			exam.Try(t, exam.Equal(got.GetA(), c.WantA))

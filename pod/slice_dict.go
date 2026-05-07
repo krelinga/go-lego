@@ -2,8 +2,6 @@ package pod
 
 import (
 	"iter"
-
-	"github.com/krelinga/go-libs/tuple"
 )
 
 // SliceDict is a Dict implementation that preserves the order of insertion.
@@ -17,15 +15,15 @@ import (
 // for large collections, but it provides the benefit of maintaining insertion
 // order and allowing for custom key equality logic.
 type SliceDict[K, V any] struct {
-	slice    *Slice[tuple.T2[K, V]]
+	slice    *Slice[Tup2[K, V]]
 	equalKey func(a, b K) bool
 }
 
 // NewSliceDictFunc creates a new SliceDict with a custom key equality function and initial entries.
 // If any of the initial entries have keys that are considered equal, only the last occurrence will be kept.
-func NewSliceDictFunc[K, V any](equalKey func(a, b K) bool, entries ...tuple.Fixed2[K, V]) *SliceDict[K, V] {
+func NewSliceDictFunc[K, V any](equalKey func(a, b K) bool, entries ...FixedTup2[K, V]) *SliceDict[K, V] {
 	d := &SliceDict[K, V]{
-		slice:    &Slice[tuple.T2[K, V]]{},
+		slice:    &Slice[Tup2[K, V]]{},
 		equalKey: equalKey,
 	}
 	d.Reserve(len(entries))
@@ -37,7 +35,7 @@ func NewSliceDictFunc[K, V any](equalKey func(a, b K) bool, entries ...tuple.Fix
 
 // NewSliceDict creates a new SliceDict using Go's built-in equality for keys and the given initial entries.
 // If any of the initial entries have equal keys, only the last occurrence will be kept.
-func NewSliceDict[K comparable, V any](entries ...tuple.Fixed2[K, V]) *SliceDict[K, V] {
+func NewSliceDict[K comparable, V any](entries ...FixedTup2[K, V]) *SliceDict[K, V] {
 	return NewSliceDictFunc(func(a, b K) bool { return a == b }, entries...)
 }
 
@@ -124,7 +122,7 @@ func (d *SliceDict[K, V]) Vals() iter.Seq[V] {
 // This operation has O(n) time complexity due to the need to search for the key.
 func (d *SliceDict[K, V]) Put(key K, value V) {
 	d.Del(key) // Remove existing entry if it exists to maintain insertion order
-	d.slice.Push(tuple.New2(key, value))
+	d.slice.Push(NewTup2(key, value))
 }
 
 // Clear removes all entries from the SliceDict.
