@@ -1,7 +1,5 @@
 package tuple
 
-import "github.com/krelinga/go-libs/view"
-
 // Fixed2 is a view of a two-tuple (pair) of values of types A and B.
 type Fixed2[A, B any] interface {
 	GetA() A
@@ -27,10 +25,36 @@ func New2[A, B any](a A, b B) T2[A, B] {
 	return T2[A, B]{A: a, B: b}
 }
 
-func View2[A view.Can[AA], B view.Can[BB], AA, BB any](t2 Fixed2[A, B]) Fixed2[AA, BB] {
-	return View2Using(t2.GetA(), t2.GetB())
+func Wrap2A[A, B, AA any](f Fixed2[A, B], w func(A) AA) Fixed2[AA, B] {
+	return wrap2A[A, B, AA]{f: f, w: w}
 }
 
-func View2Using[A view.Can[AA], B view.Can[BB], AA, BB any](a A, b B) Fixed2[AA, BB] {
-	return New2(a.View(), b.View())
+type wrap2A[A, B, AA any] struct {
+	f Fixed2[A, B]
+	w func(A) AA
+}
+
+func (w wrap2A[A, B, AA]) GetA() AA {
+	return w.w(w.f.GetA())
+}
+
+func (w wrap2A[A, B, AA]) GetB() B {
+	return w.f.GetB()
+}
+
+func Wrap2B[A, B, BB any](f Fixed2[A, B], w func(B) BB) Fixed2[A, BB] {
+	return wrap2B[A, B, BB]{f: f, w: w}
+}
+
+type wrap2B[A, B, BB any] struct {
+	f Fixed2[A, B]
+	w func(B) BB
+}
+
+func (w wrap2B[A, B, BB]) GetA() A {
+	return w.f.GetA()
+}
+
+func (w wrap2B[A, B, BB]) GetB() BB {
+	return w.w(w.f.GetB())
 }
