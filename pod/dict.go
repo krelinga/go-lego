@@ -193,6 +193,8 @@ func (w wrappedDictVals[K, V, W]) Vals() iter.Seq[W] {
 	}
 }
 
+// ViewDictVals takes a FixedDict who's value implements the Viewer interface and returns a new FixedDict with the values transformed using the View method of the Viewer interface, and the original keys.
+// The resulting FixedDict will keep a reference to the original FixedDict, so if the original value is modified the changes will be reflected in the wrapped FixedDict.
 func ViewDictVals[K any, V Viewer[VV], VV any](d FixedDict[K, V]) FixedDict[K, VV] {
 	return WrapDictVals(d, V.View)
 }
@@ -250,6 +252,10 @@ func (w wrappedDictKeys[K, V, W]) Vals() iter.Seq[V] {
 	return w.d.Vals()
 }
 
+// ViewDictKeys takes a FixedDict who's key implements the Viewer interface and returns a new FixedDict with the keys transformed using the View method of the Viewer interface, and the original values.
+// The resulting FixedDict will keep a reference to the original FixedDict, so if the original value is modified the changes will be reflected in the wrapped FixedDict. The unwrap function is used to convert wrapped keys back to their original form when accessing the underlying FixedDict in cases like Get.
+//
+// The unwrap function must be the inverse of the View method of the Viewer interface for the keys to ensure that Get and other methods work as expected. See [WrapDictKeys] for more details.
 func ViewDictKeys[K Viewer[KK], V any, KK any](d FixedDict[K, V], unwrap func(KK) K) FixedDict[KK, V] {
 	return WrapDictKeys(d, K.View, unwrap)
 }
