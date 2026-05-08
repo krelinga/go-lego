@@ -1,9 +1,9 @@
-// exam_update_goldens runs the tests identified by a -run pattern and applies any golden-file
+// update-goldens runs the tests identified by a -run pattern and applies any golden-file
 // differences that the tests emit back into the source files.
 //
 // Usage:
 //
-//	go tool exam_update_goldens ./...
+//	go tool update-goldens ./...
 package main
 
 import (

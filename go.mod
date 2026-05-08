@@ -4,7 +4,7 @@ go 1.26.1
 
 tool (
 	github.com/krelinga/comment-wrap-go
-	github.com/krelinga/go-libs/exam/exam_update_goldens
+	github.com/krelinga/go-libs/cmd/update-goldens
 )
 
 require (
