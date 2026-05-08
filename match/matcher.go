@@ -1,36 +1,72 @@
 package match
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 )
 
 type Matcher interface {
-	Match(reflect.Value) error
+	Match(reflect.Value) *Result
 }
 
-func New[T any](f func(T) error) Matcher {
-	return typedFuncMatcher[T]{f: f}
-}
-
-type typedFuncMatcher[T any] struct {
-	f func(T) error
-}
-
-func (m typedFuncMatcher[T]) Match(val reflect.Value) error {
-	if !val.IsValid() {
-		return errors.New("invalid value")
+func NewFunc[T any](m Meta, f func(*Result, T)) Matcher {
+	return funcMatcher[T]{
+		Meta: m,
+		F:    f,
 	}
+}
+
+type funcMatcher[T any] struct {
+	Meta Meta
+	F    func(*Result, T)
+}
+
+func (m funcMatcher[T]) Match(val reflect.Value) (result *Result) {
+	result = &Result{
+		Meta: m.Meta,
+		Val:  val,
+	}
+
+	if !val.IsValid() {
+		result.Err = fmt.Errorf("invalid value")
+		return
+	}
+
+	var typedVal T
 	tType := reflect.TypeFor[T]()
 	if !val.Type().AssignableTo(tType) {
-		return fmt.Errorf("value is of type %s, expected a type assignable to %s", val.Type(), tType)
+		result.Err = fmt.Errorf("expected type %s but got %s", tType, val.Type())
+		return
 	}
-	if !val.CanInterface() {
-		return fmt.Errorf("value of type %s cannot be interfaced", val.Type())
+	reflect.ValueOf(&typedVal).Elem().Set(val)
+
+	m.F(result, typedVal)
+	return
+}
+
+func NewValFunc(m Meta, f func(*Result, reflect.Value)) Matcher {
+	return funcValMatcher{
+		Meta: m,
+		F:    f,
 	}
-	var out T
-	outPtrVal := reflect.ValueOf(&out)
-	outPtrVal.Elem().Set(val)
-	return m.f(out)
+}
+
+type funcValMatcher struct {
+	Meta Meta
+	F    func(*Result, reflect.Value)
+}
+
+func (m funcValMatcher) Match(val reflect.Value) (result *Result) {
+	result = &Result{
+		Meta: m.Meta,
+		Val:  val,
+	}
+
+	if !val.IsValid() {
+		result.Err = fmt.Errorf("invalid value")
+		return
+	}
+
+	m.F(result, val)
+	return
 }
