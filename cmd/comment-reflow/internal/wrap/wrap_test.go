@@ -183,6 +183,27 @@ package p
 func Foo() {}
 `),
 		},
+		{
+			Name: "ParagraphReflowWhenBothLineAreSlightlyOverLimit",
+			Loc:  exam.Here(),
+			Src: `
+package p
+
+// The quick brown fox jumps over the lazy dog one two three x
+// four five six seven eight nine ten eleven twelve thirteen.
+func Foo() {}
+`,
+			Limit:      60,
+			WantChange: true,
+			Golden: exam.GoldenHere(`
+package p
+
+// The quick brown fox jumps over the lazy dog one two three
+// x four five six seven eight nine ten eleven twelve
+// thirteen.
+func Foo() {}
+`),
+		},
 	}
 	for _, tc := range cases {
 		exam.Run(t, tc.Name, tc.Golden.GetLoc(), func(t *testing.T) {
@@ -208,35 +229,6 @@ func mustWrap(t *testing.T, src string, limit int) string {
 		t.Fatalf("wrap.File error: %v", err)
 	}
 	return string(out)
-}
-
-// TestParagraphReflow verifies that two consecutive over-limit lines are
-// treated as a single paragraph and reflowed together, producing a better
-// result than splitting each line independently.
-func TestParagraphReflow(t *testing.T) {
-	// Each line is slightly over 60 chars.  Independent wrapping would produce
-	// 4 lines; paragraph reflow should produce 3 (or fewer).
-	src := `package p
-
-// The quick brown fox jumps over the lazy dog one two three
-// four five six seven eight nine ten eleven twelve thirteen.
-func Foo() {}
-`
-	out := mustWrap(t, src, 60)
-
-	commentLines := 0
-	for _, l := range strings.Split(out, "\n") {
-		if strings.HasPrefix(l, "// ") {
-			commentLines++
-			if len(l) > 60 {
-				t.Errorf("line over limit (%d): %q", len(l), l)
-			}
-		}
-	}
-	if commentLines >= 4 {
-		t.Errorf("paragraph reflow produced %d lines (expected < 4); paragraph was not joined:\n%s",
-			commentLines, out)
-	}
 }
 
 // TestParagraphBreakAtBlankComment verifies that a blank // line between two
