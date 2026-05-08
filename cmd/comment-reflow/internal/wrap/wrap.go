@@ -1,5 +1,4 @@
-// Package wrap implements line-length-based wrapping of // comment lines in Go
-// source files.
+// Package wrap implements line-length-based wrapping of // comment lines in Go source files.
 package wrap
 
 import (
@@ -10,24 +9,22 @@ import (
 	"strings"
 )
 
-// File parses src as a Go source file and returns a copy where every eligible
-// // comment paragraph that contains at least one line exceeding limit
-// characters is reflowed as a unit.
+// File parses src as a Go source file and returns a copy where every eligible // comment paragraph
+// that contains at least one line exceeding limit characters is reflowed as a unit.
 //
 // A comment line is eligible when:
-//  1. The // marker is the first non-whitespace on its source line (i.e. it is
-//     not an inline comment after code).
-//  2. The // marker is immediately followed by exactly one space and then a
-//     non-whitespace character, so directives (//go:generate, //nolint:,
-//     //go:build) and indented content (godoc code blocks starting with // )
-//     are left untouched.
+//  1. The // marker is the first non-whitespace on its source line (i.e. it is not an inline
+//     comment after code).
+//  2. The // marker is immediately followed by exactly one space and then a non-whitespace
+//     character, so directives (//go:generate, //nolint:, //go:build) and indented content (godoc
+//     code blocks starting with // ) are left untouched.
 //
-// Consecutive eligible lines with the same source-line indent form a paragraph
-// and are reflowed together. An empty comment line (//), a directive, or any
-// other ineligible line breaks the current paragraph.
+// Consecutive eligible lines with the same source-line indent form a paragraph and are reflowed
+// together. An empty comment line (//), a directive, or any other ineligible line breaks the
+// current paragraph.
 //
-// Words are never split mid-word. A word longer than the available width is
-// placed on its own line without splitting.
+// Words are never split mid-word. A word longer than the available width is placed on its own line
+// without splitting.
 //
 // The returned slice is identical to src when no changes are needed.
 func File(src []byte, limit int) ([]byte, error) {
@@ -47,8 +44,8 @@ func File(src []byte, limit int) ([]byte, error) {
 
 	for _, cg := range f.Comments {
 		for _, para := range splitParagraphs(cg.List, lines, fset) {
-			// Reflow when any line exceeds the limit, or when the paragraph spans
-			// multiple lines and might consolidate into fewer.
+			// Reflow when any line exceeds the limit, or when the paragraph spans multiple lines and might
+			// consolidate into fewer.
 			anyOver := false
 			for _, li := range para.lineIdxs {
 				if len(lines[li]) > limit {
@@ -67,8 +64,8 @@ func File(src []byte, limit int) ([]byte, error) {
 			var sb strings.Builder
 
 			if para.isList {
-				// List item: first line has the marker; continuation lines are indented to
-				// the same column as the text start.
+				// List item: first line has the marker; continuation lines are indented to the same column as
+				// the text start.
 				marker := para.markerStr
 				continuationPad := strings.Repeat(" ", len(marker))
 				avail := limit - len(indent) - 2 - len(marker) // 2 == len("//")
@@ -109,9 +106,8 @@ func File(src []byte, limit int) ([]byte, error) {
 				}
 				wrapped = wrapText(strings.Join(parts, " "), avail)
 
-				// Build replacement covering the full paragraph span. Every output line
-				// (including the first) carries the indent because the edit covers the full
-				// source-line range.
+				// Build replacement covering the full paragraph span. Every output line (including the first)
+				// carries the indent because the edit covers the full source-line range.
 				for i, wl := range wrapped {
 					if i > 0 {
 						sb.WriteByte('\n')
@@ -127,8 +123,8 @@ func File(src []byte, limit int) ([]byte, error) {
 			startOff := lineStart(src, firstLI)
 			endOff := lineStart(src, lastLI) + len(lines[lastLI])
 
-			// Skip the edit when the reflowed text is identical to the source (e.g. a
-			// multi-line paragraph that is already optimally wrapped).
+			// Skip the edit when the reflowed text is identical to the source (e.g. a multi-line paragraph
+			// that is already optimally wrapped).
 			replacement := sb.String()
 			if replacement == string(src[startOff:endOff]) {
 				continue
@@ -154,12 +150,12 @@ func File(src []byte, limit int) ([]byte, error) {
 	return out, nil
 }
 
-// paragraph is a sequence of consecutive eligible // comment lines that share
-// the same source-line indent. It is the unit of reflow.
+// paragraph is a sequence of consecutive eligible // comment lines that share the same source-line
+// indent. It is the unit of reflow.
 //
-// For list items (isList == true), markerStr holds the text between "//" and
-// the item body on the first line, e.g. " - " or " 1. ". Continuation lines of
-// the same item use the same number of spaces (no marker).
+// For list items (isList == true), markerStr holds the text between "//" and the item body on the
+// first line, e.g. " - " or " 1. ". Continuation lines of the same item use the same number of
+// spaces (no marker).
 type paragraph struct {
 	comments  []*ast.Comment
 	lineIdxs  []int
@@ -170,13 +166,12 @@ type paragraph struct {
 
 // splitParagraphs partitions a CommentGroup's list into paragraphs.
 //
-// Plain paragraphs require "// " (one space) followed by a non-whitespace
-// character on a pure comment line; consecutive such lines with the same
-// source-line indent are grouped.
+// Plain paragraphs require "// " (one space) followed by a non-whitespace character on a pure
+// comment line; consecutive such lines with the same source-line indent are grouped.
 //
-// List-item paragraphs are recognised by listItemMarker. Each item starts a
-// fresh paragraph; continuation lines (same indent depth, no marker) are
-// appended to it. Any ineligible line ends the current paragraph.
+// List-item paragraphs are recognised by listItemMarker. Each item starts a fresh paragraph;
+// continuation lines (same indent depth, no marker) are appended to it. Any ineligible line ends
+// the current paragraph.
 func splitParagraphs(list []*ast.Comment, lines []string, fset *token.FileSet) []paragraph {
 	var result []paragraph
 	var cur *paragraph
@@ -245,18 +240,17 @@ func splitParagraphs(list []*ast.Comment, lines []string, fset *token.FileSet) [
 	return result
 }
 
-// listItemMarker reports whether text (a full comment text like "// - foo")
-// begins with a Go doc comment list marker. If so, it returns the marker string
-// — everything in text after "//" up to and including the space/tab that
-// follows the marker character(s), e.g. " - " or " 1. ".
+// listItemMarker reports whether text (a full comment text like "// - foo") begins with a Go doc
+// comment list marker. If so, it returns the marker string — everything in text after "//" up to
+// and including the space/tab that follows the marker character(s), e.g. " - " or " 1. ".
 func listItemMarker(text string) (markerStr string, ok bool) {
 	if len(text) < 2 || text[:2] != "//" {
 		return "", false
 	}
 	rest := text[2:] // everything after "//"
 
-	// Count leading spaces (at least one required to distinguish from a plain
-	// paragraph line which has exactly one space).
+	// Count leading spaces (at least one required to distinguish from a plain paragraph line which has
+	// exactly one space).
 	i := 0
 	for i < len(rest) && rest[i] == ' ' {
 		i++
@@ -305,10 +299,9 @@ func listItemMarker(text string) (markerStr string, ok bool) {
 	return "", false
 }
 
-// isListContinuation reports whether text is a continuation line of a list item
-// whose marker string is markerStr. A continuation line has the same number of
-// characters as markerStr (all spaces) after "//", followed by non-whitespace
-// content, and is not itself a list marker.
+// isListContinuation reports whether text is a continuation line of a list item whose marker string
+// is markerStr. A continuation line has the same number of characters as markerStr (all spaces)
+// after "//", followed by non-whitespace content, and is not itself a list marker.
 func isListContinuation(text, markerStr string) bool {
 	if len(text) < 2+len(markerStr)+1 {
 		return false
@@ -322,8 +315,8 @@ func isListContinuation(text, markerStr string) bool {
 			return false
 		}
 	}
-	// The character immediately after the prefix must be non-whitespace (otherwise
-	// it could be a blank comment or deeper-indented code block).
+	// The character immediately after the prefix must be non-whitespace (otherwise it could be a blank
+	// comment or deeper-indented code block).
 	next := text[2+len(markerStr)]
 	if next == ' ' || next == '\t' {
 		return false
@@ -333,9 +326,8 @@ func isListContinuation(text, markerStr string) bool {
 	return !isItem
 }
 
-// wrapText wraps text into lines of at most width runes, splitting only at
-// whitespace boundaries. Words longer than width are placed on their own line
-// without splitting.
+// wrapText wraps text into lines of at most width runes, splitting only at whitespace boundaries.
+// Words longer than width are placed on their own line without splitting.
 func wrapText(text string, width int) []string {
 	words := strings.Fields(text)
 	if len(words) == 0 {
@@ -356,16 +348,15 @@ func wrapText(text string, width int) []string {
 	return lines
 }
 
-// srcLines splits src into lines, stripping trailing \n (but keeping \r if
-// present so the lengths remain accurate for limit checking).
+// srcLines splits src into lines, stripping trailing \n (but keeping \r if present so the lengths
+// remain accurate for limit checking).
 func srcLines(src []byte) []string {
 	raw := strings.Split(string(src), "\n")
 	// The last element after Split is "" when src ends with \n; that is fine.
 	return raw
 }
 
-// lineStart returns the byte offset in src of the beginning of line lineIdx
-// (0-based).
+// lineStart returns the byte offset in src of the beginning of line lineIdx (0-based).
 func lineStart(src []byte, lineIdx int) int {
 	off := 0
 	for i := 0; i < lineIdx; i++ {

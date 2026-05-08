@@ -16,8 +16,8 @@ type Entry struct {
 
 var byteOrder = binary.LittleEndian
 
-// magicNumber is written as the first 8 bytes of every entry file so that readers can detect
-// files that are corrupt, truncated, or of the wrong format before attempting to decode entries.
+// magicNumber is written as the first 8 bytes of every entry file so that readers can detect files
+// that are corrupt, truncated, or of the wrong format before attempting to decode entries.
 var magicNumber = [8]byte{'G', 'L', 'D', 'N', 0, 1, 0, 0}
 
 func writeString(w io.Writer, s string) error {
@@ -41,8 +41,8 @@ func readString(r io.Reader) (string, error) {
 	return string(b), nil
 }
 
-// WriteEntry appends a Entry to the file at path, creating it if necessary. When
-// creating a new file the magic number is written first.
+// WriteEntry appends a Entry to the file at path, creating it if necessary. When creating a new
+// file the magic number is written first.
 func WriteEntry(path string, entry Entry) error {
 	var buf bytes.Buffer
 	if err := writeString(&buf, entry.Path); err != nil {
@@ -80,8 +80,8 @@ func WriteEntry(path string, entry Entry) error {
 	return nil
 }
 
-// ReadEntries reads all Entry records from the file at path. It returns an error if the
-// file does not begin with the expected magic number.
+// ReadEntries reads all Entry records from the file at path. It returns an error if the file does
+// not begin with the expected magic number.
 func ReadEntries(path string) ([]Entry, error) {
 	f, err := os.Open(path)
 	if err != nil {

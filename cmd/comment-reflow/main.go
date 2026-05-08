@@ -1,6 +1,5 @@
-// comment-wrap reformats Go source files so that // comment lines do not exceed
-// a given line-length limit. It accepts the same package-pattern syntax as `go
-// test` (e.g. `.`, `./...`).
+// comment-wrap reformats Go source files so that // comment lines do not exceed a given line-length
+// limit. It accepts the same package-pattern syntax as `go test` (e.g. `.`, `./...`).
 //
 // Usage:
 //
@@ -38,9 +37,9 @@ func main() {
 	for _, pkg := range pkgs {
 		allFiles := make([]string, 0, len(pkg.GoFiles)+len(pkg.OtherFiles))
 		allFiles = append(allFiles, pkg.GoFiles...)
-		// OtherFiles contains test files not in GoFiles in some load modes; for
-		// NeedFiles the Go files are already split into GoFiles / IgnoredFiles. We
-		// include IgnoredFiles so build-tagged files are also reformatted.
+		// OtherFiles contains test files not in GoFiles in some load modes; for NeedFiles the Go files
+		// are already split into GoFiles / IgnoredFiles. We include IgnoredFiles so build-tagged files
+		// are also reformatted.
 		allFiles = append(allFiles, pkg.IgnoredFiles...)
 
 		for _, path := range allFiles {
@@ -55,8 +54,8 @@ func main() {
 	}
 }
 
-// processFile reads path, wraps any long comment lines, and writes the result
-// back in place using an atomic rename.
+// processFile reads path, wraps any long comment lines, and writes the result back in place using
+// an atomic rename.
 func processFile(path string, limit int) error {
 	src, err := os.ReadFile(path)
 	if err != nil {
