@@ -251,6 +251,29 @@ package p
 func Foo() {}
 `),
 		},
+		{
+			Name: "NumberedItemWrapping",
+			Loc:  exam.Here(),
+			Src: `
+package p
+
+// Steps:
+//
+//  1. The quick brown fox jumps over the lazy dog and then keeps running away.
+func Foo() {}
+`,
+			Limit:      60,
+			WantChange: true,
+			Golden: exam.GoldenHere(`
+package p
+
+// Steps:
+//
+//  1. The quick brown fox jumps over the lazy dog and then
+//     keeps running away.
+func Foo() {}
+`),
+		},
 	}
 	for _, tc := range cases {
 		exam.Run(t, tc.Name, tc.Golden.GetLoc(), func(t *testing.T) {
@@ -276,29 +299,6 @@ func mustWrap(t *testing.T, src string, limit int) string {
 		t.Fatalf("wrap.File error: %v", err)
 	}
 	return string(out)
-}
-
-// TestNumberedItemWrapping verifies that a numbered list item longer than the
-// limit is wrapped with aligned continuation lines.
-func TestNumberedItemWrapping(t *testing.T) {
-	src := `package p
-
-// Steps:
-//
-//  1. The quick brown fox jumps over the lazy dog and then keeps running away.
-func Foo() {}
-`
-	out := mustWrap(t, src, 60)
-
-	for _, l := range strings.Split(out, "\n") {
-		if strings.Contains(l, "//") && len(l) > 60 {
-			t.Errorf("line over limit (%d): %q", len(l), l)
-		}
-	}
-	// The numbered marker must still appear.
-	if !strings.Contains(out, "//  1. ") {
-		t.Errorf("numbered marker missing in output:\n%s", out)
-	}
 }
 
 // TestListItemsNotMerged verifies that two adjacent bullet items are each
