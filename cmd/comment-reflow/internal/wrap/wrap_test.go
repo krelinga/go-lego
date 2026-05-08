@@ -323,6 +323,21 @@ package p
 func Foo() {}
 `),
 		},
+		{
+			Name: "ListItemWithContinuationThatIsAlreadyOptimalIsNotChanged",
+			Loc:  exam.Here(),
+			Src: `
+package p
+
+// Items:
+//
+//   - The quick brown fox jumps over the lazy dog alpha.
+//     The quick brown fox jumps over the lazy dog beta.
+func Foo() {}
+`,
+			Limit:      60,
+			WantChange: false,
+		},
 	}
 	for _, tc := range cases {
 		exam.Run(t, tc.Name, tc.Golden.GetLoc(), func(t *testing.T) {
@@ -337,32 +352,5 @@ func Foo() {}
 				exam.Must(t, exam.Equal(src, string(out)))
 			}
 		})
-	}
-}
-
-// helper calls wrap.File and returns the string output, failing on error.
-func mustWrap(t *testing.T, src string, limit int) string {
-	t.Helper()
-	out, err := wrap.File([]byte(src), limit)
-	if err != nil {
-		t.Fatalf("wrap.File error: %v", err)
-	}
-	return string(out)
-}
-
-// TestListItemAlreadyOptimal verifies that a multi-line list item which is
-// already optimally wrapped (body cannot fit in fewer lines) is left unchanged.
-func TestListItemAlreadyOptimal(t *testing.T) {
-	src := `package p
-
-// Items:
-//
-//   - The quick brown fox jumps over the lazy dog alpha.
-//     The quick brown fox jumps over the lazy dog beta.
-func Foo() {}
-`
-	out := mustWrap(t, src, 60)
-	if out != src {
-		t.Errorf("expected no change for already-optimal list item\ngot:\n%s", out)
 	}
 }
