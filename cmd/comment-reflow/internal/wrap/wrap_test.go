@@ -127,6 +127,30 @@ func Foo() {
 }
 `),
 		},
+		{
+			Name: "MultipleCommentGroupsAreReflowed",
+			Loc:  exam.Here(),
+			Src: `
+package p
+
+// This is the first long comment that definitely exceeds the sixty character limit set here.
+
+// This is the second long comment that also definitely exceeds the sixty character limit too.
+func Foo() {}
+`,
+			Limit:      60,
+			WantChange: true,
+			Golden: exam.GoldenHere(`
+package p
+
+// This is the first long comment that definitely exceeds
+// the sixty character limit set here.
+
+// This is the second long comment that also definitely
+// exceeds the sixty character limit too.
+func Foo() {}
+`),
+		},
 	}
 	for _, tc := range cases {
 		exam.Run(t, tc.Name, tc.Golden.GetLoc(), func(t *testing.T) {
@@ -152,28 +176,6 @@ func mustWrap(t *testing.T, src string, limit int) string {
 		t.Fatalf("wrap.File error: %v", err)
 	}
 	return string(out)
-}
-
-// TestMultipleCommentGroups verifies that multiple separate over-limit comment
-// groups in the same file are all wrapped.
-func TestMultipleCommentGroups(t *testing.T) {
-	src := `package p
-
-// This is the first long comment that definitely exceeds the sixty character limit set here.
-
-// This is the second long comment that also definitely exceeds the sixty character limit too.
-func Foo() {}
-`
-	out := mustWrap(t, src, 60)
-	longLines := 0
-	for _, l := range strings.Split(out, "\n") {
-		if strings.HasPrefix(l, "// ") && len(l) > 60 {
-			longLines++
-		}
-	}
-	if longLines > 0 {
-		t.Errorf("%d comment lines still over limit after wrapping:\n%s", longLines, out)
-	}
 }
 
 // TestAlreadyWrapped verifies that a paragraph which is already optimally
