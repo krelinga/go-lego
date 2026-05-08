@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/krelinga/go-libs/exam/internal"
+	"github.com/krelinga/go-libs/internal/golden"
 )
 
 // Golden holds an expected string and the source location of the GoldenHere call that produced it.
@@ -82,7 +82,7 @@ func GoldenEqual(actual string, expected Golden) *Failure {
 
 		examGoldensMu.Lock()
 		defer examGoldensMu.Unlock()
-		if err := internal.WriteGoldenEntry(*examGoldensDiffPath, internal.GoldenEntry{
+		if err := golden.WriteGoldenEntry(*examGoldensDiffPath, golden.GoldenEntry{
 			Path: expected.loc.File,
 			Line: expected.loc.Line,
 			Text: actual,

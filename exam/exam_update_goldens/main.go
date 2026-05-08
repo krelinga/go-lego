@@ -12,7 +12,7 @@ import (
 	"os/exec"
 	"sort"
 
-	"github.com/krelinga/go-libs/exam/internal"
+	"github.com/krelinga/go-libs/internal/golden"
 )
 
 func main() {
@@ -47,7 +47,7 @@ func main() {
 	}
 
 	// Read golden entries written during the test run.
-	entries, err := internal.ReadGoldenEntries(diffPath)
+	entries, err := golden.ReadGoldenEntries(diffPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: reading golden entries: %v\n", err)
 		os.Exit(1)
@@ -73,7 +73,7 @@ func main() {
 
 	// Group entries by source file and sort each group by line number so that we can track how
 	// inserted/removed lines shift subsequent entries.
-	byFile := make(map[string][]internal.GoldenEntry)
+	byFile := make(map[string][]golden.GoldenEntry)
 	for _, e := range entries {
 		byFile[e.Path] = append(byFile[e.Path], e)
 	}
@@ -91,7 +91,7 @@ func main() {
 
 // applyDiffs reads path, delegates the patch logic to applyDiffsToSrc, and writes the result back.
 // entries must be sorted by Line ascending.
-func applyDiffs(path string, entries []internal.GoldenEntry) error {
+func applyDiffs(path string, entries []golden.GoldenEntry) error {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return fmt.Errorf("reading file: %w", err)

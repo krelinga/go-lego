@@ -1,4 +1,4 @@
-package internal
+package golden
 
 import (
 	"bytes"
