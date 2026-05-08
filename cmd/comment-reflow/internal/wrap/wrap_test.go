@@ -73,6 +73,19 @@ func Foo() {
 `,
 			WantChange: false,
 		},
+		{
+			Name: "NoChangeForTestDirective",
+			Loc: exam.Here(),
+			Limit: 10,
+			Src: `
+package p
+
+//go:generate some very long command that exceeds the line length limit by quite a bit here
+//nolint:somelinter,anotherlinter,yetanotherlinter // long nolint directive that is over the limit
+func Foo() {}
+`,
+			WantChange: false,
+		},
 	}
 	for _, tc := range cases {
 		exam.Run(t, tc.Name, tc.Golden.GetLoc(), func(t *testing.T) {
@@ -98,21 +111,6 @@ func mustWrap(t *testing.T, src string, limit int) string {
 		t.Fatalf("wrap.File error: %v", err)
 	}
 	return string(out)
-}
-
-// TestDirectiveSkipped verifies that //nolint:, //go:generate, //go:build etc.
-// are not wrapped (they have no space after //).
-func TestDirectiveSkipped(t *testing.T) {
-	src := `package p
-
-//go:generate some very long command that exceeds the line length limit by quite a bit here
-//nolint:somelinter,anotherlinter,yetanotherlinter // long nolint directive that is over the limit
-func Foo() {}
-`
-	out := mustWrap(t, src, 60)
-	if out != src {
-		t.Errorf("expected directive comments to be left unchanged\ngot:\n%s", out)
-	}
 }
 
 // TestURLNotSplit verifies that a URL word is not broken across lines — it
