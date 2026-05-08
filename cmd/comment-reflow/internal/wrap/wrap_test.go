@@ -228,6 +228,29 @@ package p
 func Foo() {}
 `),
 		},
+		{
+			Name: "BulletItemWrapping",
+			Loc:  exam.Here(),
+			Src: `
+package p
+
+// Items:
+//
+//   - The quick brown fox jumps over the lazy dog and then keeps running far away.
+func Foo() {}
+`,
+			Limit:      60,
+			WantChange: true,
+			Golden: exam.GoldenHere(`
+package p
+
+// Items:
+//
+//   - The quick brown fox jumps over the lazy dog and then
+//     keeps running far away.
+func Foo() {}
+`),
+		},
 	}
 	for _, tc := range cases {
 		exam.Run(t, tc.Name, tc.Golden.GetLoc(), func(t *testing.T) {
@@ -253,33 +276,6 @@ func mustWrap(t *testing.T, src string, limit int) string {
 		t.Fatalf("wrap.File error: %v", err)
 	}
 	return string(out)
-}
-
-// TestBulletItemWrapping verifies that a single bullet list item longer than
-// the limit is wrapped with aligned continuation lines.
-func TestBulletItemWrapping(t *testing.T) {
-	src := `package p
-
-// Items:
-//
-//   - The quick brown fox jumps over the lazy dog and then keeps running far away.
-func Foo() {}
-`
-	out := mustWrap(t, src, 60)
-
-	for _, l := range strings.Split(out, "\n") {
-		if strings.Contains(l, "//") && len(l) > 60 {
-			t.Errorf("line over limit (%d): %q", len(l), l)
-		}
-	}
-	// The bullet marker must still appear on the first item line.
-	if !strings.Contains(out, "//   - ") {
-		t.Errorf("bullet marker missing in output:\n%s", out)
-	}
-	// Continuation line must be indented to align with text (5 spaces after //).
-	if !strings.Contains(out, "//     ") {
-		t.Errorf("continuation indent missing in output:\n%s", out)
-	}
 }
 
 // TestNumberedItemWrapping verifies that a numbered list item longer than the
