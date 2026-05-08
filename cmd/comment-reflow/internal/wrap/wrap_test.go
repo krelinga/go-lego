@@ -151,6 +151,19 @@ package p
 func Foo() {}
 `),
 		},
+		{
+			Name: "CannotJoinLinesCloseToLimit",
+			Loc:  exam.Here(),
+			Src: `
+package p
+
+// The quick brown fox jumps over the lazy dog alpha beta.
+// The quick brown fox jumps over the lazy dog gamma delta.
+func Foo() {}
+`,
+			Limit:      60,
+			WantChange: false,
+		},
 	}
 	for _, tc := range cases {
 		exam.Run(t, tc.Name, tc.Golden.GetLoc(), func(t *testing.T) {
@@ -176,23 +189,6 @@ func mustWrap(t *testing.T, src string, limit int) string {
 		t.Fatalf("wrap.File error: %v", err)
 	}
 	return string(out)
-}
-
-// TestAlreadyWrapped verifies that a paragraph which is already optimally
-// wrapped across multiple lines is returned byte-for-byte identical.
-func TestAlreadyWrapped(t *testing.T) {
-	// Two lines that fill near the limit and cannot be joined without exceeding
-	// it; after reflow they produce the exact same two lines.
-	src := `package p
-
-// The quick brown fox jumps over the lazy dog alpha beta.
-// The quick brown fox jumps over the lazy dog gamma delta.
-func Foo() {}
-`
-	out := mustWrap(t, src, 60)
-	if out != src {
-		t.Errorf("expected no change for already-optimal paragraph\ngot:\n%s", out)
-	}
 }
 
 // TestPlainParagraphConsolidation verifies that two consecutive short // lines
