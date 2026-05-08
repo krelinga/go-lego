@@ -300,6 +300,29 @@ package p
 func Foo() {}
 `),
 		},
+		{
+			Name: "ListItemWithContinuationIsReflowed",
+			Loc:  exam.Here(),
+			Src: `
+package p
+
+// Items:
+//
+//   - Short item.
+//     And more text.
+func Foo() {}
+`,
+			Limit:      60,
+			WantChange: true,
+			Golden: exam.GoldenHere(`
+package p
+
+// Items:
+//
+//   - Short item. And more text.
+func Foo() {}
+`),
+		},
 	}
 	for _, tc := range cases {
 		exam.Run(t, tc.Name, tc.Golden.GetLoc(), func(t *testing.T) {
@@ -325,31 +348,6 @@ func mustWrap(t *testing.T, src string, limit int) string {
 		t.Fatalf("wrap.File error: %v", err)
 	}
 	return string(out)
-}
-
-// TestListItemWithContinuation verifies that a bullet item split across a
-// marker line and a continuation line is collapsed when the joined body fits
-// on a single line.
-func TestListItemWithContinuation(t *testing.T) {
-	src := `package p
-
-// Items:
-//
-//   - Short item.
-//     And more text.
-func Foo() {}
-`
-	want := `package p
-
-// Items:
-//
-//   - Short item. And more text.
-func Foo() {}
-`
-	out := mustWrap(t, src, 60)
-	if out != want {
-		t.Errorf("expected continuation to be joined\ngot:\n%s\nwant:\n%s", out, want)
-	}
 }
 
 // TestListItemAlreadyOptimal verifies that a multi-line list item which is
