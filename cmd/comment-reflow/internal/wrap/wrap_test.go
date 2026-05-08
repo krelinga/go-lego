@@ -204,6 +204,30 @@ package p
 func Foo() {}
 `),
 		},
+		{
+			Name: "ParagraphBreakAtBlankComment",
+			Loc:  exam.Here(),
+			Src: `
+package p
+
+// The quick brown fox jumps over the lazy dog alpha beta gamma delta epsilon.
+//
+// The quick brown fox jumps over the lazy dog zeta eta theta iota kappa.
+func Foo() {}
+`,
+			Limit:      60,
+			WantChange: true,
+			Golden: exam.GoldenHere(`
+package p
+
+// The quick brown fox jumps over the lazy dog alpha beta
+// gamma delta epsilon.
+//
+// The quick brown fox jumps over the lazy dog zeta eta
+// theta iota kappa.
+func Foo() {}
+`),
+		},
 	}
 	for _, tc := range cases {
 		exam.Run(t, tc.Name, tc.Golden.GetLoc(), func(t *testing.T) {
@@ -229,31 +253,6 @@ func mustWrap(t *testing.T, src string, limit int) string {
 		t.Fatalf("wrap.File error: %v", err)
 	}
 	return string(out)
-}
-
-// TestParagraphBreakAtBlankComment verifies that a blank // line between two
-// comment groups causes them to be treated as separate paragraphs, each
-// reflowed independently, and that the blank // line is preserved verbatim.
-func TestParagraphBreakAtBlankComment(t *testing.T) {
-	src := `package p
-
-// The quick brown fox jumps over the lazy dog alpha beta gamma delta epsilon.
-//
-// The quick brown fox jumps over the lazy dog zeta eta theta iota kappa.
-func Foo() {}
-`
-	out := mustWrap(t, src, 60)
-
-	// The blank comment line must still be present.
-	if !strings.Contains(out, "\n//\n") {
-		t.Errorf("blank comment line was removed or altered:\n%s", out)
-	}
-	// No comment line should exceed the limit.
-	for _, l := range strings.Split(out, "\n") {
-		if strings.HasPrefix(l, "// ") && len(l) > 60 {
-			t.Errorf("line over limit (%d): %q", len(l), l)
-		}
-	}
 }
 
 // TestBulletItemWrapping verifies that a single bullet list item longer than
