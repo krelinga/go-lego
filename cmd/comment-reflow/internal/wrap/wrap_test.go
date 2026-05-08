@@ -60,6 +60,19 @@ package p
 func Foo() {}
 `),
 		},
+		{
+			Name: "NoChangeForInlineComment",
+			Loc: exam.Here(),
+			Limit: 10,
+			Src: `
+package p
+
+func Foo() {
+	x := 1 // inline comment
+}
+`,
+			WantChange: false,
+		},
 	}
 	for _, tc := range cases {
 		exam.Run(t, tc.Name, tc.Golden.GetLoc(), func(t *testing.T) {
@@ -85,21 +98,6 @@ func mustWrap(t *testing.T, src string, limit int) string {
 		t.Fatalf("wrap.File error: %v", err)
 	}
 	return string(out)
-}
-
-// TestInlineCommentSkipped verifies that inline comments after code are not
-// wrapped.
-func TestInlineCommentSkipped(t *testing.T) {
-	src := `package p
-
-func Foo() {
-	x := 1 // this is a very long inline comment that exceeds the limit for sure yes indeed it does
-}
-`
-	out := mustWrap(t, src, 60)
-	if out != src {
-		t.Errorf("expected inline comment to be left unchanged\ngot:\n%s", out)
-	}
 }
 
 // TestDirectiveSkipped verifies that //nolint:, //go:generate, //go:build etc.
