@@ -5,7 +5,77 @@ import (
 	"testing"
 
 	"github.com/krelinga/go-libs/cmd/comment-reflow/internal/wrap"
+	"github.com/krelinga/go-libs/exam"
 )
+
+func TestWrap(t *testing.T) {
+	cases := []struct {
+		Name string
+		Loc exam.Loc
+		Limit int
+		Src  string
+		WantChange bool
+		Golden exam.Golden
+	}{
+		{
+			Name: "NoChangeForShortComment",
+			Loc: exam.Here(),
+			Limit: 100,
+			Src: `
+package p
+
+// This comment is short.
+func Foo() {}
+`,
+			WantChange: false,
+		},
+		{
+			Name: "NoChangeForCommentAtLimit",
+			Loc: exam.Here(),
+			Limit: 11,  // "// At Limit" is exactly 11 chars
+			Src: `
+package p
+
+// At Limit
+func Foo() {}
+`,
+			WantChange: false,
+		},
+		{
+			Name: "SplitCommentOneCharOverLimit",
+			Loc: exam.Here(),
+			Limit: 12,  // "// Over Limit" is 13 chars
+			Src: `
+package p
+
+// Over Limit
+func Foo() {}
+`,
+			WantChange: true,
+			Golden: exam.GoldenHere(`
+package p
+
+// Over
+// Limit
+func Foo() {}
+`),
+		},
+	}
+	for _, tc := range cases {
+		exam.Run(t, tc.Name, tc.Golden.GetLoc(), func(t *testing.T) {
+			exam.Must(t, exam.True(strings.HasPrefix(tc.Src, "\n")),
+				"test source should start with a newline to make them readable.")
+			src := tc.Src[1:] // strip leading newline for processing
+			out, err := wrap.File([]byte(src), tc.Limit)
+			exam.Must(t, exam.Nil(err))
+			if tc.WantChange {
+				exam.Must(t, exam.GoldenEqual(string(out), tc.Golden))
+			} else {
+				exam.Must(t, exam.Equal(src, string(out)))
+			}
+		})
+	}
+}
 
 // helper calls wrap.File and returns the string output, failing on error.
 func mustWrap(t *testing.T, src string, limit int) string {
@@ -15,66 +85,6 @@ func mustWrap(t *testing.T, src string, limit int) string {
 		t.Fatalf("wrap.File error: %v", err)
 	}
 	return string(out)
-}
-
-// TestNoChange verifies that a file with no over-limit comments is returned
-// byte-for-byte identical.
-func TestNoChange(t *testing.T) {
-	src := `package p
-
-// This comment is short.
-func Foo() {}
-`
-	out := mustWrap(t, src, 100)
-	if out != src {
-		t.Errorf("expected identical output\ngot: %q", out)
-	}
-}
-
-// TestExactlyAtLimit verifies that a line equal to the limit is not wrapped.
-func TestExactlyAtLimit(t *testing.T) {
-	// Build a comment line that is exactly `limit` chars long.
-	limit := 60
-	// "// " + body, indented by nothing.
-	// We need len("// "+body) == limit  => len(body) == limit-3 == 57
-	body := strings.Repeat("x", limit-3)
-	src := "package p\n\n// " + body + "\nfunc Foo() {}\n"
-	if len(strings.Split(src, "\n")[2]) != limit {
-		t.Fatalf("test setup: line length %d != limit %d", len(strings.Split(src, "\n")[2]), limit)
-	}
-	out := mustWrap(t, src, limit)
-	if out != src {
-		t.Errorf("expected no change for line at exactly the limit")
-	}
-}
-
-// TestOneCharOver verifies that a line one character over the limit is split.
-func TestOneCharOver(t *testing.T) {
-	src := `package p
-
-// The quick brown fox jumps over the lazy dog and then some more words here now.
-func Foo() {}
-`
-	// limit 60: "// The quick brown fox jumps over the lazy dog and then" is 55 chars,
-	// adding " some" would give 60, adding " more" would be 65 — so split there.
-	out := mustWrap(t, src, 60)
-	lines := strings.Split(out, "\n")
-	// Every comment line should be <= 60 chars.
-	for _, l := range lines {
-		if strings.HasPrefix(strings.TrimSpace(l), "// ") && len(l) > 60 {
-			t.Errorf("line still over limit (%d chars): %q", len(l), l)
-		}
-	}
-	// The original single comment line should now be multiple lines.
-	commentLines := 0
-	for _, l := range lines {
-		if strings.HasPrefix(l, "// ") {
-			commentLines++
-		}
-	}
-	if commentLines < 2 {
-		t.Errorf("expected comment to be split into multiple lines, got %d comment lines\noutput:\n%s", commentLines, out)
-	}
 }
 
 // TestInlineCommentSkipped verifies that inline comments after code are not
