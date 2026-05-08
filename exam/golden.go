@@ -82,7 +82,7 @@ func GoldenEqual(actual string, expected Golden) *Failure {
 
 		examGoldensMu.Lock()
 		defer examGoldensMu.Unlock()
-		if err := golden.WriteGoldenEntry(*examGoldensDiffPath, golden.GoldenEntry{
+		if err := golden.WriteEntry(*examGoldensDiffPath, golden.Entry{
 			Path: expected.loc.File,
 			Line: expected.loc.Line,
 			Text: actual,

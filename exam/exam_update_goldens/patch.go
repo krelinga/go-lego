@@ -35,7 +35,7 @@ func validateEntryPath(path, workspaceRoot string) error {
 // constant, or a concatenated expression), and replaces that argument with a new Go string
 // expression produced by generateStringExpr. A running lineOffset tracks how prior patches shift
 // the line numbers of later entries.
-func applyDiffsToSrc(src string, entries []golden.GoldenEntry) (string, error) {
+func applyDiffsToSrc(src string, entries []golden.Entry) (string, error) {
 	// lineOffset accumulates the net change in line count from patches applied so far, so that later
 	// entries (whose Line fields refer to the original source) can be located correctly in the
 	// already-patched text.

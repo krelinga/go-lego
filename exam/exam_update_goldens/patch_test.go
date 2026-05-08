@@ -109,7 +109,7 @@ func TestApplyDiffsToSrc(t *testing.T) {
 		Name    string
 		Loc     exam.Loc
 		Src     string
-		Entries []golden.GoldenEntry
+		Entries []golden.Entry
 		Want    string
 		WantErr bool
 	}{
@@ -118,7 +118,7 @@ func TestApplyDiffsToSrc(t *testing.T) {
 			Name:    "single patch same line count",
 			Loc:     exam.Here(),
 			Src:     srcSingleGolden,
-			Entries: []golden.GoldenEntry{{Line: 4, Text: "\nnew content\n"}},
+			Entries: []golden.Entry{{Line: 4, Text: "\nnew content\n"}},
 			Want: `package test
 
 func TestFoo(t *testing.T) {
@@ -132,7 +132,7 @@ new content
 			Name: "single patch grows",
 			Loc:  exam.Here(),
 			Src:  srcSingleGolden,
-			Entries: []golden.GoldenEntry{
+			Entries: []golden.Entry{
 				{Line: 4, Text: "\nline A\nline B\nline C\n"},
 			},
 			Want: `package test
@@ -150,7 +150,7 @@ line C
 			Name:    "single patch shrinks",
 			Loc:     exam.Here(),
 			Src:     srcSingleGolden,
-			Entries: []golden.GoldenEntry{{Line: 4, Text: "\n"}},
+			Entries: []golden.Entry{{Line: 4, Text: "\n"}},
 			Want: `package test
 
 func TestFoo(t *testing.T) {
@@ -163,7 +163,7 @@ func TestFoo(t *testing.T) {
 			Name: "two patches same line count",
 			Loc:  exam.Here(),
 			Src:  srcTwoGoldens,
-			Entries: []golden.GoldenEntry{
+			Entries: []golden.Entry{
 				{Line: 4, Text: "\nnew 1\n"},
 				{Line: 7, Text: "\nnew 2\n"},
 			},
@@ -183,7 +183,7 @@ new 2
 			Name: "two patches first grows",
 			Loc:  exam.Here(),
 			Src:  srcTwoGoldens,
-			Entries: []golden.GoldenEntry{
+			Entries: []golden.Entry{
 				{Line: 4, Text: "\nline A\nline B\nline C\n"},
 				// In the original source this GoldenHere is on line 7.
 				// After the first patch inserts 2 extra lines it becomes line 9.
@@ -207,7 +207,7 @@ new 2
 			Name: "two patches first shrinks",
 			Loc:  exam.Here(),
 			Src:  srcTwoGoldens,
-			Entries: []golden.GoldenEntry{
+			Entries: []golden.Entry{
 				{Line: 4, Text: "\n"},
 				{Line: 7, Text: "\nnew 2\n"},
 			},
@@ -232,21 +232,21 @@ new 2
 			Name:    "line beyond end of src",
 			Loc:     exam.Here(),
 			Src:     "one line",
-			Entries: []golden.GoldenEntry{{Line: 5, Text: "\nnew\n"}},
+			Entries: []golden.Entry{{Line: 5, Text: "\nnew\n"}},
 			WantErr: true,
 		},
 		{
 			Name:    "no GoldenHere on target line",
 			Loc:     exam.Here(),
 			Src:     "no GoldenHere here\n",
-			Entries: []golden.GoldenEntry{{Line: 1, Text: "\nnew\n"}},
+			Entries: []golden.Entry{{Line: 1, Text: "\nnew\n"}},
 			WantErr: true,
 		},
 		{
 			Name:    "unterminated raw string in GoldenHere",
 			Loc:     exam.Here(),
 			Src:     "GoldenHere(`unclosed",
-			Entries: []golden.GoldenEntry{{Line: 1, Text: "\nnew\n"}},
+			Entries: []golden.Entry{{Line: 1, Text: "\nnew\n"}},
 			WantErr: true,
 		},
 		{
@@ -254,7 +254,7 @@ new 2
 			Name:    "replace exam.TODO placeholder",
 			Loc:     exam.Here(),
 			Src:     srcWithTODO,
-			Entries: []golden.GoldenEntry{{Line: 4, Text: "\nnew content\n"}},
+			Entries: []golden.Entry{{Line: 4, Text: "\nnew content\n"}},
 			Want: `package test
 
 func TestFoo(t *testing.T) {
@@ -269,7 +269,7 @@ new content
 			Name:    "new content contains backtick",
 			Loc:     exam.Here(),
 			Src:     srcSingleGolden,
-			Entries: []golden.GoldenEntry{{Line: 4, Text: "\nhello `world`\n"}},
+			Entries: []golden.Entry{{Line: 4, Text: "\nhello `world`\n"}},
 			Want: "package test\n\nfunc TestFoo(t *testing.T) {\n" +
 				"\texam.GoldenEqual(s, exam.GoldenHere(`\nhello ` + \"`\" + `world` + \"`\" + `\n`))\n}",
 		},

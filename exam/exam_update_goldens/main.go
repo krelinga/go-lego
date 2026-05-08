@@ -47,7 +47,7 @@ func main() {
 	}
 
 	// Read golden entries written during the test run.
-	entries, err := golden.ReadGoldenEntries(diffPath)
+	entries, err := golden.ReadEntries(diffPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: reading golden entries: %v\n", err)
 		os.Exit(1)
@@ -73,7 +73,7 @@ func main() {
 
 	// Group entries by source file and sort each group by line number so that we can track how
 	// inserted/removed lines shift subsequent entries.
-	byFile := make(map[string][]golden.GoldenEntry)
+	byFile := make(map[string][]golden.Entry)
 	for _, e := range entries {
 		byFile[e.Path] = append(byFile[e.Path], e)
 	}
@@ -91,7 +91,7 @@ func main() {
 
 // applyDiffs reads path, delegates the patch logic to applyDiffsToSrc, and writes the result back.
 // entries must be sorted by Line ascending.
-func applyDiffs(path string, entries []golden.GoldenEntry) error {
+func applyDiffs(path string, entries []golden.Entry) error {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return fmt.Errorf("reading file: %w", err)
