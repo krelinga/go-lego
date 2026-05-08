@@ -4,23 +4,22 @@ import (
 	"iter"
 )
 
-// SliceDict is a Dict implementation that preserves the order of insertion.
-// Iteration over the dict will yield entries in the order they were added.
-// Key equality is determined by a user-provided equality function, allowing
-// for custom comparison logic.
+// SliceDict is a Dict implementation that preserves the order of insertion. Iteration over the dict
+// will yield entries in the order they were added. Key equality is determined by a user-provided
+// equality function, allowing for custom comparison logic.
 //
-// Many of the operations on SliceDict require iterating through all entries
-// to check for key equality, resulting in O(n) time complexity for operations like
-// Get, Put, and Del. This makes SliceDict less efficient than a hash-based dict
-// for large collections, but it provides the benefit of maintaining insertion
-// order and allowing for custom key equality logic.
+// Many of the operations on SliceDict require iterating through all entries to check for key
+// equality, resulting in O(n) time complexity for operations like Get, Put, and Del. This makes
+// SliceDict less efficient than a hash-based dict for large collections, but it provides the
+// benefit of maintaining insertion order and allowing for custom key equality logic.
 type SliceDict[K, V any] struct {
 	slice    *Slice[Tup2[K, V]]
 	equalKey func(a, b K) bool
 }
 
 // NewSliceDictFunc creates a new SliceDict with a custom key equality function and initial entries.
-// If any of the initial entries have keys that are considered equal, only the last occurrence will be kept.
+// If any of the initial entries have keys that are considered equal, only the last occurrence will
+// be kept.
 func NewSliceDictFunc[K, V any](equalKey func(a, b K) bool, entries ...FixedTup2[K, V]) *SliceDict[K, V] {
 	d := &SliceDict[K, V]{
 		slice:    &Slice[Tup2[K, V]]{},
@@ -33,15 +32,15 @@ func NewSliceDictFunc[K, V any](equalKey func(a, b K) bool, entries ...FixedTup2
 	return d
 }
 
-// NewSliceDict creates a new SliceDict using Go's built-in equality for keys and the given initial entries.
-// If any of the initial entries have equal keys, only the last occurrence will be kept.
+// NewSliceDict creates a new SliceDict using Go's built-in equality for keys and the given initial
+// entries. If any of the initial entries have equal keys, only the last occurrence will be kept.
 func NewSliceDict[K comparable, V any](entries ...FixedTup2[K, V]) *SliceDict[K, V] {
 	return NewSliceDictFunc(func(a, b K) bool { return a == b }, entries...)
 }
 
-// NewSliceDictOfFunc creates a new SliceDict from a Bag2, using a custom key equality function.
-// The dict will contain all unique-key entries from the Bag2, in the order they appear.
-// The new SliceDict will be independent of the original Bag2.
+// NewSliceDictOfFunc creates a new SliceDict from a Bag2, using a custom key equality function. The
+// dict will contain all unique-key entries from the Bag2, in the order they appear. The new
+// SliceDict will be independent of the original Bag2.
 func NewSliceDictOfFunc[K, V any](equalKey func(a, b K) bool, b Bag2[K, V]) *SliceDict[K, V] {
 	d := NewSliceDictFunc[K, V](equalKey)
 	d.Reserve(b.Len())
@@ -51,8 +50,8 @@ func NewSliceDictOfFunc[K, V any](equalKey func(a, b K) bool, b Bag2[K, V]) *Sli
 	return d
 }
 
-// NewSliceDictOf creates a new SliceDict from a Bag2, using Go's built-in equality for keys.
-// The new SliceDict will be independent of the original Bag2.
+// NewSliceDictOf creates a new SliceDict from a Bag2, using Go's built-in equality for keys. The
+// new SliceDict will be independent of the original Bag2.
 func NewSliceDictOf[K comparable, V any](b Bag2[K, V]) *SliceDict[K, V] {
 	return NewSliceDictOfFunc(func(a, b K) bool { return a == b }, b)
 }
@@ -72,9 +71,8 @@ func (d *SliceDict[K, V]) Len() int {
 	return d.slice.Len()
 }
 
-// Get retrieves the value associated with the given key.
-// It returns the value and true if the key was found, or the zero value and false otherwise.
-// This operation has O(n) time complexity.
+// Get retrieves the value associated with the given key. It returns the value and true if the key
+// was found, or the zero value and false otherwise. This operation has O(n) time complexity.
 func (d *SliceDict[K, V]) Get(key K) (V, bool) {
 	i := d.findKey(key)
 	if i < 0 {
@@ -117,9 +115,9 @@ func (d *SliceDict[K, V]) Vals() iter.Seq[V] {
 	}
 }
 
-// Put adds or updates the entry for the given key.
-// If the key already exists, the existing entry is removed from the dict and the new entry is added at the end, preserving insertion order.
-// This operation has O(n) time complexity due to the need to search for the key.
+// Put adds or updates the entry for the given key. If the key already exists, the existing entry is
+// removed from the dict and the new entry is added at the end, preserving insertion order. This
+// operation has O(n) time complexity due to the need to search for the key.
 func (d *SliceDict[K, V]) Put(key K, value V) {
 	d.Del(key) // Remove existing entry if it exists to maintain insertion order
 	d.slice.Push(NewTup2(key, value))
@@ -130,9 +128,8 @@ func (d *SliceDict[K, V]) Clear() {
 	d.slice.Clear()
 }
 
-// Del removes the entry with the given key from the SliceDict.
-// If the key is not found, this operation has no effect.
-// This operation has O(n) time complexity.
+// Del removes the entry with the given key from the SliceDict. If the key is not found, this
+// operation has no effect. This operation has O(n) time complexity.
 func (d *SliceDict[K, V]) Del(key K) {
 	i := d.findKey(key)
 	if i < 0 {

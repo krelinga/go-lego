@@ -7,12 +7,14 @@ import (
 	"github.com/krelinga/go-libs/zero"
 )
 
-// FixedDict is a read-only view of a dictionary. It provides methods to access the keys and values, but does not allow mutation.
+// FixedDict is a read-only view of a dictionary. It provides methods to access the keys and values,
+// but does not allow mutation.
 type FixedDict[K, V any] interface {
 	// Len returns the number of key-value pairs in the dictionary.
 	Len() int
 
-	// Get retrieves the value associated with the given key. It returns the value and a boolean indicating whether the key was found in the dictionary.
+	// Get retrieves the value associated with the given key. It returns the value and a boolean
+	// indicating whether the key was found in the dictionary.
 	Get(key K) (V, bool)
 
 	// KeyVals returns a sequence of key-value pairs in the dictionary.
@@ -25,7 +27,8 @@ type FixedDict[K, V any] interface {
 	Vals() iter.Seq[V]
 }
 
-// Dict is a mutable dictionary that implements the FixedDict interface. It allows adding, removing, and clearing key-value pairs.
+// Dict is a mutable dictionary that implements the FixedDict interface. It allows adding, removing,
+// and clearing key-value pairs.
 type Dict[K, V any] interface {
 	FixedDict[K, V]
 
@@ -35,11 +38,13 @@ type Dict[K, V any] interface {
 	// Clear removes all key-value pairs from the dictionary, leaving it empty.
 	Clear()
 
-	// Del removes the key-value pair associated with the given key from the dictionary. If the key does not exist, it does nothing.
+	// Del removes the key-value pair associated with the given key from the dictionary. If the key
+	// does not exist, it does nothing.
 	Del(key K)
 }
 
-// AsDict creates a FixedDict from a map. It provides a read-only view of the map, and any changes to the map will be reflected in the FixedDict.
+// AsDict creates a FixedDict from a map. It provides a read-only view of the map, and any changes
+// to the map will be reflected in the FixedDict.
 func AsDict[M ~map[K]V, K comparable, V any](m M) FixedDict[K, V] {
 	return asDict[M, K, V]{m: m}
 }
@@ -69,8 +74,9 @@ func (m asDict[M, K, V]) Vals() iter.Seq[V] {
 	return maps.Values(m.m)
 }
 
-// Map is a mutable map that implements the Dict interface. It provides methods to add, remove, and clear key-value pairs, as well as access the keys and values.
-// It is a wrapper around the built-in map type, so it is possible to create literals of Map as follows:
+// Map is a mutable map that implements the Dict interface. It provides methods to add, remove, and
+// clear key-value pairs, as well as access the keys and values. It is a wrapper around the built-in
+// map type, so it is possible to create literals of Map as follows:
 //
 //	m := &Map[string, int]{"a": 1, "b": 2}
 type Map[K comparable, V any] map[K]V
@@ -81,13 +87,15 @@ func NewMap[K comparable, V any]() *Map[K, V] {
 	return (*Map[K, V])(&m)
 }
 
-// NewMapHint creates a new Map with the specified key and value types, and reserves space for the specified number of elements.
+// NewMapHint creates a new Map with the specified key and value types, and reserves space for the
+// specified number of elements.
 func NewMapHint[K comparable, V any](hint int) *Map[K, V] {
 	m := make(map[K]V, hint)
 	return (*Map[K, V])(&m)
 }
 
-// NewMapOf creates a new Map from a Bag2 of key-value pairs. It collects the pairs into a map and returns a pointer to the Map.
+// NewMapOf creates a new Map from a Bag2 of key-value pairs. It collects the pairs into a map and
+// returns a pointer to the Map.
 func NewMapOf[K comparable, V any](b Bag2[K, V]) *Map[K, V] {
 	m := maps.Collect(b.Elems())
 	return (*Map[K, V])(&m)
@@ -98,7 +106,8 @@ func (m *Map[K, V]) Len() int {
 	return len(*m)
 }
 
-// Get retrieves the value associated with the given key. It returns the value and a boolean indicating whether the key was found in the Map.
+// Get retrieves the value associated with the given key. It returns the value and a boolean
+// indicating whether the key was found in the Map.
 func (m *Map[K, V]) Get(key K) (V, bool) {
 	value, ok := (*m)[key]
 	return value, ok
@@ -132,19 +141,22 @@ func (m *Map[K, V]) Clear() {
 	*m = nil
 }
 
-// Reserve allows callers to pre-allocate space for a certain number of key-value pairs in an empty map. If the Map is already initialized, it does nothing.
+// Reserve allows callers to pre-allocate space for a certain number of key-value pairs in an empty
+// map. If the Map is already initialized, it does nothing.
 func (m *Map[K, V]) Reserve(n int) {
 	if *m == nil {
 		*m = make(map[K]V, n)
 	}
 }
 
-// Del removes the key-value pair associated with the given key from the Map. If the key does not exist, it does nothing.
+// Del removes the key-value pair associated with the given key from the Map. If the key does not
+// exist, it does nothing.
 func (m *Map[K, V]) Del(key K) {
 	delete(*m, key)
 }
 
-// WrapDictVals creates a new FixedDict that wraps the values of the given FixedDict with the provided wrap function. The keys remain unchanged.
+// WrapDictVals creates a new FixedDict that wraps the values of the given FixedDict with the
+// provided wrap function. The keys remain unchanged.
 func WrapDictVals[K, V, W any](d FixedDict[K, V], wrap func(V) W) FixedDict[K, W] {
 	return wrappedDictVals[K, V, W]{
 		d:    d,
@@ -193,19 +205,26 @@ func (w wrappedDictVals[K, V, W]) Vals() iter.Seq[W] {
 	}
 }
 
-// ViewDictVals takes a FixedDict who's value implements the Viewer interface and returns a new FixedDict with the values transformed using the View method of the Viewer interface, and the original keys.
-// The resulting FixedDict will keep a reference to the original FixedDict, so if the original value is modified the changes will be reflected in the wrapped FixedDict.
+// ViewDictVals takes a FixedDict who's value implements the Viewer interface and returns a new
+// FixedDict with the values transformed using the View method of the Viewer interface, and the
+// original keys. The resulting FixedDict will keep a reference to the original FixedDict, so if the
+// original value is modified the changes will be reflected in the wrapped FixedDict.
 func ViewDictVals[K any, V Viewer[VV], VV any](d FixedDict[K, V]) FixedDict[K, VV] {
 	return WrapDictVals(d, V.View)
 }
 
-// WrapDictKeys creates a new FixedDict that wraps the keys of the given FixedDict with the provided wrap function.
-// The values remain unchanged. The unwrap function is used to convert wrapped keys back to their original form
-// when accessing the underlying FixedDict in cases like Get.
+// WrapDictKeys creates a new FixedDict that wraps the keys of the given FixedDict with the provided
+// wrap function. The values remain unchanged. The unwrap function is used to convert wrapped keys
+// back to their original form when accessing the underlying FixedDict in cases like Get.
 //
-// For example, if you have a FixedDict with string keys and you want to wrap the keys as integers (e.g., by parsing the strings), you could use WrapDictKeys with a wrap function that converts strings to integers and an unwrap function that converts integers back to strings.
+// For example, if you have a FixedDict with string keys and you want to wrap the keys as integers
+// (e.g., by parsing the strings), you could use WrapDictKeys with a wrap function that converts
+// strings to integers and an unwrap function that converts integers back to strings.
 //
-// The wrap function must be one-to-one (i.e., it should not map two different keys to the same wrapped key) to ensure that the resulting FixedDict behaves correctly. The unwrap function must be the inverse of the wrap function for the keys to ensure that Get and other methods work as expected.
+// The wrap function must be one-to-one (i.e., it should not map two different keys to the same
+// wrapped key) to ensure that the resulting FixedDict behaves correctly. The unwrap function must
+// be the inverse of the wrap function for the keys to ensure that Get and other methods work as
+// expected.
 func WrapDictKeys[K, V, W any](d FixedDict[K, V], wrap func(K) W, unwrap func(W) K) FixedDict[W, V] {
 	return wrappedDictKeys[K, V, W]{
 		d:      d,
@@ -252,22 +271,31 @@ func (w wrappedDictKeys[K, V, W]) Vals() iter.Seq[V] {
 	return w.d.Vals()
 }
 
-// ViewDictKeys takes a FixedDict who's key implements the Viewer interface and returns a new FixedDict with the keys transformed using the View method of the Viewer interface, and the original values.
-// The resulting FixedDict will keep a reference to the original FixedDict, so if the original value is modified the changes will be reflected in the wrapped FixedDict. The unwrap function is used to convert wrapped keys back to their original form when accessing the underlying FixedDict in cases like Get.
+// ViewDictKeys takes a FixedDict who's key implements the Viewer interface and returns a new
+// FixedDict with the keys transformed using the View method of the Viewer interface, and the
+// original values. The resulting FixedDict will keep a reference to the original FixedDict, so if
+// the original value is modified the changes will be reflected in the wrapped FixedDict. The unwrap
+// function is used to convert wrapped keys back to their original form when accessing the
+// underlying FixedDict in cases like Get.
 //
-// The unwrap function must be the inverse of the View method of the Viewer interface for the keys to ensure that Get and other methods work as expected. See [WrapDictKeys] for more details.
+// The unwrap function must be the inverse of the View method of the Viewer interface for the keys
+// to ensure that Get and other methods work as expected. See [WrapDictKeys] for more details.
 func ViewDictKeys[K Viewer[KK], V any, KK any](d FixedDict[K, V], unwrap func(KK) K) FixedDict[KK, V] {
 	return WrapDictKeys(d, K.View, unwrap)
 }
 
-// DictEqual checks if two FixedDicts are equal by comparing their key-value pairs. It returns true if both FixedDicts have the same keys and corresponding values, and false otherwise. The values are compared using the equality operator (==), so the value type must be comparable.
+// DictEqual checks if two FixedDicts are equal by comparing their key-value pairs. It returns true
+// if both FixedDicts have the same keys and corresponding values, and false otherwise. The values
+// are compared using the equality operator (==), so the value type must be comparable.
 func DictEqual[K, V comparable](a, b FixedDict[K, V]) bool {
 	return DictEqualFunc(a, b, func(vA, vB V) bool {
 		return vA == vB
 	})
 }
 
-// DictEqualFunc checks if two FixedDicts are equal by comparing their key-value pairs using a custom equality function for the values. It returns true if both FixedDicts have the same keys and corresponding values that are considered equal by the provided function, and false otherwise.
+// DictEqualFunc checks if two FixedDicts are equal by comparing their key-value pairs using a
+// custom equality function for the values. It returns true if both FixedDicts have the same keys
+// and corresponding values that are considered equal by the provided function, and false otherwise.
 func DictEqualFunc[K, V any](a, b FixedDict[K, V], eq func(V, V) bool) bool {
 	if a.Len() != b.Len() {
 		return false

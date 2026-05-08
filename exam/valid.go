@@ -6,7 +6,10 @@ import (
 	"github.com/krelinga/go-libs/valid"
 )
 
-// MustValidate takes a Validator and checks if it is valid. If the Validator is valid, it returns the original value. If the Validator is invalid, it reports a fatal error using the provided testing interface, including information about the validation error and the context of the assertion.
+// MustValidate takes a Validator and checks if it is valid. If the Validator is valid, it returns
+// the original value. If the Validator is invalid, it reports a fatal error using the provided
+// testing interface, including information about the validation error and the context of the
+// assertion.
 func MustValidate[V valid.Validator](t T, v V) V {
 	if validErr := v.Validate(); validErr != nil {
 		b := &strings.Builder{}

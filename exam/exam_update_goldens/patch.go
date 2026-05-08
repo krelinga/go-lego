@@ -8,11 +8,10 @@ import (
 	"github.com/krelinga/go-libs/exam/internal"
 )
 
-// validateEntryPath returns an error if path should not be edited.  Two
-// checks are applied:
+// validateEntryPath returns an error if path should not be edited. Two checks are applied:
 //  1. The file must have a ".go" extension.
-//  2. The file must be located within workspaceRoot (i.e. the resolved
-//     relative path must not start with "..").
+//  2. The file must be located within workspaceRoot (i.e. the resolved relative path must not start
+//     with "..").
 func validateEntryPath(path, workspaceRoot string) error {
 	if filepath.Ext(path) != ".go" {
 		return fmt.Errorf("refusing to edit %s: not a .go file", path)
@@ -27,20 +26,19 @@ func validateEntryPath(path, workspaceRoot string) error {
 	return nil
 }
 
-// applyDiffsToSrc applies a set of golden-entry patches to the Go source text
-// src and returns the updated text.  entries must be sorted by Line ascending
-// and must all refer to line numbers within src (1-indexed).
+// applyDiffsToSrc applies a set of golden-entry patches to the Go source text src and returns the
+// updated text. entries must be sorted by Line ascending and must all refer to line numbers within
+// src (1-indexed).
 //
-// Each entry locates the GoldenHere( call on the entry's source line, finds
-// the extent of its single argument (which may be a raw-string literal, an
-// interpreted string literal, the exam.TODO constant, or a concatenated
-// expression), and replaces that argument with a new Go string expression
-// produced by generateStringExpr.  A running lineOffset tracks how prior
-// patches shift the line numbers of later entries.
+// Each entry locates the GoldenHere( call on the entry's source line, finds the extent of its
+// single argument (which may be a raw-string literal, an interpreted string literal, the exam.TODO
+// constant, or a concatenated expression), and replaces that argument with a new Go string
+// expression produced by generateStringExpr. A running lineOffset tracks how prior patches shift
+// the line numbers of later entries.
 func applyDiffsToSrc(src string, entries []internal.GoldenEntry) (string, error) {
-	// lineOffset accumulates the net change in line count from patches applied
-	// so far, so that later entries (whose Line fields refer to the original
-	// source) can be located correctly in the already-patched text.
+	// lineOffset accumulates the net change in line count from patches applied so far, so that later
+	// entries (whose Line fields refer to the original source) can be located correctly in the
+	// already-patched text.
 	lineOffset := 0
 
 	for _, entry := range entries {
@@ -78,11 +76,10 @@ func applyDiffsToSrc(src string, entries []internal.GoldenEntry) (string, error)
 	return src, nil
 }
 
-// findArgEnd returns the byte position of the closing ')' that closes the
-// GoldenHere( call, given that argStart is the first byte after the opening
-// '('.  It properly handles nested parentheses, raw string literals (backtick-
-// delimited), interpreted string literals (double-quote-delimited), and rune
-// literals (single-quote-delimited).
+// findArgEnd returns the byte position of the closing ')' that closes the GoldenHere( call, given
+// that argStart is the first byte after the opening '('. It properly handles nested parentheses,
+// raw string literals (backtick- delimited), interpreted string literals (double-quote-delimited),
+// and rune literals (single-quote-delimited).
 func findArgEnd(src string, argStart int) (int, error) {
 	depth := 0
 	i := argStart
@@ -160,12 +157,11 @@ func findArgEnd(src string, argStart int) (int, error) {
 	return 0, fmt.Errorf("no matching closing parenthesis found")
 }
 
-// generateStringExpr returns a Go expression that evaluates to text.
-// When text contains no backtick characters a single raw string literal is
-// returned.  When text does contain backticks the result is a concatenation
-// of raw string literals (for the non-backtick segments) and double-quoted
-// string literals (for the backtick characters themselves), so that the
-// overall expression is valid Go regardless of the content.
+// generateStringExpr returns a Go expression that evaluates to text. When text contains no backtick
+// characters a single raw string literal is returned. When text does contain backticks the result
+// is a concatenation of raw string literals (for the non-backtick segments) and double-quoted
+// string literals (for the backtick characters themselves), so that the overall expression is valid
+// Go regardless of the content.
 func generateStringExpr(text string) string {
 	if !strings.ContainsRune(text, '`') {
 		return "`" + text + "`"
@@ -185,8 +181,7 @@ func generateStringExpr(text string) string {
 	return strings.Join(exprs, " + ")
 }
 
-// findLineStart returns the byte offset of the first byte on the given
-// 1-indexed line within src.
+// findLineStart returns the byte offset of the first byte on the given 1-indexed line within src.
 func findLineStart(src string, lineNum int) (int, error) {
 	pos := 0
 	for line := 1; line < lineNum; line++ {

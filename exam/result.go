@@ -8,19 +8,19 @@ import (
 	"github.com/krelinga/go-libs/mirror"
 )
 
-// FmtFunc is the signature of a custom formatting function used by Arg.
-// It converts a reflect.Value to its string representation, or returns an error.
+// FmtFunc is the signature of a custom formatting function used by Arg. It converts a reflect.Value
+// to its string representation, or returns an error.
 type FmtFunc = func(reflect.Value) (string, error)
 
-// Arg is a named value captured as part of a Failure. It records the argument
-// name, its reflected value, and an optional custom formatting function.
+// Arg is a named value captured as part of a Failure. It records the argument name, its reflected
+// value, and an optional custom formatting function.
 type Arg struct {
 	// Name is the argument label shown in failure messages.
 	Name string
 	// Value is the reflected argument value.
 	Value reflect.Value
-	// Fmt, if non-nil, is called to format Value in failure messages.
-	// When nil, fmt.Sprintf("%#v", ...) is used instead.
+	// Fmt, if non-nil, is called to format Value in failure messages. When nil, fmt.Sprintf("%#v",
+	// ...) is used instead.
 	Fmt FmtFunc
 }
 
@@ -61,9 +61,9 @@ func NewArgs2[T1 any, T2 any](n1 string, v1 T1, n2 string, v2 T2) Args {
 type Failure struct {
 	// Args holds the named values that were compared when the assertion failed.
 	Args Args
-	// Wrapped, if non-nil, holds an underlying error that caused a structural
-	// problem (e.g. an incompatible function passed to EqualFunc). A Failure
-	// with a non-nil Wrapped is treated as fatal by both Try and Must.
+	// Wrapped, if non-nil, holds an underlying error that caused a structural problem (e.g. an
+	// incompatible function passed to EqualFunc). A Failure with a non-nil Wrapped is treated as fatal
+	// by both Try and Must.
 	Wrapped error
 }
 
@@ -81,9 +81,8 @@ func (f *Failure) Wrap(err error) *Failure {
 	return out
 }
 
-// IsCritical reports whether the failure wraps an underlying error.
-// Critical failures are always reported with t.Fatal regardless of whether
-// Try or Must was used.
+// IsCritical reports whether the failure wraps an underlying error. Critical failures are always
+// reported with t.Fatal regardless of whether Try or Must was used.
 func (f *Failure) IsCritical() bool {
 	return f.Wrapped != nil
 }
@@ -110,9 +109,9 @@ func Equal[T comparable](x, y T) *Failure {
 	return NewFailure2("x", x, "y", y)
 }
 
-// EqualFunc returns nil when f reports x and y as equal, or a Failure otherwise.
-// f must be a func(U, U) bool (where T is assignable to U); a structural error is
-// wrapped into the Failure if it is not.
+// EqualFunc returns nil when f reports x and y as equal, or a Failure otherwise. f must be a
+// func(U, U) bool (where T is assignable to U); a structural error is wrapped into the Failure if
+// it is not.
 func EqualFunc[T any](x, y T, f any) *Failure {
 	failure := NewFailure2("x", x, "y", y)
 	eq, err := mirror.WrapFunc2In1Out[T, T, bool](f)
@@ -132,9 +131,9 @@ func NotEqual[T comparable](x, y T) *Failure {
 	return NewFailure2("x", x, "y", y)
 }
 
-// NotEqualFunc returns nil when f reports x and y as unequal, or a Failure otherwise.
-// f must be a func(U, U) bool (where T is assignable to U); a structural error is
-// wrapped into the Failure if it is not.
+// NotEqualFunc returns nil when f reports x and y as unequal, or a Failure otherwise. f must be a
+// func(U, U) bool (where T is assignable to U); a structural error is wrapped into the Failure if
+// it is not.
 func NotEqualFunc[T any](x, y T, f any) *Failure {
 	failure := NewFailure2("x", x, "y", y)
 	eq, err := mirror.WrapFunc2In1Out[T, T, bool](f)
@@ -186,9 +185,9 @@ func True(condition bool) *Failure {
 	return NewFailure1("condition", condition)
 }
 
-// Nil returns nil when x is nil, or a Failure otherwise.
-// x must be any nilable type: pointer, interface, slice, map, channel, or function.
-// A structural error is returned for non-nilable types.
+// Nil returns nil when x is nil, or a Failure otherwise. x must be any nilable type: pointer,
+// interface, slice, map, channel, or function. A structural error is returned for non-nilable
+// types.
 func Nil[T any](x T) *Failure {
 	failure := NewFailure1("x", x)
 	isNil, err := mirror.IsNil(x)
@@ -200,9 +199,9 @@ func Nil[T any](x T) *Failure {
 	return failure
 }
 
-// NotNil returns nil when x is non-nil, or a Failure otherwise.
-// x must be any nilable type: pointer, interface, slice, map, channel, or function.
-// A structural error is returned for non-nilable types.
+// NotNil returns nil when x is non-nil, or a Failure otherwise. x must be any nilable type:
+// pointer, interface, slice, map, channel, or function. A structural error is returned for
+// non-nilable types.
 func NotNil[T any](x T) *Failure {
 	failure := NewFailure1("x", x)
 	isNil, err := mirror.IsNil(x)
@@ -240,9 +239,8 @@ func Implements[Got, IFace any]() *Failure {
 	return failure
 }
 
-// PanicsWith returns a Failure if runThis does not panic, or if it panics with a
-// value that check reports as a failure. If check is nil, any panic is considered
-// a success.
+// PanicsWith returns a Failure if runThis does not panic, or if it panics with a value that check
+// reports as a failure. If check is nil, any panic is considered a success.
 func PanicsWith(runThis func(), check func(any) *Failure) (failure *Failure) {
 	defer func() {
 		if r := recover(); r != nil {

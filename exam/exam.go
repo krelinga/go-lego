@@ -1,26 +1,24 @@
-// Package exam provides a lightweight test assertion library built on top of
-// the standard [testing] package.
+// Package exam provides a lightweight test assertion library built on top of the standard [testing]
+// package.
 //
-// Assertions are expressed as functions that return a [Failure] value: nil
-// means the assertion passed, a non-nil value means it failed.  Failures are
-// reported by passing them to [Try] or [Must]:
+// Assertions are expressed as functions that return a [Failure] value: nil means the assertion
+// passed, a non-nil value means it failed. Failures are reported by passing them to [Try] or
+// [Must]:
 //
 //   - [Try] records a non-fatal error via t.Error and continues the test.
 //   - [Must] records a fatal error via t.Fatal and stops the test immediately.
 //
-// Assertion functions ([Equal], [Greater], [Nil], …) are generic where
-// possible.  Custom equality or ordering logic can be supplied via the
-// corresponding *Func variants ([EqualFunc], [NotEqualFunc], …).
+// Assertion functions ([Equal], [Greater], [Nil], …) are generic where possible. Custom equality
+// or ordering logic can be supplied via the corresponding *Func variants ([EqualFunc],
+// [NotEqualFunc], …).
 //
-// The package also supports table-driven tests through [Here] and [Run].
-// [Here] captures the source location of a test-case struct literal; [Run]
-// logs that source text at the start of each subtest so that failures can be
-// traced back to the originating data row.
+// The package also supports table-driven tests through [Here] and [Run]. [Here] captures the source
+// location of a test-case struct literal; [Run] logs that source text at the start of each subtest
+// so that failures can be traced back to the originating data row.
 //
-// Golden-file testing is provided via [GoldenHere] and [GoldenEqual].  When
-// the -exam_goldens_diff_path flag is set (typically by the update_goldens
-// binary), mismatches are written to a diff file for bulk updating instead of
-// failing the test.
+// Golden-file testing is provided via [GoldenHere] and [GoldenEqual]. When the
+// -exam_goldens_diff_path flag is set (typically by the update_goldens binary), mismatches are
+// written to a diff file for bulk updating instead of failing the test.
 package exam
 
 import (
@@ -37,10 +35,9 @@ import (
 	"testing"
 )
 
-// T is the subset of [testing.T] that exam assertion functions accept.
-// *testing.T satisfies T directly.  This interface allows for tests
-// that use exam assertions to be unit-tested with a fake implementation
-// of T.
+// T is the subset of [testing.T] that exam assertion functions accept. *testing.T satisfies T
+// directly. This interface allows for tests that use exam assertions to be unit-tested with a fake
+// implementation of T.
 type T interface {
 	Helper()
 	Error(args ...any)
@@ -137,26 +134,25 @@ func handleResult(t T, must bool, failure *Failure, extras ...any) bool {
 	return false
 }
 
-// Try reports a non-fatal test error via t.Error when failure is non-nil.
-// The failure message includes the source text of the assertion call site;
-// any extras are appended to it. Returns true when failure is nil.
+// Try reports a non-fatal test error via t.Error when failure is non-nil. The failure message
+// includes the source text of the assertion call site; any extras are appended to it. Returns true
+// when failure is nil.
 func Try(t T, failure *Failure, extras ...any) bool {
 	t.Helper()
 	return handleResult(t, false, failure, extras...)
 }
 
-// Must reports a fatal test error via t.Fatal when failure is non-nil, stopping
-// the test immediately. Failures that wrap an underlying error (see
-// Failure.IsCritical) are also fatal when passed to Try. The failure message
-// includes the source text of the assertion call site; any extras are appended
-// to it. Returns true when failure is nil.
+// Must reports a fatal test error via t.Fatal when failure is non-nil, stopping the test
+// immediately. Failures that wrap an underlying error (see Failure.IsCritical) are also fatal when
+// passed to Try. The failure message includes the source text of the assertion call site; any
+// extras are appended to it. Returns true when failure is nil.
 func Must(t T, failure *Failure, extras ...any) bool {
 	t.Helper()
 	return handleResult(t, true, failure, extras...)
 }
 
-// Loc identifies a specific location in a source file.
-// Obtain a Loc at a particular call site using Here().
+// Loc identifies a specific location in a source file. Obtain a Loc at a particular call site using
+// Here().
 type Loc struct {
 	// File is the absolute path to the source file.
 	File string
@@ -240,8 +236,8 @@ func loadAssertionContext(loc Loc) (string, error) {
 			line = line[minIndent:]
 		}
 		if i > 0 && strings.HasPrefix(line, "\t") {
-			// Go's builtin testing framework will automatically indent subsequent lines in log messages,
-			// so we trim one level of indentation if it's present to avoid double-indenting.
+			// Go's builtin testing framework will automatically indent subsequent lines in log messages, so
+			// we trim one level of indentation if it's present to avoid double-indenting.
 			line = line[1:]
 		}
 		sb.WriteString(strings.TrimRight(line, " \t"))
@@ -250,10 +246,10 @@ func loadAssertionContext(loc Loc) (string, error) {
 	return strings.TrimSpace(sb.String()), nil
 }
 
-// Run executes f as a named subtest via t.Run. loc must be obtained by calling
-// Here() on the same source line as the table-driven test case struct literal;
-// its source text is logged at the start of the subtest so that failures can
-// be traced back to the originating data row. Returns the bool result of t.Run.
+// Run executes f as a named subtest via t.Run. loc must be obtained by calling Here() on the same
+// source line as the table-driven test case struct literal; its source text is logged at the start
+// of the subtest so that failures can be traced back to the originating data row. Returns the bool
+// result of t.Run.
 func Run(t T, name string, loc Loc, f func(*testing.T)) bool {
 	t.Helper()
 	return t.Run(name, func(t *testing.T) {

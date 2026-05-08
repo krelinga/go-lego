@@ -1,5 +1,5 @@
-// exam_update_goldens runs the tests identified by a -run pattern and applies any
-// golden-file differences that the tests emit back into the source files.
+// exam_update_goldens runs the tests identified by a -run pattern and applies any golden-file
+// differences that the tests emit back into the source files.
 //
 // Usage:
 //
@@ -32,8 +32,8 @@ func main() {
 	diffPath := tmpFile.Name()
 	defer os.Remove(diffPath)
 
-	// Run the tests.  -p=1 keeps them sequential so multiple test binaries
-	// don't race when appending to the shared golden-diff file.
+	// Run the tests. -p=1 keeps them sequential so multiple test binaries don't race when appending to
+	// the shared golden-diff file.
 	cmd := exec.Command("go", "test",
 		"-count=1",
 		"-p=1",
@@ -71,8 +71,8 @@ func main() {
 		}
 	}
 
-	// Group entries by source file and sort each group by line number so that
-	// we can track how inserted/removed lines shift subsequent entries.
+	// Group entries by source file and sort each group by line number so that we can track how
+	// inserted/removed lines shift subsequent entries.
 	byFile := make(map[string][]internal.GoldenEntry)
 	for _, e := range entries {
 		byFile[e.Path] = append(byFile[e.Path], e)
@@ -89,8 +89,8 @@ func main() {
 	}
 }
 
-// applyDiffs reads path, delegates the patch logic to applyDiffsToSrc, and
-// writes the result back.  entries must be sorted by Line ascending.
+// applyDiffs reads path, delegates the patch logic to applyDiffsToSrc, and writes the result back.
+// entries must be sorted by Line ascending.
 func applyDiffs(path string, entries []internal.GoldenEntry) error {
 	data, err := os.ReadFile(path)
 	if err != nil {

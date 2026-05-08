@@ -16,9 +16,8 @@ type GoldenEntry struct {
 
 var byteOrder = binary.LittleEndian
 
-// magicNumber is written as the first 8 bytes of every golden-entry file so
-// that readers can detect files that are corrupt, truncated, or of the wrong
-// format before attempting to decode entries.
+// magicNumber is written as the first 8 bytes of every golden-entry file so that readers can detect
+// files that are corrupt, truncated, or of the wrong format before attempting to decode entries.
 var magicNumber = [8]byte{'G', 'L', 'D', 'N', 0, 1, 0, 0}
 
 func writeString(w io.Writer, s string) error {
@@ -42,8 +41,8 @@ func readString(r io.Reader) (string, error) {
 	return string(b), nil
 }
 
-// WriteGoldenEntry appends a GoldenEntry to the file at path, creating it if
-// necessary.  When creating a new file the magic number is written first.
+// WriteGoldenEntry appends a GoldenEntry to the file at path, creating it if necessary. When
+// creating a new file the magic number is written first.
 func WriteGoldenEntry(path string, entry GoldenEntry) error {
 	var buf bytes.Buffer
 	if err := writeString(&buf, entry.Path); err != nil {
@@ -81,8 +80,8 @@ func WriteGoldenEntry(path string, entry GoldenEntry) error {
 	return nil
 }
 
-// ReadGoldenEntries reads all GoldenEntry records from the file at path.
-// It returns an error if the file does not begin with the expected magic number.
+// ReadGoldenEntries reads all GoldenEntry records from the file at path. It returns an error if the
+// file does not begin with the expected magic number.
 func ReadGoldenEntries(path string) ([]GoldenEntry, error) {
 	f, err := os.Open(path)
 	if err != nil {

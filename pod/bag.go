@@ -2,9 +2,9 @@ package pod
 
 import "iter"
 
-// Bag is a reference type that provides a view of a collection of elements.
-// It does not own the elements, but provides methods to access them.
-// Any mutations to the underlying collection will be reflected in the Bag.
+// Bag is a reference type that provides a view of a collection of elements. It does not own the
+// elements, but provides methods to access them. Any mutations to the underlying collection will be
+// reflected in the Bag.
 type Bag[T any] struct {
 	lenFn   func() int
 	elemsFn func() iter.Seq[T]
@@ -18,7 +18,8 @@ func (b Bag[T]) Len() int {
 	return b.lenFn()
 }
 
-// Elems returns a sequence of elements in the Bag. If the underlying collection is nil, it returns an empty sequence.
+// Elems returns a sequence of elements in the Bag. If the underlying collection is nil, it returns
+// an empty sequence.
 func (b Bag[T]) Elems() iter.Seq[T] {
 	if b.elemsFn == nil {
 		return func(yield func(T) bool) {}
@@ -33,15 +34,16 @@ func newBag[T any](lenFn func() int, elemsFn func() iter.Seq[T]) Bag[T] {
 	}
 }
 
-// Bag2 is a reference type that provides a view of a collection of pairs.
-// It does not own the elements, but provides methods to access them.
-// Any mutations to the underlying collection will be reflected in the Bag2.
+// Bag2 is a reference type that provides a view of a collection of pairs. It does not own the
+// elements, but provides methods to access them. Any mutations to the underlying collection will be
+// reflected in the Bag2.
 type Bag2[T1, T2 any] struct {
 	lenFn   func() int
 	elemsFn func() iter.Seq2[T1, T2]
 }
 
-// Len returns the number of elements in the Bag2. If the underlying collection is nil, it returns 0.
+// Len returns the number of elements in the Bag2. If the underlying collection is nil, it returns
+// 0.
 func (b Bag2[T1, T2]) Len() int {
 	if b.lenFn == nil {
 		return 0
@@ -49,7 +51,8 @@ func (b Bag2[T1, T2]) Len() int {
 	return b.lenFn()
 }
 
-// Elems returns a sequence of pairs in the Bag2. If the underlying collection is nil, it returns an empty sequence.
+// Elems returns a sequence of pairs in the Bag2. If the underlying collection is nil, it returns an
+// empty sequence.
 func (b Bag2[T1, T2]) Elems() iter.Seq2[T1, T2] {
 	if b.elemsFn == nil {
 		return func(yield func(T1, T2) bool) {}
@@ -94,8 +97,8 @@ type IdxVals[T any] interface {
 	IdxVals() iter.Seq2[int, T]
 }
 
-// IdxValsOf creates a Bag2 from an IdxVals.
-// The Bag2 will reflect any mutations to the underlying collection.
+// IdxValsOf creates a Bag2 from an IdxVals. The Bag2 will reflect any mutations to the underlying
+// collection.
 func IdxValsOf[T any](v IdxVals[T]) Bag2[int, T] {
 	return newBag2(v.Len, v.IdxVals)
 }
@@ -117,20 +120,21 @@ func IdxValsOfFunc[T1, T2 any](v IdxVals[T1], f func(int, T1) (int, T2)) Bag2[in
 	)
 }
 
-// RevIdxVals is an interface that provides a view of a collection of indexed values in reverse order.
+// RevIdxVals is an interface that provides a view of a collection of indexed values in reverse
+// order.
 type RevIdxVals[T any] interface {
 	Len() int
 	RevIdxVals() iter.Seq2[int, T]
 }
 
-// RevIdxValsOf creates a Bag2 from a RevIdxVals.
-// The Bag2 will reflect any mutations to the underlying collection.
+// RevIdxValsOf creates a Bag2 from a RevIdxVals. The Bag2 will reflect any mutations to the
+// underlying collection.
 func RevIdxValsOf[T any](v RevIdxVals[T]) Bag2[int, T] {
 	return newBag2(v.Len, v.RevIdxVals)
 }
 
-// RevIdxValsOfFunc creates a Bag2 from a RevIdxVals, applying a transformation function to each element.
-// The Bag2 will reflect any mutations to the underlying collection.
+// RevIdxValsOfFunc creates a Bag2 from a RevIdxVals, applying a transformation function to each
+// element. The Bag2 will reflect any mutations to the underlying collection.
 func RevIdxValsOfFunc[T1, T2 any](v RevIdxVals[T1], f func(int, T1) (int, T2)) Bag2[int, T2] {
 	return newBag2(
 		v.Len,
@@ -146,8 +150,8 @@ func RevIdxValsOfFunc[T1, T2 any](v RevIdxVals[T1], f func(int, T1) (int, T2)) B
 	)
 }
 
-// RevValsOf creates a Bag from a RevVals.
-// The Bag will reflect any mutations to the underlying collection.
+// RevValsOf creates a Bag from a RevVals. The Bag will reflect any mutations to the underlying
+// collection.
 func RevValsOf[T any](v RevVals[T]) Bag[T] {
 	return newBag(v.Len, v.RevVals)
 }
@@ -169,14 +173,14 @@ func RevValsOfFunc[T1, T2 any](v RevVals[T1], f func(T1) T2) Bag[T2] {
 	)
 }
 
-// ValsOf creates a Bag from a Vals.
-// The Bag will reflect any mutations to the underlying collection.
+// ValsOf creates a Bag from a Vals. The Bag will reflect any mutations to the underlying
+// collection.
 func ValsOf[T any](v Vals[T]) Bag[T] {
 	return newBag(v.Len, v.Vals)
 }
 
-// ValsOfFunc creates a Bag from a Vals, applying a transformation function to each element.
-// The Bag will reflect any mutations to the underlying collection.
+// ValsOfFunc creates a Bag from a Vals, applying a transformation function to each element. The Bag
+// will reflect any mutations to the underlying collection.
 func ValsOfFunc[T1, T2 any](v Vals[T1], f func(T1) T2) Bag[T2] {
 	return newBag(
 		v.Len,
@@ -192,14 +196,14 @@ func ValsOfFunc[T1, T2 any](v Vals[T1], f func(T1) T2) Bag[T2] {
 	)
 }
 
-// KeysOf creates a Bag from a Keys.
-// The Bag will reflect any mutations to the underlying collection.
+// KeysOf creates a Bag from a Keys. The Bag will reflect any mutations to the underlying
+// collection.
 func KeysOf[K any](k Keys[K]) Bag[K] {
 	return newBag(k.Len, k.Keys)
 }
 
-// KeysOfFunc creates a Bag from a Keys, applying a transformation function to each element.
-// The Bag will reflect any mutations to the underlying collection.
+// KeysOfFunc creates a Bag from a Keys, applying a transformation function to each element. The Bag
+// will reflect any mutations to the underlying collection.
 func KeysOfFunc[K1, K2 any](k Keys[K1], f func(K1) K2) Bag[K2] {
 	return newBag(
 		k.Len,
@@ -215,8 +219,8 @@ func KeysOfFunc[K1, K2 any](k Keys[K1], f func(K1) K2) Bag[K2] {
 	)
 }
 
-// KeyValsOf creates a Bag2 from a KeyVals.
-// The Bag2 will reflect any mutations to the underlying collection.
+// KeyValsOf creates a Bag2 from a KeyVals. The Bag2 will reflect any mutations to the underlying
+// collection.
 func KeyValsOf[K, V any](kv KeyVals[K, V]) Bag2[K, V] {
 	return newBag2(kv.Len, kv.KeyVals)
 }
