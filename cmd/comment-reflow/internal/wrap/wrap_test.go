@@ -164,6 +164,25 @@ func Foo() {}
 			Limit:      60,
 			WantChange: false,
 		},
+		{
+			Name: "PlainParagraphConsolidation",
+			Loc:  exam.Here(),
+			Src: `
+package p
+
+// Short line one.
+// Short line two.
+func Foo() {}
+`,
+			Limit:      60,
+			WantChange: true,
+			Golden: exam.GoldenHere(`
+package p
+
+// Short line one. Short line two.
+func Foo() {}
+`),
+		},
 	}
 	for _, tc := range cases {
 		exam.Run(t, tc.Name, tc.Golden.GetLoc(), func(t *testing.T) {
@@ -189,26 +208,6 @@ func mustWrap(t *testing.T, src string, limit int) string {
 		t.Fatalf("wrap.File error: %v", err)
 	}
 	return string(out)
-}
-
-// TestPlainParagraphConsolidation verifies that two consecutive short // lines
-// that fit on a single line are joined into one.
-func TestPlainParagraphConsolidation(t *testing.T) {
-	src := `package p
-
-// Short line one.
-// Short line two.
-func Foo() {}
-`
-	want := `package p
-
-// Short line one. Short line two.
-func Foo() {}
-`
-	out := mustWrap(t, src, 60)
-	if out != want {
-		t.Errorf("expected short lines to be consolidated\ngot:\n%s\nwant:\n%s", out, want)
-	}
 }
 
 // TestParagraphReflow verifies that two consecutive over-limit lines are
