@@ -62,8 +62,8 @@ var examGoldensMu = sync.Mutex{}
 //
 // When -exam_goldens_diff_path is set, any mismatch is recorded to that file for later
 // bulk-updating and the assertion always passes. Without the flag, a mismatch returns a Failure.
-// Instead of using this flag directly, prefer running tests with the update-goldens tool,
-// which sets the flag and applies the recorded diffs after the test run completes.
+// Instead of using this flag directly, prefer running tests with the update-goldens tool, which
+// sets the flag and applies the recorded diffs after the test run completes.
 func GoldenEqual(actual string, expected Golden) *Failure {
 	actual = "\n" + actual
 	failure := NewFailure2("actual", actual, "expected", expected.text)
