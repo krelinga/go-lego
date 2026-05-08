@@ -97,13 +97,34 @@ package p
 func Foo() {}
 `,
 			WantChange: true,
-			Golden:     exam.GoldenHere(`
+			Golden: exam.GoldenHere(`
 package p
 
 // See
 // https://example.com/some/very/long/path/that/pushes/the/line/over/the/limit
 // for details.
 func Foo() {}
+`),
+		},
+		{
+			Name: "IndentedCommentIsWrappedWithIndent",
+			Loc:  exam.Here(),
+			Src: `
+package p
+
+func Foo() {
+	// The quick brown fox jumps over the lazy dog and then some more words here now.
+}
+`,
+			Limit:      60,
+			WantChange: true,
+			Golden: exam.GoldenHere(`
+package p
+
+func Foo() {
+	// The quick brown fox jumps over the lazy dog and then
+	// some more words here now.
+}
 `),
 		},
 	}
@@ -131,39 +152,6 @@ func mustWrap(t *testing.T, src string, limit int) string {
 		t.Fatalf("wrap.File error: %v", err)
 	}
 	return string(out)
-}
-
-// TestIndentedComment verifies that indented comments (inside functions) are
-// wrapped correctly and the indent is preserved on continuation lines.
-func TestIndentedComment(t *testing.T) {
-	src := `package p
-
-func Foo() {
-	// The quick brown fox jumps over the lazy dog and then some more words here now.
-}
-`
-	out := mustWrap(t, src, 60)
-	for _, l := range strings.Split(out, "\n") {
-		trimmed := strings.TrimLeft(l, "\t ")
-		if strings.HasPrefix(trimmed, "// ") && len(l) > 60 {
-			t.Errorf("indented comment line still over limit (%d chars): %q", len(l), l)
-		}
-	}
-	// Continuation lines must carry the same indent.
-	commentLines := []string{}
-	for _, l := range strings.Split(out, "\n") {
-		if strings.Contains(l, "// ") {
-			commentLines = append(commentLines, l)
-		}
-	}
-	if len(commentLines) < 2 {
-		t.Errorf("expected indented comment to be split; got:\n%s", out)
-	}
-	for _, cl := range commentLines {
-		if !strings.HasPrefix(cl, "\t") {
-			t.Errorf("continuation comment line lost indent: %q", cl)
-		}
-	}
 }
 
 // TestMultipleCommentGroups verifies that multiple separate over-limit comment
