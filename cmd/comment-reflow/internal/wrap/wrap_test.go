@@ -274,6 +274,32 @@ package p
 func Foo() {}
 `),
 		},
+		{
+			Name: "ListItemsNotMerged",
+			Loc:  exam.Here(),
+			Src: `
+package p
+
+// Items:
+//
+//   - Alpha item: the quick brown fox jumps over the lazy dog runs far away.
+//   - Beta item: the quick brown fox jumps over the lazy dog runs far away too.
+func Foo() {}
+`,
+			Limit:      60,
+			WantChange: true,
+			Golden: exam.GoldenHere(`
+package p
+
+// Items:
+//
+//   - Alpha item: the quick brown fox jumps over the lazy
+//     dog runs far away.
+//   - Beta item: the quick brown fox jumps over the lazy
+//     dog runs far away too.
+func Foo() {}
+`),
+		},
 	}
 	for _, tc := range cases {
 		exam.Run(t, tc.Name, tc.Golden.GetLoc(), func(t *testing.T) {
@@ -299,35 +325,6 @@ func mustWrap(t *testing.T, src string, limit int) string {
 		t.Fatalf("wrap.File error: %v", err)
 	}
 	return string(out)
-}
-
-// TestListItemsNotMerged verifies that two adjacent bullet items are each
-// reflowed independently and their text is never merged together.
-func TestListItemsNotMerged(t *testing.T) {
-	src := `package p
-
-// Items:
-//
-//   - Alpha item: the quick brown fox jumps over the lazy dog runs far away.
-//   - Beta item: the quick brown fox jumps over the lazy dog runs far away too.
-func Foo() {}
-`
-	out := mustWrap(t, src, 60)
-
-	if !strings.Contains(out, "Alpha item") || !strings.Contains(out, "Beta item") {
-		t.Errorf("item text was lost in output:\n%s", out)
-	}
-	// Both markers must still be present (items not merged).
-	markerCount := strings.Count(out, "//   - ")
-	if markerCount < 2 {
-		t.Errorf("expected 2 bullet markers, got %d; items may have been merged:\n%s",
-			markerCount, out)
-	}
-	for _, l := range strings.Split(out, "\n") {
-		if strings.Contains(l, "//") && len(l) > 60 {
-			t.Errorf("line over limit (%d): %q", len(l), l)
-		}
-	}
 }
 
 // TestListItemWithContinuation verifies that a bullet item split across a
