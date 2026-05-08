@@ -10,16 +10,16 @@ import (
 
 func TestWrap(t *testing.T) {
 	cases := []struct {
-		Name string
-		Loc exam.Loc
-		Limit int
-		Src  string
+		Name       string
+		Loc        exam.Loc
+		Limit      int
+		Src        string
 		WantChange bool
-		Golden exam.Golden
+		Golden     exam.Golden
 	}{
 		{
-			Name: "NoChangeForShortComment",
-			Loc: exam.Here(),
+			Name:  "NoChangeForShortComment",
+			Loc:   exam.Here(),
 			Limit: 100,
 			Src: `
 package p
@@ -30,9 +30,9 @@ func Foo() {}
 			WantChange: false,
 		},
 		{
-			Name: "NoChangeForCommentAtLimit",
-			Loc: exam.Here(),
-			Limit: 11,  // "// At Limit" is exactly 11 chars
+			Name:  "NoChangeForCommentAtLimit",
+			Loc:   exam.Here(),
+			Limit: 11, // "// At Limit" is exactly 11 chars
 			Src: `
 package p
 
@@ -42,9 +42,9 @@ func Foo() {}
 			WantChange: false,
 		},
 		{
-			Name: "SplitCommentOneCharOverLimit",
-			Loc: exam.Here(),
-			Limit: 12,  // "// Over Limit" is 13 chars
+			Name:  "SplitCommentOneCharOverLimit",
+			Loc:   exam.Here(),
+			Limit: 12, // "// Over Limit" is 13 chars
 			Src: `
 package p
 
@@ -61,8 +61,8 @@ func Foo() {}
 `),
 		},
 		{
-			Name: "NoChangeForInlineComment",
-			Loc: exam.Here(),
+			Name:  "NoChangeForInlineComment",
+			Loc:   exam.Here(),
 			Limit: 10,
 			Src: `
 package p
@@ -74,8 +74,8 @@ func Foo() {
 			WantChange: false,
 		},
 		{
-			Name: "NoChangeForTestDirective",
-			Loc: exam.Here(),
+			Name:  "NoChangeForTestDirective",
+			Loc:   exam.Here(),
 			Limit: 10,
 			Src: `
 package p
@@ -85,6 +85,26 @@ package p
 func Foo() {}
 `,
 			WantChange: false,
+		},
+		{
+			Name:  "URLNotSplit",
+			Loc:   exam.Here(),
+			Limit: 60,
+			Src: `
+package p
+
+// See https://example.com/some/very/long/path/that/pushes/the/line/over/the/limit for details.
+func Foo() {}
+`,
+			WantChange: true,
+			Golden:     exam.GoldenHere(`
+package p
+
+// See
+// https://example.com/some/very/long/path/that/pushes/the/line/over/the/limit
+// for details.
+func Foo() {}
+`),
 		},
 	}
 	for _, tc := range cases {
@@ -111,33 +131,6 @@ func mustWrap(t *testing.T, src string, limit int) string {
 		t.Fatalf("wrap.File error: %v", err)
 	}
 	return string(out)
-}
-
-// TestURLNotSplit verifies that a URL word is not broken across lines — it
-// lands intact on its own continuation line if it would push a line over.
-func TestURLNotSplit(t *testing.T) {
-	src := `package p
-
-// See https://example.com/some/very/long/path/that/pushes/the/line/over/the/limit for details.
-func Foo() {}
-`
-	out := mustWrap(t, src, 60)
-	// The URL must appear intact somewhere in the output.
-	url := "https://example.com/some/very/long/path/that/pushes/the/line/over/the/limit"
-	if !strings.Contains(out, url) {
-		t.Errorf("URL was split or removed in output:\n%s", out)
-	}
-	// The URL should be on its own comment line (possibly with trailing text).
-	foundURL := false
-	for _, l := range strings.Split(out, "\n") {
-		trimmed := strings.TrimPrefix(l, "// ")
-		if strings.Contains(trimmed, url) {
-			foundURL = true
-		}
-	}
-	if !foundURL {
-		t.Errorf("URL not found on a comment line in output:\n%s", out)
-	}
 }
 
 // TestIndentedComment verifies that indented comments (inside functions) are
