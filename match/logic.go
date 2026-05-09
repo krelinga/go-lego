@@ -16,7 +16,7 @@ func Not(m Matcher) Matcher {
 			return
 		}
 		result.Accepted = !childRes.Accepted
-		result.Explain = func() string {
+		result.Why = func() string {
 			outcomeStr := func(accepted bool) string {
 				if accepted {
 					return "accepted"
@@ -26,7 +26,7 @@ func Not(m Matcher) Matcher {
 			childOutcome := outcomeStr(childRes.Accepted)
 			notOutcome := outcomeStr(result.Accepted)
 			return fmt.Sprintf("child result was %s, so NOT result is %s", childOutcome, notOutcome)
-		}
+		}()
 	})
 }
 
@@ -50,11 +50,11 @@ func AllOf(matchers ...Matcher) Matcher {
 		if result.Err == nil && accept {
 			result.Accepted = true
 		}
-		result.Explain = func() string {
+		result.Why = func() string {
 			if result.Accepted {
 				return "all child matchers accepted"
 			}
 			return "some child matchers rejected"
-		}
+		}()
 	})
 }

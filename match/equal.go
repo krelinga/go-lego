@@ -7,7 +7,7 @@ func Equal[T comparable](expected T) Matcher {
 		if actual == expected {
 			result.Accepted = true
 		}
-		result.Explain = func() string {
+		result.Why = func() string {
 			var outcome string
 			if result.Accepted {
 				outcome = "=="
@@ -15,6 +15,6 @@ func Equal[T comparable](expected T) Matcher {
 				outcome = "!="
 			}
 			return fmt.Sprintf("%#v %s %#v", actual, outcome, expected)
-		}
+		}()
 	})
 }

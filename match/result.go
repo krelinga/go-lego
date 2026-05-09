@@ -33,10 +33,8 @@ type Result struct {
 	Accepted bool
 	Err      error
 
-	// A function that can generate a human-readable description of the match result.
-	//
-	// If this is nil then a default explanation will be generated.
-	Explain func() string
+	// Human-readable explanation of the Result.
+	Why string
 
 	// Results of any child matchers.  This is used to build a tree of match results, which can be used for debugging and error reporting.
 	Children []Child
