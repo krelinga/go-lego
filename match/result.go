@@ -1,6 +1,7 @@
 package match
 
 import (
+	"fmt"
 	"reflect"
 	"runtime"
 )
@@ -9,6 +10,11 @@ type Meta struct {
 	Name       string
 	SourceFile string
 	SourceLine int
+}
+
+func (m Meta) String() string {
+	// TODO: include source file and line number.
+	return m.Name
 }
 
 func MetaHere() Meta {
@@ -48,4 +54,41 @@ type Child struct {
 
 	// Result from the child matcher.
 	Result *Result
+}
+
+type FatalError struct {
+	// Information about the matcher that failed.
+	Meta Meta
+	
+	// Value that was matched against.
+	Val reflect.Value
+
+	// The fatal error.
+	Err error
+}
+
+func (e FatalError) Error() string {
+	return fmt.Sprintf("FATAL: %s: %s", e.Meta, e.Err.Error())
+}
+
+func (e FatalError) Unwrap() error {
+	return e.Err
+}
+
+type ChildError struct {
+	// Name of the child in the context of the parent matcher.
+	//
+	// This may be empty if there is no meaningful name for the child.
+	Name string
+
+	// The error from the child matcher.
+	Err error
+}
+
+func (e ChildError) Error() string {
+	namePart := ""
+	if e.Name != "" {
+		namePart = fmt.Sprintf(" %s", e.Name)
+	}
+	return fmt.Sprintf("child%s: %s", namePart, e.Err.Error())
 }
