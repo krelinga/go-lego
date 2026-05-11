@@ -48,6 +48,11 @@ type Result struct {
 	Children []Child
 }
 
+func (r *Result) Format(val reflect.Value) string {
+	return "" // TODO
+
+}
+
 type Child struct {
 	// Name of the child in the context of the parent matcher.
 	//
@@ -75,6 +80,10 @@ type FatalError struct {
 
 	// The fatal error.
 	Err error
+}
+
+func (e *FatalError) Format(val reflect.Value) string {
+	return "" // TODO
 }
 
 func (e *FatalError) Error() string {
