@@ -35,9 +35,8 @@ type Result struct {
 	// Value that was matched against.
 	Val reflect.Value
 
-	// Did the [Matcher] accept Val?  Or was there an error?
+	// Did the [Matcher] accept Val?
 	Accepted bool
-	Err      error
 
 	// Human-readable explanation of the Result.
 	Why string
@@ -67,11 +66,11 @@ type FatalError struct {
 	Err error
 }
 
-func (e FatalError) Error() string {
+func (e *FatalError) Error() string {
 	return fmt.Sprintf("FATAL: %s: %s", e.Meta, e.Err.Error())
 }
 
-func (e FatalError) Unwrap() error {
+func (e *FatalError) Unwrap() error {
 	return e.Err
 }
 
@@ -85,10 +84,14 @@ type ChildError struct {
 	Err error
 }
 
-func (e ChildError) Error() string {
+func (e *ChildError) Error() string {
 	namePart := ""
 	if e.Name != "" {
 		namePart = fmt.Sprintf(" %s", e.Name)
 	}
 	return fmt.Sprintf("child%s: %s", namePart, e.Err.Error())
+}
+
+func (e *ChildError) Unwrap() error {
+	return e.Err
 }

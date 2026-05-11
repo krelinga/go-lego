@@ -6,55 +6,43 @@ import (
 )
 
 func Not(m Matcher) Matcher {
-	return NewValFunc(MetaHere(), func(result *Result, val reflect.Value) {
-		childRes := m.Match(val)
-		result.Children = append(result.Children, Child{
-			Result: childRes,
-		})
-		if childRes.Err != nil {
-			result.Err = fmt.Errorf("child matcher failed")
-			return
+	meta := MetaHere()
+	return FuncMatcher(func(val reflect.Value) (*Result, error) {
+		helper := &Helper{
+			Meta: meta,
+			Val: val,
 		}
-		result.Accepted = !childRes.Accepted
-		result.Why = func() string {
-			outcomeStr := func(accepted bool) string {
-				if accepted {
-					return "accepted"
-				}
-				return "rejected"
-			}
-			childOutcome := outcomeStr(childRes.Accepted)
-			notOutcome := outcomeStr(result.Accepted)
-			return fmt.Sprintf("child result was %s, so NOT result is %s", childOutcome, notOutcome)
-		}()
+		childAccept, err := helper.Child("", val, m)
+		if err != nil {
+			return nil, err
+		}
+		if childAccept {
+			return helper.Reject("child matcher accepted"), nil
+		}
+		return helper.Accept("child matcher rejected"), nil
 	})
 }
 
 func AllOf(matchers ...Matcher) Matcher {
-	return NewValFunc(MetaHere(), func(result *Result, val reflect.Value) {
-		result.Children = make([]Child, len(matchers))
+	meta := MetaHere()
+	return FuncMatcher(func(val reflect.Value) (*Result, error) {
+		helper := &Helper{
+			Meta: meta,
+			Val: val,
+		}
 		accept := true
 		for i, m := range matchers {
-			childRes := m.Match(val)
-			result.Children[i] = Child{
-				Name:  fmt.Sprintf("child %d", i),
-				Result: childRes,
+			childAccept, err := helper.Child(fmt.Sprintf("matcher #%d", i), val, m)
+			if err != nil {
+				return nil, err
 			}
-			if childRes.Err != nil && result.Err == nil {
-				result.Err = fmt.Errorf("child matcher %d failed", i)
-			}
-			if !childRes.Accepted {
+			if !childAccept {
 				accept = false
 			}
 		}
-		if result.Err == nil && accept {
-			result.Accepted = true
+		if accept {
+			return helper.Accept("all child matchers accepted"), nil
 		}
-		result.Why = func() string {
-			if result.Accepted {
-				return "all child matchers accepted"
-			}
-			return "some child matchers rejected"
-		}()
+		return helper.Reject("at least one child matcher rejected"), nil
 	})
 }

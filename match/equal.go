@@ -1,20 +1,24 @@
 package match
 
-import "fmt"
+import (
+	"fmt"
+	"reflect"
+)
 
 func Equal[T comparable](expected T) Matcher {
-	return NewFunc(MetaHere(), func(result *Result, actual T) {
-		if actual == expected {
-			result.Accepted = true
+	meta := MetaHere()
+	return FuncMatcher(func(val reflect.Value) (*Result, error) {
+		helper := &Helper{
+			Meta: meta,
+			Val: val,
 		}
-		result.Why = func() string {
-			var outcome string
-			if result.Accepted {
-				outcome = "=="
-			} else {
-				outcome = "!="
-			}
-			return fmt.Sprintf("%#v %s %#v", actual, outcome, expected)
-		}()
+		tVal, err := As[T](helper, val)
+		if err != nil {
+			return nil, err
+		}
+		if tVal != expected {
+			return helper.Reject(fmt.Sprintf("%v != %v", tVal, expected)), nil
+		}
+		return helper.Accept(fmt.Sprintf("%v == %v", tVal, expected)), nil
 	})
 }
