@@ -38,6 +38,13 @@ func (h *Helper) Fatalf(format string, args ...any) error {
 	}
 }
 
+func (h *Helper) CheckValid() error {
+	if !h.Val.IsValid() {
+		return h.Fatalf("value is invalid")
+	}
+	return nil
+}
+
 func (h *Helper) Accept(why string) *Result {
 	return &Result{
 		Meta: h.Meta,
