@@ -17,6 +17,47 @@ func (f FuncMatcher) Match(val reflect.Value) (*Result, error) {
 
 type Format func(val reflect.Value) (string, error)
 
+type FormatAny struct {
+	f any
+}
+
+func NewFormatAny[T any](f func(T) (string, error)) *FormatAny {
+	return &FormatAny{f: f}
+}
+
+func (fa *FormatAny) checkInit() error {
+	if fa.f == nil {
+		return fmt.Errorf("match.FormatAny must be created with match.NewFormatAny")
+	}
+	return nil
+}
+
+func (fa *FormatAny) checkType(t reflect.Type) error {
+	if err := fa.checkInit(); err != nil {
+		return err
+	}
+	wantType := reflect.TypeOf(fa.f).In(0)
+	if !t.AssignableTo(wantType) {
+		return fmt.Errorf("format function expects a type assignable to %s but got type %s", wantType, t)
+	}
+	return nil
+}
+
+func (fa *FormatAny) format(a any) (string, error) {
+	if a == nil {
+		return "nil", nil
+	}
+	val := reflect.ValueOf(a)
+	if err := fa.checkType(val.Type()); err != nil {
+		return "", err
+	}
+	fVal := reflect.ValueOf(fa.f)
+	result := fVal.Call([]reflect.Value{val})
+	strVal := result[0].String()
+	errVal := result[1].Interface().(error)
+	return strVal, errVal
+}
+
 func WithFormat(m Matcher, format Format) Matcher {
 	if fm, ok := m.(*formatMatcher); ok {
 		fm.f = format
