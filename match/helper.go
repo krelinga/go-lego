@@ -39,10 +39,14 @@ func (h *Helper) Child(name string, val reflect.Value, m Matcher) (accepted bool
 }
 
 func (h *Helper) Fatalf(format string, args ...any) error {
+	return h.Fatal(fmt.Errorf(format, args...))
+}
+
+func (h *Helper) Fatal(err error) error {
 	return &FatalError{
 		Meta: h.Meta,
 		Val:  h.Val,
-		Err:  fmt.Errorf(format, args...),
+		Err:  err,
 	}
 }
 
