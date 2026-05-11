@@ -53,24 +53,21 @@ func (h *Helper) CheckValid() error {
 	return nil
 }
 
-func (h *Helper) Accept(why string) *Result {
+func (h *Helper) result(accepted bool, why string) *Result {
 	return &Result{
 		Meta:     h.Meta,
 		Val:      h.Val,
-		Accepted: true,
+		Accepted: accepted,
 		Why:      why,
 		Children: h.children,
 		Context:  h.context,
 	}
 }
 
+func (h *Helper) Accept(why string) *Result {
+	return h.result(true, why)
+}
+
 func (h *Helper) Reject(why string) *Result {
-	return &Result{
-		Meta:     h.Meta,
-		Val:      h.Val,
-		Accepted: false,
-		Why:      why,
-		Children: h.children,
-		Context:  h.context,
-	}
+	return h.result(false, why)
 }
