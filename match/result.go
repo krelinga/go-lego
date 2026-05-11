@@ -46,11 +46,15 @@ type Result struct {
 
 	// Results of any child matchers.  This is used to build a tree of match results, which can be used for debugging and error reporting.
 	Children []Child
+
+	format func(reflect.Value) string
 }
 
 func (r *Result) Format(val reflect.Value) string {
-	return "" // TODO
-
+	if r.format != nil {
+		return r.format(val)
+	}
+	return defaultFormat(val)
 }
 
 type Child struct {
@@ -80,10 +84,15 @@ type FatalError struct {
 
 	// The fatal error.
 	Err error
+
+	format func(reflect.Value) string
 }
 
 func (e *FatalError) Format(val reflect.Value) string {
-	return "" // TODO
+	if e.format != nil {
+		return e.format(val)
+	}
+	return defaultFormat(val)
 }
 
 func (e *FatalError) Error() string {
