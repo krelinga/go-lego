@@ -41,6 +41,9 @@ type Result struct {
 	// Human-readable explanation of the Result.
 	Why string
 
+	// Any other values that are useful to understand the context of the Result.
+	Context []Context
+
 	// Results of any child matchers.  This is used to build a tree of match results, which can be used for debugging and error reporting.
 	Children []Child
 }
@@ -53,6 +56,14 @@ type Child struct {
 
 	// Result from the child matcher.
 	Result *Result
+}
+
+type Context struct {
+	// Name of the context value.
+	Name string
+
+	// Value of the context.
+	Val reflect.Value
 }
 
 type FatalError struct {

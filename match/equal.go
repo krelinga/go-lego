@@ -1,8 +1,9 @@
 package match
 
 import (
-	"fmt"
 	"reflect"
+
+	"github.com/krelinga/go-libs/mirror"
 )
 
 func Equal[T comparable](expected T) Matcher {
@@ -10,15 +11,16 @@ func Equal[T comparable](expected T) Matcher {
 	return FuncMatcher(func(val reflect.Value) (*Result, error) {
 		helper := &Helper{
 			Meta: meta,
-			Val: val,
+			Val:  val,
 		}
+		helper.Context("expected", mirror.ValueFor(expected))
 		tVal, err := As[T](helper, val)
 		if err != nil {
 			return nil, err
 		}
 		if tVal != expected {
-			return helper.Reject(fmt.Sprintf("%v != %v", tVal, expected)), nil
+			return helper.Reject("values are not equal"), nil
 		}
-		return helper.Accept(fmt.Sprintf("%v == %v", tVal, expected)), nil
+		return helper.Accept("values are equal"), nil
 	})
 }
