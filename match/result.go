@@ -42,10 +42,10 @@ type Result struct {
 	Why string
 
 	// Any other values that are useful to understand the context of the Result.
-	Context []Context
+	Context []*Context
 
 	// Results of any child matchers.  This is used to build a tree of match results, which can be used for debugging and error reporting.
-	Children []Child
+	Children []*Child
 
 	format func(reflect.Value) string
 }

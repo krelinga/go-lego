@@ -8,12 +8,12 @@ import (
 type Helper struct {
 	Meta     Meta
 	Val      reflect.Value
-	children []Child
-	context  []Context
+	children []*Child
+	context  []*Context
 }
 
 func (h *Helper) Context(name string, val reflect.Value) {
-	h.context = append(h.context, Context{
+	h.context = append(h.context, &Context{
 		Name: name,
 		Val:  val,
 	})
@@ -31,7 +31,7 @@ func (h *Helper) Child(name string, val reflect.Value, m Matcher) (accepted bool
 			},
 		}
 	}
-	h.children = append(h.children, Child{
+	h.children = append(h.children, &Child{
 		Name:   name,
 		Result: result,
 	})
