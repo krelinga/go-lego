@@ -2,7 +2,6 @@ package match
 
 import (
 	"fmt"
-	"reflect"
 	"runtime"
 )
 
@@ -33,7 +32,7 @@ type Result struct {
 	Meta Meta
 
 	// Value that was matched against.
-	Val reflect.Value
+	Val any
 
 	// Did the [Matcher] accept Val?
 	Accepted bool
@@ -46,15 +45,6 @@ type Result struct {
 
 	// Results of any child matchers.  This is used to build a tree of match results, which can be used for debugging and error reporting.
 	Children []*Child
-
-	format func(reflect.Value) string
-}
-
-func (r *Result) Format(val reflect.Value) string {
-	if r.format != nil {
-		return r.format(val)
-	}
-	return defaultFormat(val)
 }
 
 type Child struct {
@@ -72,7 +62,7 @@ type Context struct {
 	Name string
 
 	// Value of the context.
-	Val reflect.Value
+	Val any
 }
 
 type FatalError struct {
@@ -80,19 +70,10 @@ type FatalError struct {
 	Meta Meta
 	
 	// Value that was matched against.
-	Val reflect.Value
+	Val any
 
 	// The fatal error.
 	Err error
-
-	format func(reflect.Value) string
-}
-
-func (e *FatalError) Format(val reflect.Value) string {
-	if e.format != nil {
-		return e.format(val)
-	}
-	return defaultFormat(val)
 }
 
 func (e *FatalError) Error() string {

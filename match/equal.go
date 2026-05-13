@@ -4,28 +4,7 @@ import (
 	"fmt"
 	"math"
 	"reflect"
-
-	"github.com/krelinga/go-libs/mirror"
 )
-
-func Equal[T comparable](expected T) Matcher {
-	meta := MetaHere()
-	return FuncMatcher(func(val reflect.Value) (*Result, error) {
-		helper := &Helper{
-			Meta: meta,
-			Val:  val,
-		}
-		helper.Context("expected", mirror.ValueFor(expected))
-		tVal, err := As[T](helper, val)
-		if err != nil {
-			return nil, err
-		}
-		if tVal != expected {
-			return helper.Reject("values are not equal"), nil
-		}
-		return helper.Accept("values are equal"), nil
-	})
-}
 
 type EqualFunc struct {
 	f any
@@ -105,7 +84,7 @@ func (e *Approx) equal(a, b any) (bool, error) {
 	return math.Abs(diff) <= approxVal, nil
 }
 
-type EqualAny struct {
+type Equal struct {
 	// The expected value to compare against.  Requirements:
 	//   - Must be non-nil.
 	//   - Must be a comparable type (unless Func is non-nil).
@@ -119,7 +98,7 @@ type EqualAny struct {
 	// Optional format function to use in the Result.  If non-nil, this function will be used to format the expected and actual values in the Result.  Requirements:
 	//   - Must be a function type that accepts a single parameter and returns a string.
 	//   - The parameter type of the function must be assignable from the type of Want and the type of the actual value.
-	Format *FormatAny
+	Format *Format
 
 	// If non-nil, this value will be used as a tolerance when comparing floating point numbers.  Requirements:
 	//   - Must be a floating point numeric type (e.g. float32, float64).
@@ -129,14 +108,37 @@ type EqualAny struct {
 	Approx *Approx
 }
 
-func (e *EqualAny) Match(val any) (*Result, error) {
+func (e Equal) Validate() error {
+	if e.Want == nil {
+		return fmt.Errorf("Equal matcher requires a non-nil Want value")
+	}
+	wantType := reflect.TypeOf(e.Want)
+	if e.Approx != nil {
+		if e.Func != nil {
+			return fmt.Errorf("Equal matcher cannot have both Func and Approx set")
+		}
+		if err := e.Approx.checkType(wantType); err != nil {
+			return err
+		}
+	}
+	if e.Func != nil {
+		if err := e.Func.checkType(wantType); err != nil {
+			return err
+		}
+	} else if !wantType.Comparable() {
+		return fmt.Errorf("Equal matcher requires a comparable type for Want when Func is not set, but got type %s", wantType)
+	}
+	return nil
+}
+
+func (e *Equal) Match(val any) (*Result, error) {
 	h := &Helper{
 		Meta: MetaHere(),
-		Val:  reflect.ValueOf(val),
+		Val:  val,
 	}
-	h.Context("expected", reflect.ValueOf(e.Want))
-	if err := h.CheckValid(); err != nil {
-		return nil, err
+	h.Context("expected", e.Want)
+	if err := e.Validate(); err != nil {
+		return nil, h.Fatal(err)
 	}
 	if e.Func != nil {
 		return e.matchWithFunc(h, val)
@@ -147,7 +149,7 @@ func (e *EqualAny) Match(val any) (*Result, error) {
 	}
 }
 
-func (e *EqualAny) matchWithFunc(h *Helper, val any) (*Result, error) {
+func (e *Equal) matchWithFunc(h *Helper, val any) (*Result, error) {
 	accept, err := e.Func.equal(e.Want, val)
 	if err != nil {
 		return nil, h.Fatal(err)
@@ -158,7 +160,7 @@ func (e *EqualAny) matchWithFunc(h *Helper, val any) (*Result, error) {
 	return h.Reject("values are not equal according to custom function"), nil
 }
 
-func (e EqualAny) matchApprox(h *Helper, val any) (*Result, error) {
+func (e Equal) matchApprox(h *Helper, val any) (*Result, error) {
 	accept, err := e.Approx.equal(e.Want, val)
 	if err != nil {
 		return nil, h.Fatal(err)
@@ -169,16 +171,10 @@ func (e EqualAny) matchApprox(h *Helper, val any) (*Result, error) {
 	return h.Reject("values are not approximately equal"), nil
 }
 
-func (e *EqualAny) matchWithEquality(h *Helper, val any) (*Result, error) {
+func (e *Equal) matchWithEquality(h *Helper, val any) (*Result, error) {
 	gotType := reflect.TypeOf(val)
 	wantType := reflect.TypeOf(e.Want)
 
-	if wantType == nil {
-		return nil, h.Fatalf("expected value is nil, cannot compare with equality")
-	}
-	if !wantType.Comparable() {
-		return nil, h.Fatalf("expected value of type %s is not comparable, cannot compare with equality", wantType)
-	}
 	if gotType != wantType {
 		return nil, h.Fatalf("type mismatch: expected type %s but got type %s", wantType, gotType)
 	}

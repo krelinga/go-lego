@@ -2,24 +2,23 @@ package match
 
 import (
 	"fmt"
-	"reflect"
 )
 
 type Helper struct {
 	Meta     Meta
-	Val      reflect.Value
+	Val      any
 	children []*Child
 	context  []*Context
 }
 
-func (h *Helper) Context(name string, val reflect.Value) {
+func (h *Helper) Context(name string, val any) {
 	h.context = append(h.context, &Context{
 		Name: name,
 		Val:  val,
 	})
 }
 
-func (h *Helper) Child(name string, val reflect.Value, m Matcher) (accepted bool, err error) {
+func (h *Helper) Child(name string, val any, m Matcher) (accepted bool, err error) {
 	result, err := m.Match(val)
 	if err != nil {
 		return false, &FatalError{
@@ -48,13 +47,6 @@ func (h *Helper) Fatal(err error) error {
 		Val:  h.Val,
 		Err:  err,
 	}
-}
-
-func (h *Helper) CheckValid() error {
-	if !h.Val.IsValid() {
-		return h.Fatalf("value is invalid")
-	}
-	return nil
 }
 
 func (h *Helper) result(accepted bool, why string) *Result {
