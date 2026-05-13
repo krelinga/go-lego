@@ -213,35 +213,35 @@ func (o *Order) Match(val any) (*Result, error) {
 	}
 }
 
-func OrderCmpLt[T comparable](limit T) *Order {
+func OrderLt[T comparable](limit T) *Order {
 	return &Order{
 		Limit: limit,
 		Op:    OrderOpLt(),
 	}
 }
 
-func OrderCmpGt[T comparable](limit T) *Order {
+func OrderGt[T comparable](limit T) *Order {
 	return &Order{
 		Limit: limit,
 		Op:    OrderOpGt(),
 	}
 }
 
-func OrderCmpLte[T comparable](limit T) *Order {
+func OrderLte[T comparable](limit T) *Order {
 	return &Order{
 		Limit: limit,
 		Op:    OrderOpLte(),
 	}
 }
 
-func OrderCmpGte[T comparable](limit T) *Order {
+func OrderGte[T comparable](limit T) *Order {
 	return &Order{
 		Limit: limit,
 		Op:    OrderOpGte(),
 	}
 }
 
-func OrderCmpEq[T comparable](limit T) *Order {
+func OrderEq[T comparable](limit T) *Order {
 	return &Order{
 		Limit: limit,
 		Op:    OrderOpEq(),
