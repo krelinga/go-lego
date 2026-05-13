@@ -28,3 +28,9 @@ func (n *not) Match(val any) (*Result, error) {
 		return h.Accept("child matcher rejected"), nil
 	}
 }
+
+func Not(m Matcher) Matcher {
+	return &not{
+		Matcher: m,
+	}
+}
