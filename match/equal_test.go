@@ -14,6 +14,17 @@ func (s StringStringer) String() string {
 	return string(s)
 }
 
+func tryMatch(t *testing.T, val any, m m.Matcher) {
+	t.Helper()
+	r, err := m.Match(val)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !r.Accepted {
+		t.Fatalf("expected match to be accepted but it was rejected: %s", r.Why)
+	}
+}
+
 func TestEqual(t *testing.T) {
 	t.Run("basic equality", func(t *testing.T) {
 		m := m.Equal{
@@ -55,17 +66,6 @@ func TestEqual(t *testing.T) {
 			t.Fatalf("expected match to be accepted but it was rejected: %s", r.Why)
 		}
 	})
-
-	tryMatch := func(t *testing.T, val any, m m.Matcher) {
-		t.Helper()
-		r, err := m.Match(val)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-		if !r.Accepted {
-			t.Fatalf("expected match to be accepted but it was rejected: %s", r.Why)
-		}
-	}
 
 	t.Run("with tryMatch", func(t *testing.T) {
 		tryMatch(t, 42, m.EqualCmp(42))

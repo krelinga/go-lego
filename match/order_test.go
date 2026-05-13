@@ -7,16 +7,6 @@ import (
 )
 
 func TestOrder(t *testing.T) {
-	tryMatch := func(t *testing.T, val any, m m.Matcher) {
-		t.Helper()
-		r, err := m.Match(val)
-		if err != nil {
-			t.Fatalf("unexpected match error: %v", err)
-		}
-		if !r.Accepted {
-			t.Error("expected match to succeed, but it failed")
-		}
-	}
 	t.Run("basic", func(t *testing.T) {
 		tryMatch(t, 5, &m.Order{
 			Op:    m.OrderOpGt(),
