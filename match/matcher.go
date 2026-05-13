@@ -3,13 +3,9 @@ package match
 import (
 	"fmt"
 	"reflect"
-
-	"github.com/krelinga/go-libs/valid"
 )
 
 type Matcher interface {
-	valid.Validator
-
 	Match(any) (*Result, error)
 }
 

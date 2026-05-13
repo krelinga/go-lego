@@ -124,46 +124,22 @@ type Order struct {
 	Format *Format
 }
 
-func (o *Order) Validate() error {
-	if o.Limit == nil {
-		return fmt.Errorf("order limit must be specified")
-	}
-	if o.Op == nil {
-		return fmt.Errorf("order operator must be specified")
-	}
-	if o.Format != nil {
-		if err := o.Format.checkType(reflect.TypeOf(o.Limit)); err != nil {
-			return err
-		}
-	}
-	if o.Func != nil {
-		if err := o.Func.checkType(reflect.TypeOf(o.Limit)); err != nil {
-			return err
-		}
-	} else {
-		// If no custom order function is provided, we can only support types that are ordered by Go's built-in comparison operators.
-		limitType := reflect.TypeOf(o.Limit)
-		switch limitType.Kind() {
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
-			reflect.Float32, reflect.Float64,
-			reflect.String:
-			// These types are supported by Go's built-in comparison operators.
-		default:
-			return fmt.Errorf("type %s does not support ordering and no custom order function was provided", limitType)
-		}
-	}
-	return nil
-}
-
 func (o *Order) Match(val any) (*Result, error) {
 	h := &Helper{
 		Meta: MetaHere(),
 		Val:  val,
 	}
 	h.Context("limit", o.Limit)
-	if err := o.Validate(); err != nil {
-		return nil, h.Fatal(err)
+	if o.Limit == nil {
+		return nil, h.Fatalf("order limit must be specified")
+	}
+	if o.Op == nil {
+		return nil, h.Fatalf("order operator must be specified")
+	}
+	if o.Format != nil {
+		if err := o.Format.checkType(reflect.TypeOf(o.Limit)); err != nil {
+			return nil, h.Fatal(err)
+		}
 	}
 	var orderResult int
 	if o.Func != nil {
@@ -173,6 +149,11 @@ func (o *Order) Match(val any) (*Result, error) {
 			return nil, h.Fatal(err)
 		}
 	} else {
+		gotType := reflect.TypeOf(val)
+		limitType := reflect.TypeOf(o.Limit)
+		if gotType != limitType {
+			return nil, h.Fatalf("type mismatch: expected type %s but got type %s", limitType, gotType)
+		}
 		switch v := val.(type) {
 		case int:
 			orderResult = cmp.Compare(v, o.Limit.(int))
@@ -201,7 +182,7 @@ func (o *Order) Match(val any) (*Result, error) {
 		case string:
 			orderResult = cmp.Compare(v, o.Limit.(string))
 		default:
-			return nil, h.Fatalf("unsupported type %T", val)
+			return nil, h.Fatalf("type %s does not support ordering and no custom order function was provided", limitType)
 		}
 	}
 	if ok, err := o.Op.evaluate(orderResult); err != nil {

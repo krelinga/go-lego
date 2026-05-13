@@ -4,10 +4,6 @@ import "reflect"
 
 type Nil struct{}
 
-func (n Nil) Validate() error {
-	return nil
-}
-
 func (n Nil) Match(val any) (*Result, error) {
 	h := &Helper{
 		Meta: MetaHere(),

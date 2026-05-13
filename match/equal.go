@@ -108,39 +108,16 @@ type Equal struct {
 	Approx *Approx
 }
 
-func (e Equal) Validate() error {
-	if e.Want == nil {
-		return fmt.Errorf("Equal matcher requires a non-nil Want value")
-	}
-	wantType := reflect.TypeOf(e.Want)
-	if e.Approx != nil {
-		if e.Func != nil {
-			return fmt.Errorf("Equal matcher cannot have both Func and Approx set")
-		}
-		if err := e.Approx.checkType(wantType); err != nil {
-			return err
-		}
-	}
-	if e.Func != nil {
-		if err := e.Func.checkType(wantType); err != nil {
-			return err
-		}
-	} else if !wantType.Comparable() {
-		return fmt.Errorf("Equal matcher requires a comparable type for Want when Func is not set, but got type %s", wantType)
-	}
-	return nil
-}
-
 func (e *Equal) Match(val any) (*Result, error) {
 	h := &Helper{
 		Meta: MetaHere(),
 		Val:  val,
 	}
 	h.Context("expected", e.Want)
-	if err := e.Validate(); err != nil {
-		return nil, h.Fatal(err)
-	}
 	if e.Func != nil {
+		if e.Approx != nil {
+			return nil, h.Fatalf("Approx cannot be used when Func is specified")
+		}
 		return e.matchWithFunc(h, val)
 	} else if e.Approx != nil {
 		return e.matchApprox(h, val)
@@ -160,7 +137,8 @@ func (e *Equal) matchWithFunc(h *Helper, val any) (*Result, error) {
 	return h.Reject("values are not equal according to custom function"), nil
 }
 
-func (e Equal) matchApprox(h *Helper, val any) (*Result, error) {
+func (e *Equal) matchApprox(h *Helper, val any) (*Result, error) {
+	h.Context("tolerance", e.Approx.approx)
 	accept, err := e.Approx.equal(e.Want, val)
 	if err != nil {
 		return nil, h.Fatal(err)
@@ -175,6 +153,9 @@ func (e *Equal) matchWithEquality(h *Helper, val any) (*Result, error) {
 	gotType := reflect.TypeOf(val)
 	wantType := reflect.TypeOf(e.Want)
 
+	if !wantType.Comparable() {
+		return nil, h.Fatalf("type %s is not comparable, so it cannot be used with match.Equal without a custom function", wantType)
+	}
 	if gotType != wantType {
 		return nil, h.Fatalf("type mismatch: expected type %s but got type %s", wantType, gotType)
 	}

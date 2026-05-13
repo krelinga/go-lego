@@ -58,9 +58,6 @@ func TestEqual(t *testing.T) {
 
 	tryMatch := func(t *testing.T, val any, m m.Matcher) {
 		t.Helper()
-		if err := m.Validate(); err != nil {
-			t.Fatalf("unexpected validation error: %v", err)
-		}
 		r, err := m.Match(val)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
