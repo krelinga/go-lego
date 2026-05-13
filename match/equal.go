@@ -10,8 +10,8 @@ type EqualFunc struct {
 	f any
 }
 
-func NewEqualFunc[T any](f func(T, T) bool) EqualFunc {
-	return EqualFunc{f: f}
+func NewEqualFunc[T any](f func(T, T) bool) *EqualFunc {
+	return &EqualFunc{f: f}
 }
 
 func (e *EqualFunc) checkInit() error {
@@ -182,4 +182,10 @@ func (e *Equal) matchWithEquality(h *Helper, val any) (*Result, error) {
 		return h.Reject("values are not equal"), nil
 	}
 	return h.Accept("values are equal"), nil
+}
+
+func EqualCmp[T comparable](want T) *Equal {
+	return &Equal{
+		Want: want,
+	}
 }
