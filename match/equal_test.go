@@ -27,9 +27,7 @@ func tryMatch(t *testing.T, val any, m m.Matcher) {
 
 func TestEqual(t *testing.T) {
 	t.Run("basic equality", func(t *testing.T) {
-		m := m.Equal{
-			Want: 42,
-		}
+		m := m.Equal(42)
 		r, err := m.Match(42)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -44,10 +42,7 @@ func TestEqual(t *testing.T) {
 			aStr, bStr := a.String(), b.String()
 			return strings.EqualFold(aStr, bStr)
 		}
-		m := m.Equal{
-			Func: m.NewEqualFunc(caselessEq),
-			Want: StringStringer("Hello, World!"),
-		}
+		m := m.EqualFunc(StringStringer("Hello, World!"), caselessEq)
 		r, err := m.Match(StringStringer("hello, world!"))
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -57,8 +52,9 @@ func TestEqual(t *testing.T) {
 		}
 	})
 
-	t.Run("EqualCmp", func(t *testing.T) {
-		r, err := m.EqualCmp(3.14).Match(3.14)
+	t.Run("approx", func(t *testing.T) {
+		m := m.EqualApprox(3.14, 0.01)
+		r, err := m.Match(3.1415)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -68,11 +64,9 @@ func TestEqual(t *testing.T) {
 	})
 
 	t.Run("with tryMatch", func(t *testing.T) {
-		tryMatch(t, 42, m.EqualCmp(42))
-		tryMatch(t, "hello", &m.Equal{Want: "hello"})
-		tryMatch(t, "Hello World", &m.Equal{
-			Func: m.NewEqualFunc(strings.EqualFold),
-			Want: "hello world",
-		})
+		tryMatch(t, 42, m.Equal(42))
+		tryMatch(t, "hello", m.Equal("hello"))
+		tryMatch(t, "Hello World", m.EqualFunc("hello world", strings.EqualFold))
+		tryMatch(t, 3.14159, m.EqualApprox(3.14, 0.01))
 	})
 }

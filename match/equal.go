@@ -1,172 +1,160 @@
 package match
 
 import (
-	"fmt"
 	"math"
-	"reflect"
 )
 
-type EqualFunc struct {
-	f any
+type EqualMatcher[T comparable] struct {
+	meta    Meta
+	want    T
+	wantFmt Fmt[T]
+	gotFmt  Fmt[any]
+	valid   bool
 }
 
-func NewEqualFunc[T any](f func(T, T) bool) *EqualFunc {
-	return &EqualFunc{f: f}
-}
-
-func (e *EqualFunc) checkInit() error {
-	if e.f == nil {
-		return fmt.Errorf("match.EqualFunc must be created with match.NewEqualFunc")
-	}
-	return nil
-}
-
-func (e *EqualFunc) checkType(t reflect.Type) error {
-	if err := e.checkInit(); err != nil {
-		return err
-	}
-	wantType := reflect.TypeOf(e.f).In(0)
-	if !t.AssignableTo(wantType) {
-		return fmt.Errorf("equal function expects a type assignable to %s but got type %s", wantType, t)
-	}
-	return nil
-}
-
-func (e *EqualFunc) equal(a, b any) (bool, error) {
-	if err := e.checkType(reflect.TypeOf(a)); err != nil {
-		return false, err
-	}
-	if err := e.checkType(reflect.TypeOf(b)); err != nil {
-		return false, err
-	}
-	fVal := reflect.ValueOf(e.f)
-	result := fVal.Call([]reflect.Value{reflect.ValueOf(a), reflect.ValueOf(b)})
-	return result[0].Bool(), nil
-}
-
-type Approx struct {
-	approx any
-}
-
-func NewApprox[T interface{ float32 | float64 }](approx T) Approx {
-	return Approx{approx: approx}
-}
-
-func (e *Approx) checkInit() error {
-	if e.approx == nil {
-		return fmt.Errorf("match.Approx must be created with match.NewApprox")
-	}
-	return nil
-}
-
-func (e *Approx) checkType(t reflect.Type) error {
-	if err := e.checkInit(); err != nil {
-		return err
-	}
-	wantType := reflect.TypeOf(e.approx)
-	if !t.ConvertibleTo(wantType) {
-		return fmt.Errorf("approx value must be convertible to %s but got type %s", wantType, t)
-	}
-	return nil
-}
-
-func (e *Approx) equal(a, b any) (bool, error) {
-	if err := e.checkType(reflect.TypeOf(a)); err != nil {
-		return false, err
-	}
-	if err := e.checkType(reflect.TypeOf(b)); err != nil {
-		return false, err
-	}
-	aVal := reflect.ValueOf(a).Convert(reflect.TypeOf(e.approx)).Float()
-	bVal := reflect.ValueOf(b).Convert(reflect.TypeOf(e.approx)).Float()
-	approxVal := reflect.ValueOf(e.approx).Float()
-	diff := aVal - bVal
-	return math.Abs(diff) <= approxVal, nil
-}
-
-type Equal struct {
-	// The expected value to compare against.  Requirements:
-	//   - Must be non-nil.
-	//   - Must be a comparable type (unless Func is non-nil).
-	Want any
-
-	// Optional function to compare the expected and actual values.  If non-nil, this function will be used instead of the default equality check.  Requirements:
-	//   - Must be a function type that accepts two parameters of the same type and returns a bool.
-	//   - The type Want must be assignable to the parameter type of the function.
-	Func *EqualFunc
-
-	// Optional format function to use in the Result.  If non-nil, this function will be used to format the expected and actual values in the Result.  Requirements:
-	//   - Must be a function type that accepts a single parameter and returns a string.
-	//   - The parameter type of the function must be assignable from the type of Want and the type of the actual value.
-	Format *Format
-
-	// If non-nil, this value will be used as a tolerance when comparing floating point numbers.  Requirements:
-	//   - Must be a floating point numeric type (e.g. float32, float64).
-	//   - The type of the value must be assignable to the type of the actual value.
-	//   - If Func is non-nil, this value must be nil.
-	//   - If Want is not a floating point numeric type, this value must be nil.
-	Approx *Approx
-}
-
-func (e *Equal) Match(val any) (*Result, error) {
+func (m *EqualMatcher[T]) Match(val any) (*Result, error) {
 	h := &Helper{
-		Meta: MetaHere(),
+		Meta: m.meta,
 		Val:  val,
 	}
-	h.Context("expected", e.Want)
-	if e.Func != nil {
-		if e.Approx != nil {
-			return nil, h.Fatalf("Approx cannot be used when Func is specified")
-		}
-		return e.matchWithFunc(h, val)
-	} else if e.Approx != nil {
-		return e.matchApprox(h, val)
-	} else {
-		return e.matchWithEquality(h, val)
+	if !m.valid {
+		return nil, h.Fatalf("EqualMatcher must be created with Equal")
 	}
-}
-
-func (e *Equal) matchWithFunc(h *Helper, val any) (*Result, error) {
-	accept, err := e.Func.equal(e.Want, val)
+	h.Context("expected", m.want)
+	asT, err := As[T](h, val)
 	if err != nil {
-		return nil, h.Fatal(err)
+		return nil, err
 	}
-	if accept {
-		return h.Accept("values are equal according to custom function"), nil
+	if asT != m.want {
+		return h.Reject("got != expected"), nil
 	}
-	return h.Reject("values are not equal according to custom function"), nil
+	return h.Accept("got == expected"), nil
 }
 
-func (e *Equal) matchApprox(h *Helper, val any) (*Result, error) {
-	h.Context("tolerance", e.Approx.approx)
-	accept, err := e.Approx.equal(e.Want, val)
+func (m *EqualMatcher[T]) WantFmt(t Fmt[T]) *EqualMatcher[T] {
+	m.wantFmt = t
+	return m
+}
+
+func (m *EqualMatcher[T]) GotFmt(t Fmt[any]) *EqualMatcher[T] {
+	m.gotFmt = t
+	return m
+}
+
+func Equal[T comparable](want T) *EqualMatcher[T] {
+	return &EqualMatcher[T]{
+		meta:  MetaHere(),
+		want:  want,
+		valid: true,
+	}
+}
+
+type FloatingPoint interface {
+	~float32 | ~float64
+}
+
+type EqualApproxMatcher[T FloatingPoint] struct {
+	meta      Meta
+	want      T
+	approx    T
+	wantFmt   Fmt[T]
+	gotFmt    Fmt[any]
+	approxFmt Fmt[T]
+	valid     bool
+}
+
+func (m *EqualApproxMatcher[T]) Match(val any) (*Result, error) {
+	h := &Helper{
+		Meta: m.meta,
+		Val:  val,
+	}
+	if !m.valid {
+		return nil, h.Fatalf("EqualApproxMatcher must be created with EqualApprox")
+	}
+	h.Context("expected", m.want)
+	h.Context("tolerance", m.approx)
+	asT, err := As[T](h, val)
 	if err != nil {
-		return nil, h.Fatal(err)
+		return nil, err
 	}
-	if accept {
-		return h.Accept("values are approximately equal"), nil
+	diff := asT - m.want
+	if math.Abs(float64(diff)) > math.Abs(float64(m.approx)) {
+		return h.Reject("got is not approximately equal to expected"), nil
 	}
-	return h.Reject("values are not approximately equal"), nil
+	return h.Accept("got is approximately equal to expected"), nil
 }
 
-func (e *Equal) matchWithEquality(h *Helper, val any) (*Result, error) {
-	gotType := reflect.TypeOf(val)
-	wantType := reflect.TypeOf(e.Want)
-
-	if !wantType.Comparable() {
-		return nil, h.Fatalf("type %s is not comparable, so it cannot be used with match.Equal without a custom function", wantType)
-	}
-	if gotType != wantType {
-		return nil, h.Fatalf("type mismatch: expected type %s but got type %s", wantType, gotType)
-	}
-	if val != e.Want {
-		return h.Reject("values are not equal"), nil
-	}
-	return h.Accept("values are equal"), nil
+func (m *EqualApproxMatcher[T]) WantFmt(t Fmt[T]) *EqualApproxMatcher[T] {
+	m.wantFmt = t
+	return m
 }
 
-func EqualCmp[T comparable](want T) *Equal {
-	return &Equal{
-		Want: want,
+func (m *EqualApproxMatcher[T]) ApproxFmt(t Fmt[T]) *EqualApproxMatcher[T] {
+	m.approxFmt = t
+	return m
+}
+
+func (m *EqualApproxMatcher[T]) GotFmt(t Fmt[any]) *EqualApproxMatcher[T] {
+	m.gotFmt = t
+	return m
+}
+
+func EqualApprox[T FloatingPoint](want T, approx T) *EqualApproxMatcher[T] {
+	return &EqualApproxMatcher[T]{
+		meta:   MetaHere(),
+		want:   want,
+		approx: approx,
+		valid:  true,
+	}
+}
+
+type EqualFuncMatcher[T, TT any] struct {
+	meta      Meta
+	want      T
+	equalFunc func(TT, TT) bool
+	wantFmt   Fmt[T]
+	gotFmt    Fmt[any]
+	valid     bool
+}
+
+func (m *EqualFuncMatcher[T, TT]) Match(val any) (*Result, error) {
+	h := &Helper{
+		Meta: m.meta,
+		Val:  val,
+	}
+	if !m.valid {
+		return nil, h.Fatalf("EqualFuncMatcher must be created with EqualFunc")
+	}
+	h.Context("expected", m.want)
+	wantTT, ok := any(m.want).(TT)
+	if !ok {
+		return nil, h.Fatalf("expected value of type %T cannot be used with equal function that expects type %T", m.want, wantTT)
+	}
+	gotTT, err := As[TT](h, val)
+	if err != nil {
+		return nil, err
+	}
+	if !m.equalFunc(wantTT, gotTT) {
+		return h.Reject("got != expected according to equal function"), nil
+	}
+	return h.Accept("got == expected according to equal function"), nil
+}
+
+func (m *EqualFuncMatcher[T, TT]) WantFmt(t Fmt[T]) *EqualFuncMatcher[T, TT] {
+	m.wantFmt = t
+	return m
+}
+
+func (m *EqualFuncMatcher[T, TT]) GotFmt(t Fmt[any]) *EqualFuncMatcher[T, TT] {
+	m.gotFmt = t
+	return m
+}
+
+func EqualFunc[T, TT any](want T, equalFunc func(TT, TT) bool) *EqualFuncMatcher[T, TT] {
+	return &EqualFuncMatcher[T, TT]{
+		meta:      MetaHere(),
+		want:      want,
+		equalFunc: equalFunc,
+		valid:     true,
 	}
 }

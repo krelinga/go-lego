@@ -2,6 +2,9 @@ package match
 
 import (
 	"fmt"
+	"reflect"
+
+	"github.com/krelinga/go-libs/zero"
 )
 
 type Helper struct {
@@ -66,4 +69,14 @@ func (h *Helper) Accept(why string) *Result {
 
 func (h *Helper) Reject(why string) *Result {
 	return h.result(false, why)
+}
+
+func As[T any](h *Helper, val any) (T, error) {
+	asT, ok := val.(T)
+	if !ok {
+		tType := reflect.TypeFor[T]()
+		valType := reflect.TypeOf(val)
+		return zero.For[T](), h.Fatalf("expected value of type %s but got type %s", tType, valType)
+	}
+	return asT, nil
 }
