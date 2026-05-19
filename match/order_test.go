@@ -8,10 +8,7 @@ import (
 
 func TestOrder(t *testing.T) {
 	t.Run("basic", func(t *testing.T) {
-		tryMatch(t, 5, &m.Order{
-			Op:    m.OrderOpGt(),
-			Limit: 3,
-		})
 		tryMatch(t, 5, m.OrderGt(3))
+		tryMatch(t, 5, m.OrderGte(3))
 	})
 }

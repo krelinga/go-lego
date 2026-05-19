@@ -3,228 +3,171 @@ package match
 import (
 	"cmp"
 	"fmt"
-	"reflect"
 )
 
-type OrderOp struct {
-	op     func(int) bool
-	str    string
-	invStr string
+type OrderMatcher[T, TT any] struct {
+	meta Meta
+	limit T
+	limitFmt Fmt[T]
+	gotFmt Fmt[any]
+	order func(TT, TT) int
+	check func(int) bool
+	acceptStr string
+	rejectStr string
+	valid bool
 }
 
-func (o *OrderOp) checkInit() error {
-	if o.op == nil {
-		return fmt.Errorf("OrderOp must be created with OrderOpLt, OrderOpGt, OrderOpLte, OrderOpGte, or OrderOpEq")
-	}
-	return nil
-}
-
-func (o *OrderOp) evaluate(i int) (bool, error) {
-	if err := o.checkInit(); err != nil {
-		return false, err
-	}
-	return o.op(i), nil
-}
-
-func OrderOpLt() *OrderOp {
-	return &OrderOp{
-		op: func(i int) bool {
-			return i < 0
-		},
-		str:    "<",
-		invStr: ">=",
-	}
-}
-
-func OrderOpGt() *OrderOp {
-	return &OrderOp{
-		op: func(i int) bool {
-			return i > 0
-		},
-		str:    ">",
-		invStr: "<=",
-	}
-}
-
-func OrderOpLte() *OrderOp {
-	return &OrderOp{
-		op: func(i int) bool {
-			return i <= 0
-		},
-		str:    "<=",
-		invStr: ">",
-	}
-}
-
-func OrderOpGte() *OrderOp {
-	return &OrderOp{
-		op: func(i int) bool {
-			return i >= 0
-		},
-		str:    ">=",
-		invStr: "<=",
-	}
-}
-
-func OrderOpEq() *OrderOp {
-	return &OrderOp{
-		op: func(i int) bool {
-			return i == 0
-		},
-		str:    "==",
-		invStr: "!=",
-	}
-}
-
-type OrderFunc struct {
-	f any
-}
-
-func NewOrderFunc[T any](f func(T, T) int) *OrderFunc {
-	if f == nil {
-		panic("match.NewOrderFunc must be called with a non-nil function")
-	}
-	return &OrderFunc{f: f}
-}
-
-func (o *OrderFunc) checkInit() error {
-	if o.f == nil {
-		return fmt.Errorf("match.OrderFunc must be created with match.NewOrderFunc")
-	}
-	return nil
-}
-
-func (o *OrderFunc) checkType(t reflect.Type) error {
-	if err := o.checkInit(); err != nil {
-		return err
-	}
-	wantType := reflect.TypeOf(o.f).In(0)
-	if !t.AssignableTo(wantType) {
-		return fmt.Errorf("order function expects a type assignable to %s but got type %s", wantType, t)
-	}
-	return nil
-}
-
-func (o *OrderFunc) order(a, b any) (int, error) {
-	if err := o.checkType(reflect.TypeOf(a)); err != nil {
-		return 0, err
-	}
-	if err := o.checkType(reflect.TypeOf(b)); err != nil {
-		return 0, err
-	}
-	fVal := reflect.ValueOf(o.f)
-	result := fVal.Call([]reflect.Value{reflect.ValueOf(a), reflect.ValueOf(b)})
-	return int(result[0].Int()), nil
-}
-
-type Order struct {
-	Limit  any
-	Op     *OrderOp
-	Func   *OrderFunc
-	Format *Format
-}
-
-func (o *Order) Match(val any) (*Result, error) {
+func (o *OrderMatcher[T, TT]) Match(val any) (*Result, error) {
 	h := &Helper{
-		Meta: MetaHere(),
+		Meta: o.meta,
 		Val:  val,
 	}
-	h.Context("limit", o.Limit)
-	if o.Limit == nil {
-		return nil, h.Fatalf("order limit must be specified")
+	if !o.valid {
+		return nil, h.Fatalf("OrderMatcher must be created with OrderLt OrderLtFunc, OrderGt, OrderGtFunc, OrderLte, OrderLteFunc, OrderGte, OrderGteFunc, OrderEq, or OrderEqFunc")
 	}
-	if o.Op == nil {
-		return nil, h.Fatalf("order operator must be specified")
+	h.Context("limit", o.limit)
+	limitTT, ok := any(o.limit).(TT)
+	if !ok {
+		return nil, h.Fatalf("limit of type %T is not assignable to order function type %T", o.limit, limitTT)
 	}
-	if o.Format != nil {
-		if err := o.Format.checkType(reflect.TypeOf(o.Limit)); err != nil {
-			return nil, h.Fatal(err)
-		}
+	gotTT, err := As[TT](h, val)
+	if err != nil {
+		return nil, err
 	}
-	var orderResult int
-	if o.Func != nil {
-		var err error
-		orderResult, err = o.Func.order(val, o.Limit)
-		if err != nil {
-			return nil, h.Fatal(err)
-		}
+	result := o.order(gotTT, limitTT)
+	if o.check(result) {
+		return h.Accept(fmt.Sprintf("got %s limit", o.acceptStr)), nil
 	} else {
-		gotType := reflect.TypeOf(val)
-		limitType := reflect.TypeOf(o.Limit)
-		if gotType != limitType {
-			return nil, h.Fatalf("type mismatch: expected type %s but got type %s", limitType, gotType)
-		}
-		switch v := val.(type) {
-		case int:
-			orderResult = cmp.Compare(v, o.Limit.(int))
-		case int8:
-			orderResult = cmp.Compare(v, o.Limit.(int8))
-		case int16:
-			orderResult = cmp.Compare(v, o.Limit.(int16))
-		case int32:
-			orderResult = cmp.Compare(v, o.Limit.(int32))
-		case int64:
-			orderResult = cmp.Compare(v, o.Limit.(int64))
-		case uint:
-			orderResult = cmp.Compare(v, o.Limit.(uint))
-		case uint8:
-			orderResult = cmp.Compare(v, o.Limit.(uint8))
-		case uint16:
-			orderResult = cmp.Compare(v, o.Limit.(uint16))
-		case uint32:
-			orderResult = cmp.Compare(v, o.Limit.(uint32))
-		case uint64:
-			orderResult = cmp.Compare(v, o.Limit.(uint64))
-		case float32:
-			orderResult = cmp.Compare(v, o.Limit.(float32))
-		case float64:
-			orderResult = cmp.Compare(v, o.Limit.(float64))
-		case string:
-			orderResult = cmp.Compare(v, o.Limit.(string))
-		default:
-			return nil, h.Fatalf("type %s does not support ordering and no custom order function was provided", limitType)
-		}
-	}
-	if ok, err := o.Op.evaluate(orderResult); err != nil {
-		return nil, h.Fatal(err)
-	} else if ok {
-		return h.Accept(fmt.Sprintf("value %s limit", o.Op.str)), nil
-	} else {
-		return h.Reject(fmt.Sprintf("value %s limit", o.Op.invStr)), nil
+		return h.Reject(fmt.Sprintf("got %s limit", o.rejectStr)), nil
 	}
 }
 
-func OrderLt[T comparable](limit T) *Order {
-	return &Order{
-		Limit: limit,
-		Op:    OrderOpLt(),
+func (o *OrderMatcher[T, TT]) LimitFmt(t Fmt[T]) *OrderMatcher[T, TT] {
+	o.limitFmt = t
+	return o
+}
+
+func (o *OrderMatcher[T, TT]) GotFmt(t Fmt[any]) *OrderMatcher[T, TT] {
+	o.gotFmt = t
+	return o
+}
+
+func OrderLt[T cmp.Ordered](limit T) *OrderMatcher[T, T] {
+	return &OrderMatcher[T, T]{
+		meta:      MetaHere(),
+		limit:     limit,
+		order:     cmp.Compare[T],
+		check:     func(i int) bool { return i < 0 },
+		acceptStr: "<",
+		rejectStr: ">=",
+		valid:     true,
 	}
 }
 
-func OrderGt[T comparable](limit T) *Order {
-	return &Order{
-		Limit: limit,
-		Op:    OrderOpGt(),
+func OrderLtFunc[T, TT any](limit T, orderFunc func(TT, TT) int) *OrderMatcher[T, TT] {
+	return &OrderMatcher[T, TT]{
+		meta:      MetaHere(),
+		limit:     limit,
+		order:     orderFunc,
+		check:     func(i int) bool { return i < 0 },
+		acceptStr: "<",
+		rejectStr: ">=",
+		valid:     true,
 	}
 }
 
-func OrderLte[T comparable](limit T) *Order {
-	return &Order{
-		Limit: limit,
-		Op:    OrderOpLte(),
+func OrderGt[T cmp.Ordered](limit T) *OrderMatcher[T, T] {
+	return &OrderMatcher[T, T]{
+		meta:      MetaHere(),
+		limit:     limit,
+		order:     cmp.Compare[T],
+		check:     func(i int) bool { return i > 0 },
+		acceptStr: ">",
+		rejectStr: "<=",
+		valid:     true,
 	}
 }
 
-func OrderGte[T comparable](limit T) *Order {
-	return &Order{
-		Limit: limit,
-		Op:    OrderOpGte(),
+func OrderGtFunc[T, TT any](limit T, orderFunc func(TT, TT) int) *OrderMatcher[T, TT] {
+	return &OrderMatcher[T, TT]{
+		meta:      MetaHere(),
+		limit:     limit,
+		order:     orderFunc,
+		check:     func(i int) bool { return i > 0 },
+		acceptStr: ">",
+		rejectStr: "<=",
+		valid:     true,
 	}
 }
 
-func OrderEq[T comparable](limit T) *Order {
-	return &Order{
-		Limit: limit,
-		Op:    OrderOpEq(),
+func OrderLte[T cmp.Ordered](limit T) *OrderMatcher[T, T] {
+	return &OrderMatcher[T, T]{
+		meta:      MetaHere(),
+		limit:     limit,
+		order:     cmp.Compare[T],
+		check:     func(i int) bool { return i <= 0 },
+		acceptStr: "<=",
+		rejectStr: ">",
+		valid:     true,
+	}
+}
+
+func OrderLteFunc[T, TT any](limit T, orderFunc func(TT, TT) int) *OrderMatcher[T, TT] {
+	return &OrderMatcher[T, TT]{
+		meta:      MetaHere(),
+		limit:     limit,
+		order:     orderFunc,
+		check:     func(i int) bool { return i <= 0 },
+		acceptStr: "<=",
+		rejectStr: ">",
+		valid:     true,
+	}
+}
+
+func OrderGte[T cmp.Ordered](limit T) *OrderMatcher[T, T] {
+	return &OrderMatcher[T, T]{
+		meta:      MetaHere(),
+		limit:     limit,
+		order:     cmp.Compare[T],
+		check:     func(i int) bool { return i >= 0 },
+		acceptStr: ">=",
+		rejectStr: "<",
+		valid:     true,
+	}
+}
+
+func OrderGteFunc[T, TT any](limit T, orderFunc func(TT, TT) int) *OrderMatcher[T, TT] {
+	return &OrderMatcher[T, TT]{
+		meta:      MetaHere(),
+		limit:     limit,
+		order:     orderFunc,
+		check:     func(i int) bool { return i >= 0 },
+		acceptStr: ">=",
+		rejectStr: "<",
+		valid:     true,
+	}
+}
+
+func OrderEq[T cmp.Ordered](limit T) *OrderMatcher[T, T] {
+	return &OrderMatcher[T, T]{
+		meta:      MetaHere(),
+		limit:     limit,
+		order:     cmp.Compare[T],
+		check:     func(i int) bool { return i == 0 },
+		acceptStr: "==",
+		rejectStr: "!=",
+		valid:     true,
+	}
+}
+
+func OrderEqFunc[T, TT any](limit T, orderFunc func(TT, TT) int) *OrderMatcher[T, TT] {
+	return &OrderMatcher[T, TT]{
+		meta:      MetaHere(),
+		limit:     limit,
+		order:     orderFunc,
+		check:     func(i int) bool { return i == 0 },
+		acceptStr: "==",
+		rejectStr: "!=",
+		valid:     true,
 	}
 }
