@@ -7,6 +7,6 @@ import (
 )
 
 func TestNil(t *testing.T) {
-	tryMatch(t, nil, m.Nil{})
-	tryMatch(t, &struct{}{}, m.Not(m.Nil{}))
+	tryMatch(t, nil, m.Nil())
+	tryMatch(t, &struct{}{}, m.Not(m.Nil()))
 }

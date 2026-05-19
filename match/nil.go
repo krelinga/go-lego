@@ -2,12 +2,19 @@ package match
 
 import "reflect"
 
-type Nil struct{}
+type NilMatcher struct {
+	meta   Meta
+	gotFmt Fmt[any]
+	valid  bool
+}
 
-func (n Nil) Match(val any) (*Result, error) {
+func (m *NilMatcher) Match(val any) (*Result, error) {
 	h := &Helper{
-		Meta: MetaHere(),
+		Meta: m.meta,
 		Val:  val,
+	}
+	if !m.valid {
+		return nil, h.Fatalf("Nil matcher must be created with Nil()")
 	}
 	const acceptStr = "value is nil"
 
@@ -23,5 +30,17 @@ func (n Nil) Match(val any) (*Result, error) {
 			return h.Reject("value is not nil"), nil
 		}
 	}
-	return nil, h.Fatalf("Nil matcher only accepts nil-able types, but got type %s", rVal.Type())
+	return nil, h.Fatalf("XNil matcher only accepts nil-able types, but got type %s", rVal.Type())
+}
+
+func (m *NilMatcher) GotFmt(t Fmt[any]) *NilMatcher {
+	m.gotFmt = t
+	return m
+}
+
+func Nil() *NilMatcher {
+	return &NilMatcher{
+		meta:  MetaHere(),
+		valid: true,
+	}
 }
