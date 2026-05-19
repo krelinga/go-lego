@@ -1,15 +1,21 @@
 package match
 
-type not struct {
-	Matcher Matcher
+type NotMatcher struct {
+	meta    Meta
+	matcher Matcher
+	fmtGot  Fmt[any]
+	valid   bool
 }
 
-func (n *not) Match(val any) (*Result, error) {
+func (n *NotMatcher) Match(val any) (*Result, error) {
 	h := &Helper{
-		Meta: MetaHere(),
+		Meta: n.meta,
 		Val:  val,
 	}
-	childAccepted, err := h.Child("", val, n.Matcher)
+	if !n.valid {
+		return nil, h.Fatalf("Not matcher must be created with Not()")
+	}
+	childAccepted, err := h.Child("", val, n.matcher)
 	if err != nil {
 		return nil, err
 	}
@@ -20,8 +26,15 @@ func (n *not) Match(val any) (*Result, error) {
 	}
 }
 
+func (n *NotMatcher) GotFmt(t Fmt[any]) *NotMatcher {
+	n.fmtGot = t
+	return n
+}
+
 func Not(m Matcher) Matcher {
-	return &not{
-		Matcher: m,
+	return &NotMatcher{
+		meta:    MetaHere(),
+		matcher: m,
+		valid:   true,
 	}
 }
